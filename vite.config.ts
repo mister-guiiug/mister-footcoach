@@ -1,0 +1,94 @@
+import { defineConfig, type PluginOption } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import { VitePWA } from 'vite-plugin-pwa';
+import { visualizer } from 'rollup-plugin-visualizer';
+
+const analyze = process.env.ANALYZE === '1';
+
+export default defineConfig({
+  base: '/mister-footcoach/',
+  build: {
+    sourcemap: true,
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          const norm = id.replace(/\\/g, '/');
+          if (
+            norm.includes('/react-dom/') ||
+            norm.includes('/node_modules/react/') ||
+            norm.includes('/scheduler/')
+          ) {
+            return 'react-vendor';
+          }
+          if (norm.includes('/react-router')) return 'router';
+          if (norm.includes('/lucide-react/')) return 'lucide';
+          if (norm.includes('/tailwindcss/')) return 'tailwind';
+          return 'vendor';
+        },
+      },
+    },
+  },
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: 'prompt',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webmanifest}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              expiration: { maxEntries: 16, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+      },
+      includeAssets: ['favicon.ico', 'pwa-192x192.png', 'pwa-512x512.png', 'logo.svg'],
+      manifest: {
+        name: 'Mister Footcoach',
+        short_name: 'Footcoach',
+        description: 'Application PWA pour les coachs de football : équipes, compositions, stats.',
+        start_url: '/mister-footcoach/',
+        scope: '/mister-footcoach/',
+        theme_color: '#16a34a',
+        background_color: '#ffffff',
+        display: 'standalone',
+        icons: [
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+    }),
+    ...(analyze
+      ? [
+          visualizer({
+            filename: 'dist/stats.html',
+            gzipSize: true,
+            brotliSize: true,
+            open: !process.env.CI,
+          }) as PluginOption,
+        ]
+      : []),
+  ],
+});
