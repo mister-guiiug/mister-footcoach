@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
-import { Clock, Users } from 'lucide-react';
-import { Card, CardHeader } from '../components/ui/Card';
+import { Clock } from 'lucide-react';
+import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import {

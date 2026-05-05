@@ -398,6 +398,14 @@ describe('selector hooks', () => {
     expect(result.current?.id).toBe(MOCK_DATA.teams[0].id);
   });
 
+  it('useSelectedTeam falls back to first team when selectedTeamId not found', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ...MOCK_DATA, selectedTeamId: 'nonexistent',
+    }));
+    const { result } = renderHook(() => useSelectedTeam(), { wrapper });
+    expect(result.current?.id).toBe(MOCK_DATA.teams[0].id);
+  });
+
   it('useTeam returns undefined for unknown id', () => {
     const { result } = renderHook(() => useTeam('unknown'), { wrapper });
     expect(result.current).toBeUndefined();

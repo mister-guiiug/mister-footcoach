@@ -150,7 +150,7 @@ function reducer(state: AppState, action: Action): AppState {
 
     case 'RESET_TO_MOCK':
       /* istanbul ignore next */
-      return { ...MOCK_DATA, selectedTeamId: MOCK_DATA.teams[0]?.id ?? '' };
+      return { ...MOCK_DATA, selectedTeamId: MOCK_DATA.teams[0]!.id };
 
     /* c8 ignore next */
     default: return state;
@@ -169,7 +169,7 @@ function loadState(): AppState {
   } catch {
     // ignore
   }
-  return { ...MOCK_DATA, selectedTeamId: MOCK_DATA.teams[0]?.id ?? '' };
+  return { ...MOCK_DATA, selectedTeamId: MOCK_DATA.teams[0]!.id };
 }
 
 function saveState(state: AppState): void {

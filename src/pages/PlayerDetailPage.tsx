@@ -30,10 +30,6 @@ export default function PlayerDetailPage() {
   const positionHistory = usePositionHistory(id!);
 
   // Compute attendance rate
-  const allTrainings = useTrainings(player?.primaryTeamId);
-  const allMatches = useMatches(player?.primaryTeamId);
-  const trainingAttendances = useAttendances('training', '');
-  const matchAttendances = useAttendances('match', '');
 
   if (!player) {
     return (

@@ -65,9 +65,22 @@ describe('TournamentsPage', () => {
 
   it('shows empty state when no tournaments', () => {
     localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, tournaments: [], selectedTeamId: MOCK_DATA.teams[0]?.id ?? '',
+      ...MOCK_DATA, tournaments: [], selectedTeamId: MOCK_DATA.teams[0]!.id,
     }));
     renderWithProviders(<TournamentsPage />);
     expect(screen.getByText('Aucun tournoi')).toBeInTheDocument();
+  });
+
+  it('shows raw format when format key is unknown', () => {
+    const unknownFormatTournament = {
+      ...MOCK_DATA.tournaments[0],
+      id: 'to-custom',
+      format: 'custom_format',
+    };
+    localStorage.setItem('mister-footcoach-data', JSON.stringify({
+      ...MOCK_DATA, tournaments: [unknownFormatTournament], selectedTeamId: MOCK_DATA.teams[0]!.id,
+    }));
+    renderWithProviders(<TournamentsPage />);
+    expect(screen.getByText(/custom_format/)).toBeInTheDocument();
   });
 });

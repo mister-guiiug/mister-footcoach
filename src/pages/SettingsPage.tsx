@@ -3,7 +3,6 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useTheme } from '../theme/ThemeContext';
 import { useAppContext } from '../store/AppContext';
-import { MOCK_DATA } from '../data/mock';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
