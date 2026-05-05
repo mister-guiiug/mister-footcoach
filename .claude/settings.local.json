@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ' *)",
+      "Bash(gh repo *)",
+      "Bash(git cherry-pick *)",
+      "Bash(gh pr create --base main --head feat/skeleton --title 'feat: squelette PWA mister-footcoach' --body ' *)"
+    ]
+  }
+}
