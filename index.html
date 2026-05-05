@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <script>
+      (function () {
+        try {
+          var k = 'mister_footcoach_theme';
+          var t = localStorage.getItem(k);
+          var sys = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var dark = t === 'dark' || ((t === 'system' || t === null) && sys);
+          if (t === 'light') dark = false;
+          if (dark) document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        } catch (e) {}
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="alternate icon" type="image/png" href="/pwa-192x192.png" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#16a34a" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#14532d" media="(prefers-color-scheme: dark)" />
+    <meta
+      name="description"
+      content="Mister Footcoach — application PWA pour les coachs de football : gestion d'équipes, compositions tactiques, statistiques de match."
+    />
+    <meta
+      name="keywords"
+      content="football, coach, équipe, composition, tactique, statistiques, PWA, application"
+    />
+    <meta name="application-name" content="Mister Footcoach" />
+    <meta name="author" content="Mister Footcoach" />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Mister Footcoach" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:title" content="Mister Footcoach — coach de football" />
+    <meta
+      property="og:description"
+      content="Gérez vos équipes, créez vos compositions tactiques et suivez vos statistiques de match. Web app installable (PWA)."
+    />
+
+    <title>Mister Footcoach</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
