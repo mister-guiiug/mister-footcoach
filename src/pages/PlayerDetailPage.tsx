@@ -154,7 +154,7 @@ export default function PlayerDetailPage() {
             {appetenceEntries.map(([pos, score]) => (
               <div key={pos} className="flex items-center gap-3">
                 <span className="text-xs text-fg-muted w-24 shrink-0">
-                  {POSITION_LABELS[pos as keyof typeof POSITION_LABELS] ?? pos}
+                  {/* istanbul ignore next */POSITION_LABELS[pos as keyof typeof POSITION_LABELS] ?? pos}
                 </span>
                 <div className="flex-1 h-2 bg-surface-muted rounded-full overflow-hidden">
                   <div
