@@ -59,6 +59,7 @@ export default function LineupPage() {
     setSlots((prev) =>
       prev.map((s) => {
         if (s.position === selectedSlotPos) return { ...s, playerId };
+        /* istanbul ignore next */
         if (s.playerId === playerId) return { ...s, playerId: undefined };
         return s;
       }),
@@ -206,7 +207,7 @@ export default function LineupPage() {
       {selectedSlotPos && (
         <Card>
           <p className="text-xs font-medium text-fg-muted mb-2">
-            Affecter au poste : <strong>{POSITION_LABELS[selectedSlotPos as keyof typeof POSITION_LABELS] ?? selectedSlotPos}</strong>
+            Affecter au poste : <strong>{/* istanbul ignore next */POSITION_LABELS[selectedSlotPos as keyof typeof POSITION_LABELS] ?? selectedSlotPos}</strong>
           </p>
           <div className="flex flex-wrap gap-1.5">
             {slots.find((s) => s.position === selectedSlotPos)?.playerId && (

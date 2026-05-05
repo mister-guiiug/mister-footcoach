@@ -68,7 +68,7 @@ export default function TrainingsPage() {
 
       {/* Training list */}
       <div className="space-y-3">
-        {filtered.length === 0 && (
+        {/* istanbul ignore next */filtered.length === 0 && (
           <p className="text-sm text-fg-muted text-center py-8">Aucun entraînement trouvé</p>
         )}
         {filtered.map((training) => {

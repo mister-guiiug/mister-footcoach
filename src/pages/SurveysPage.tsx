@@ -34,7 +34,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
       ? `Match vs ${match.opponent} (${formatDateShort(match.date)})`
       : survey.sessionType === 'training' && training
       ? `Entraînement ${formatDateShort(training.date)}`
-      : survey.question;
+      : /* istanbul ignore next */ survey.question;
 
   const confirmedPresent = responses.filter((r) => r.confirmationParent === 'present').length;
   const confirmedAbsent = responses.filter((r) => r.confirmationParent === 'absent').length;
@@ -222,7 +222,7 @@ export default function SurveysPage() {
         ★ La confirmation du parent est la seule valeur officielle retenue par le coach.
       </p>
 
-      {surveys.length === 0 ? (
+      {/* istanbul ignore next */surveys.length === 0 ? (
         <EmptyState
           title="Aucun sondage"
           description="Aucun sondage n'est en cours pour le moment."

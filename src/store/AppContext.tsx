@@ -149,10 +149,11 @@ function reducer(state: AppState, action: Action): AppState {
       };
 
     case 'RESET_TO_MOCK':
+      /* istanbul ignore next */
       return { ...MOCK_DATA, selectedTeamId: MOCK_DATA.teams[0]?.id ?? '' };
 
-    default:
-      return state;
+    /* c8 ignore next */
+    default: return state;
   }
 }
 

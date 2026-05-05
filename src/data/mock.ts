@@ -255,6 +255,17 @@ const players: Player[] = [
     number: 15,
     active: true,
   },
+  // Joueur sans numéro
+  {
+    id: 'p19',
+    firstName: 'Théo',
+    lastName: 'Marchand',
+    dateOfBirth: '2013-11-18',
+    primaryTeamId: 't1',
+    preferredPosition: 'AT',
+    appetences: { AT: 4, ATG: 3, ATD: 3 },
+    active: true,
+  },
 ];
 
 // ── Contacts ─────────────────────────────────────────────────────────
@@ -409,6 +420,22 @@ const matches: Match[] = [
     scoreAway: 1,
     liveActive: false,
   },
+  {
+    id: 'm6',
+    teamId: 't1',
+    seasonId: 's1',
+    date: '2026-05-10',
+    time: '15:00',
+    location: 'Stade Municipal',
+    address: '1 Rue du Stade, 75000 Paris',
+    isHome: true,
+    opponent: 'FC Rival B',
+    status: 'saison',
+    phase: 'Phase retour',
+    scoreHome: undefined,
+    scoreAway: undefined,
+    liveActive: true,
+  },
 ];
 
 // ── Match events ─────────────────────────────────────────────────────
@@ -421,6 +448,12 @@ const matchEvents: MatchEvent[] = [
   { id: 'me5', matchId: 'm3', type: 'but', minute: 22, playerId: 'p8' },
   { id: 'me6', matchId: 'm3', type: 'but', minute: 31, playerId: 'p8' },
   { id: 'me7', matchId: 'm3', type: 'but', minute: 40, playerId: 'p6' },
+  { id: 'me8', matchId: 'm3', type: 'remplacement', minute: 35, playerId: 'p9' },
+  { id: 'me9', matchId: 'm3', type: 'blessure_live', minute: 34, playerId: 'p4' },
+  { id: 'me10', matchId: 'm3', type: 'carton_rouge', minute: 38, playerId: 'p5' },
+  { id: 'me11', matchId: 'm3', type: 'arret_mi_temps', minute: 45 },
+  { id: 'me12', matchId: 'm3', type: 'but_csc', minute: 20, playerId: 'p2' },
+  { id: 'me13', matchId: 'm2', type: 'but', playerId: 'p5' },
 ];
 
 // ── Trainings ────────────────────────────────────────────────────────
@@ -466,6 +499,16 @@ const trainings: Training[] = [
     type: 'regulier',
     cancelled: false,
     theme: 'Travail technique individuel',
+  },
+  {
+    id: 'tr6',
+    teamId: 't1',
+    date: '2026-05-12',
+    time: '19:00',
+    duration: 60,
+    type: 'exceptionnel',
+    cancelled: false,
+    theme: 'Préparation finale',
   },
   {
     id: 'tr5',
@@ -596,6 +639,19 @@ const tournaments: Tournament[] = [
     format: 'poules_finale',
     status: 'planifie',
   },
+  {
+    id: 'to2',
+    seasonId: 's1',
+    name: 'Tournoi Été U13',
+    dateStart: '2026-06-14',
+    dateEnd: '2026-06-15',
+    location: 'Complexe Sud',
+    organizer: 'Ligue Régionale',
+    isOrganizedByClub: false,
+    teamIds: ['t1'],
+    format: 'elimination_directe',
+    status: 'planifie',
+  },
 ];
 
 // ── Surveys ──────────────────────────────────────────────────────────
@@ -622,6 +678,17 @@ const surveys: Survey[] = [
     status: 'ouvert',
     sendNotification: true,
     createdBy: 'u2',
+  },
+  {
+    id: 'sv3',
+    teamId: 't1',
+    sessionType: 'training',
+    sessionId: 'tr6',
+    question: 'Présent à la séance exceptionnelle ?',
+    deadline: '2026-05-11',
+    status: 'ouvert',
+    sendNotification: false,
+    createdBy: 'u1',
   },
 ];
 

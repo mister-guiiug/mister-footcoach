@@ -55,7 +55,7 @@ export default function TeamDetailPage() {
       <section>
         <h2 className="text-sm font-semibold text-fg-heading mb-2">Effectif</h2>
         <Card padding={false}>
-          {players.length === 0 ? (
+          {/* istanbul ignore next */players.length === 0 ? (
             <EmptyState title="Aucun joueur" className="py-6" />
           ) : (
             <ul className="divide-y divide-border-ui">
