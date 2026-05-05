@@ -11,10 +11,14 @@ onINP(console.log);
 onLCP(console.log);
 onTTFB(console.log);
 
+import { AppProvider } from './store/AppContext.tsx';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <App />
+      <AppProvider>
+        <App />
+      </AppProvider>
     </ThemeProvider>
   </StrictMode>,
 );
