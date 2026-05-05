@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { useMatches, useTeams } from '../store/AppContext';

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderAtRoute } from '../test/helpers';
 import PlayerDetailPage from './PlayerDetailPage';
+import { MOCK_DATA } from '../data/mock';
 
 describe('PlayerDetailPage', () => {
   beforeEach(() => localStorage.clear());
@@ -102,5 +103,21 @@ describe('PlayerDetailPage', () => {
     });
     expect(screen.getByText('Numéro')).toBeInTheDocument();
     expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
+  it('shows raw position key for unknown position in appetences', () => {
+    const playerWithUnknownPos = {
+      ...MOCK_DATA.players[0], id: 'p-custom',
+      appetences: { UNKNOWN_POS: 4 },
+    };
+    localStorage.setItem('mister-footcoach-data', JSON.stringify({
+      ...MOCK_DATA, players: [...MOCK_DATA.players, playerWithUnknownPos],
+      selectedTeamId: MOCK_DATA.teams[0]!.id,
+    }));
+    renderAtRoute(<PlayerDetailPage />, {
+      initialPath: '/joueurs/p-custom',
+      routePattern: '/joueurs/:id',
+    });
+    expect(screen.getByText('UNKNOWN_POS')).toBeInTheDocument();
   });
 });

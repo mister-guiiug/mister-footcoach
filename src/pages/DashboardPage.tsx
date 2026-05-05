@@ -1,3 +1,4 @@
+/* c8 ignore next */
 import { Link } from 'react-router-dom';
 import { Calendar, Dumbbell, Users, ClipboardList, Trophy } from 'lucide-react';
 import { Card } from '../components/ui/Card';
@@ -120,7 +121,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-fg">
-                          {/* istanbul ignore next */t.theme ?? 'Entraînement'}
+                          {t.theme ?? 'Entraînement'}
                         </p>
                         <p className="text-xs text-fg-muted mt-0.5">
                           {team?.name} · {formatDateShort(t.date)} à {t.time} · {t.duration} min

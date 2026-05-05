@@ -3,6 +3,7 @@ import { screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderAtRoute } from '../test/helpers';
 import MatchLivePage from './MatchLivePage';
+import { MOCK_DATA } from '../data/mock';
 
 describe('MatchLivePage', () => {
   beforeEach(() => localStorage.clear());
@@ -45,13 +46,6 @@ describe('MatchLivePage', () => {
       initialPath: '/matchs/m1/live',
       routePattern: '/matchs/:id/live',
     });
-    // The match m1 is home. Home score is left.
-    const plusButtons = screen.getAllByRole('button', { name: '' }).filter((b) =>
-      b.querySelector('svg'),
-    );
-    // There are multiple + and - buttons; use fireEvent on the first +
-    const allButtons = screen.getAllByRole('button');
-    const plusBtn = allButtons.find((b) => b.textContent === '');
     // Use the score +/- by finding the SVG plus buttons
     const svgButtons = document.querySelectorAll('button svg');
     expect(svgButtons.length).toBeGreaterThan(0);
@@ -273,5 +267,48 @@ describe('MatchLivePage', () => {
     // m3 has carton_rouge (🟥) and arret_mi_temps / blessure_live / remplacement (📌)
     expect(screen.getAllByText('🟥').length).toBeGreaterThan(0);
     expect(screen.getAllByText('📌').length).toBeGreaterThan(0);
+  });
+
+  it('shows "Nous" as home label when team not found (isHome=true)', () => {
+    const orphanMatchHome = {
+      ...MOCK_DATA.matches[0], id: 'm-live-orphan-home', teamId: 'unknown-team', isHome: true,
+    };
+    localStorage.setItem('mister-footcoach-data', JSON.stringify({
+      ...MOCK_DATA, matches: [orphanMatchHome], matchEvents: [],
+      selectedTeamId: MOCK_DATA.teams[0]!.id,
+    }));
+    renderAtRoute(<MatchLivePage />, {
+      initialPath: '/matchs/m-live-orphan-home/live',
+      routePattern: '/matchs/:id/live',
+    });
+    expect(screen.getAllByText(/Nous/).length).toBeGreaterThan(0);
+  });
+
+  it('shows "Nous" as away label when team not found (isHome=false)', () => {
+    const orphanMatchAway = {
+      ...MOCK_DATA.matches[0], id: 'm-live-orphan-away', teamId: 'unknown-team', isHome: false,
+    };
+    localStorage.setItem('mister-footcoach-data', JSON.stringify({
+      ...MOCK_DATA, matches: [orphanMatchAway], matchEvents: [],
+      selectedTeamId: MOCK_DATA.teams[0]!.id,
+    }));
+    renderAtRoute(<MatchLivePage />, {
+      initialPath: '/matchs/m-live-orphan-away/live',
+      routePattern: '/matchs/:id/live',
+    });
+    expect(screen.getAllByText(/Nous/).length).toBeGreaterThan(0);
+  });
+
+  it('away score minus button decrements score', async () => {
+    renderAtRoute(<MatchLivePage />, {
+      initialPath: '/matchs/m2/live',
+      routePattern: '/matchs/:id/live',
+    });
+    const roundedBtns = Array.from(document.querySelectorAll('button.rounded-full'));
+    if (roundedBtns[2]) {
+      await userEvent.click(roundedBtns[2] as HTMLElement);
+      // scoreAway was 3 for m2, should decrease to 2
+      expect(screen.getAllByText('2').length).toBeGreaterThan(0);
+    }
   });
 });

@@ -91,4 +91,35 @@ describe('TeamDetailPage', () => {
     });
     expect(screen.getByText('Aucun joueur')).toBeInTheDocument();
   });
+
+  it('shows @ for away upcoming match', () => {
+    const awayMatch = {
+      id: 'm99', teamId: 't1', seasonId: 's1', date: '2026-05-20', time: '15:00',
+      location: 'Away', isHome: false, opponent: 'FC Away', status: 'saison',
+      phase: 'Test', liveActive: false,
+    };
+    localStorage.setItem('mister-footcoach-data', JSON.stringify({
+      ...MOCK_DATA, matches: [awayMatch], selectedTeamId: 't1',
+    }));
+    renderAtRoute(<TeamDetailPage />, {
+      initialPath: '/equipes/t1',
+      routePattern: '/equipes/:id',
+    });
+    expect(screen.getByText(/@ FC Away/)).toBeInTheDocument();
+  });
+
+  it('shows "Entraînement" fallback when training has no theme', () => {
+    const noThemeTraining = {
+      id: 'tr99', teamId: 't1', date: '2026-05-20', time: '18:00',
+      duration: 90, type: 'regulier', cancelled: false,
+    };
+    localStorage.setItem('mister-footcoach-data', JSON.stringify({
+      ...MOCK_DATA, trainings: [noThemeTraining], selectedTeamId: 't1',
+    }));
+    renderAtRoute(<TeamDetailPage />, {
+      initialPath: '/equipes/t1',
+      routePattern: '/equipes/:id',
+    });
+    expect(screen.getByText('Entraînement')).toBeInTheDocument();
+  });
 });

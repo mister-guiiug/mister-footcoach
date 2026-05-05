@@ -112,6 +112,9 @@ describe('ThemeProvider', () => {
     isDark = true;
     act(() => { if (capturedHandler) capturedHandler(); });
     expect(result.current.resolvedTheme).toBe('dark');
+    isDark = false;
+    act(() => { if (capturedHandler) capturedHandler(); });
+    expect(result.current.resolvedTheme).toBe('light');
   });
 
   it('non-system theme does not register matchMedia listener', () => {

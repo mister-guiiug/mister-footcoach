@@ -1,7 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { ChevronRight, AlertTriangle } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import {
   useTeam,
@@ -56,7 +55,7 @@ export default function TeamDetailPage() {
         <h2 className="text-sm font-semibold text-fg-heading mb-2">Effectif</h2>
         <Card padding={false}>
           {/* istanbul ignore next */players.length === 0 ? (
-            <EmptyState title="Aucun joueur" className="py-6" />
+            <EmptyState title="Aucun joueur" />
           ) : (
             <ul className="divide-y divide-border-ui">
               {players.map((player) => {

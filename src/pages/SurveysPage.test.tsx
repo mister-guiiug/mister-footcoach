@@ -159,9 +159,51 @@ describe('SurveysPage', () => {
 
   it('shows empty state when no surveys', () => {
     localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, surveys: [], selectedTeamId: MOCK_DATA.teams[0]?.id ?? '',
+      ...MOCK_DATA, surveys: [], selectedTeamId: MOCK_DATA.teams[0]!.id,
     }));
     renderWithProviders(<SurveysPage />);
     expect(screen.getByText('Aucun sondage')).toBeInTheDocument();
+  });
+
+  it('shows Fermé badge for ferme survey', () => {
+    const fermeSurvey: Survey = {
+      id: 'sv-ferme', teamId: 't1', sessionType: 'match', sessionId: 'm1',
+      question: 'Sondage fermé', deadline: '2026-04-01', status: 'ferme',
+      sendNotification: false, createdBy: 'u1',
+    };
+    localStorage.setItem('mister-footcoach-data', JSON.stringify({
+      ...MOCK_DATA, surveys: [fermeSurvey], surveyResponses: [],
+      selectedTeamId: MOCK_DATA.teams[0]!.id,
+    }));
+    renderWithProviders(<SurveysPage />);
+    expect(screen.getByText('Fermé')).toBeInTheDocument();
+  });
+
+  it('shows Archivé badge for archive survey', () => {
+    const archiveSurvey: Survey = {
+      id: 'sv-arch', teamId: 't1', sessionType: 'match', sessionId: 'm1',
+      question: 'Sondage archivé', deadline: '2026-04-01', status: 'archive',
+      sendNotification: false, createdBy: 'u1',
+    };
+    localStorage.setItem('mister-footcoach-data', JSON.stringify({
+      ...MOCK_DATA, surveys: [archiveSurvey], surveyResponses: [],
+      selectedTeamId: MOCK_DATA.teams[0]!.id,
+    }));
+    renderWithProviders(<SurveysPage />);
+    expect(screen.getByText('Archivé')).toBeInTheDocument();
+  });
+
+  it('uses empty string fallback when survey has no sessionId', () => {
+    const noSessionSurvey = {
+      id: 'sv-nosession', teamId: 't1', sessionType: 'match',
+      question: 'Sondage sans session', deadline: '2026-05-15', status: 'ouvert',
+      sendNotification: false, createdBy: 'u1',
+    };
+    localStorage.setItem('mister-footcoach-data', JSON.stringify({
+      ...MOCK_DATA, surveys: [noSessionSurvey], surveyResponses: [],
+      selectedTeamId: MOCK_DATA.teams[0]!.id,
+    }));
+    renderWithProviders(<SurveysPage />);
+    expect(screen.getByText('Sondage sans session')).toBeInTheDocument();
   });
 });

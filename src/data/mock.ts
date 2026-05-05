@@ -646,6 +646,7 @@ const tournaments: Tournament[] = [
     dateStart: '2026-06-14',
     dateEnd: '2026-06-15',
     location: 'Complexe Sud',
+    address: '',
     organizer: 'Ligue Régionale',
     isOrganizedByClub: false,
     teamIds: ['t1'],

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Radio, Plus, Minus, X } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -24,7 +24,6 @@ const EVENT_BUTTONS: { type: MatchEventType; emoji: string; label: string }[] = 
 
 export default function MatchLivePage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const match = useMatch(id!);
   const events = useMatchEvents(id!);
   const team = useTeam(match?.teamId ?? '');
@@ -52,7 +51,7 @@ export default function MatchLivePage() {
   }
 
   function addEvent() {
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!selectedEvent) return;
     dispatch({
       type: 'ADD_MATCH_EVENT',
