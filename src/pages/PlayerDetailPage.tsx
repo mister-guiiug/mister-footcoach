@@ -1,11 +1,19 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { AlertTriangle, Activity, Pencil } from 'lucide-react';
+import {
+  AlertTriangle,
+  Activity,
+  Pencil,
+  CalendarOff,
+  Plus,
+} from 'lucide-react';
 import { Card, CardHeader } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PlayerFormDialog } from '../components/features/players/PlayerFormDialog';
+import { UnavailabilityFormDialog } from '../components/features/players/UnavailabilityFormDialog';
+import { InjuryFormDialog } from '../components/features/players/InjuryFormDialog';
 import {
   usePlayer,
   useTeam,
@@ -18,6 +26,7 @@ import {
   POSITION_LABELS,
   INJURY_STATUS_LABELS,
   UNAVAILABILITY_MOTIF_LABELS,
+  type Injury,
 } from '../types';
 import {
   formatDateShort,
@@ -35,8 +44,11 @@ export default function PlayerDetailPage() {
   const unavailabilities = useUnavailabilities(id);
   const injuries = useInjuries(id);
   const positionHistory = usePositionHistory(id!);
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
   const [editOpen, setEditOpen] = useState(false);
+  const [unavailOpen, setUnavailOpen] = useState(false);
+  const [injuryOpen, setInjuryOpen] = useState(false);
+  const [editingInjury, setEditingInjury] = useState<Injury | undefined>();
 
   if (!player) {
     return (
@@ -69,6 +81,24 @@ export default function PlayerDetailPage() {
           open
           onClose={() => setEditOpen(false)}
           player={player}
+        />
+      )}
+      {unavailOpen && (
+        <UnavailabilityFormDialog
+          open
+          onClose={() => setUnavailOpen(false)}
+          player={player}
+        />
+      )}
+      {injuryOpen && (
+        <InjuryFormDialog
+          open
+          onClose={() => {
+            setInjuryOpen(false);
+            setEditingInjury(undefined);
+          }}
+          player={player}
+          injury={editingInjury}
         />
       )}
 
@@ -133,6 +163,22 @@ export default function PlayerDetailPage() {
         </Card>
       </div>
 
+      {/* Availability & health actions (specs §4.6 & §4.7) */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button variant="secondary" onClick={() => setUnavailOpen(true)}>
+          <CalendarOff size={15} /> Indisponibilité
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            setEditingInjury(undefined);
+            setInjuryOpen(true);
+          }}
+        >
+          <Plus size={15} /> Blessure
+        </Button>
+      </div>
+
       {/* Unavailability alert */}
       {activeUnavail && (
         <Card className="border-amber-300 bg-amber-50 dark:bg-amber-900/10">
@@ -141,7 +187,7 @@ export default function PlayerDetailPage() {
               size={18}
               className="text-amber-600 flex-shrink-0 mt-0.5"
             />
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
                 Indisponible —{' '}
                 {UNAVAILABILITY_MOTIF_LABELS[activeUnavail.motif]}
@@ -157,6 +203,18 @@ export default function PlayerDetailPage() {
                 </p>
               )}
             </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() =>
+                dispatch({
+                  type: 'UPDATE_UNAVAILABILITY',
+                  unavailability: { ...activeUnavail, endDate: todayStr },
+                })
+              }
+            >
+              Clôturer
+            </Button>
           </div>
         </Card>
       )}
@@ -174,7 +232,7 @@ export default function PlayerDetailPage() {
                 size={18}
                 className="text-red-600 flex-shrink-0 mt-0.5"
               />
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-semibold text-red-700 dark:text-red-400">
                   {injury.nature} — {injury.zone}
                 </p>
@@ -189,6 +247,16 @@ export default function PlayerDetailPage() {
                   </p>
                 )}
               </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setEditingInjury(injury);
+                  setInjuryOpen(true);
+                }}
+              >
+                Suivre
+              </Button>
             </div>
           </Card>
         ))}
