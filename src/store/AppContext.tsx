@@ -22,10 +22,16 @@ import type {
   CarpoolOffer,
   Unavailability,
   Injury,
+  NotificationPreferences,
+  ClubSettings,
 } from '../types';
 import { MOCK_DATA } from '../data/mock';
 import { genId, nowIso } from '../utils/id';
 import { CURRENT_USER_ID } from '../constants/session';
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  isNotificationAllowed,
+} from '../utils/notifications';
 
 const STORAGE_KEY = 'mister-footcoach-data';
 
@@ -83,6 +89,12 @@ type Action =
     }
   | { type: 'MARK_NOTIFICATION_READ'; notificationId: string }
   | { type: 'MARK_ALL_NOTIFICATIONS_READ'; userId: string }
+  | {
+      type: 'SET_NOTIFICATION_PREFERENCES';
+      userId: string;
+      preferences: NotificationPreferences;
+    }
+  | { type: 'SET_CLUB_SETTINGS'; settings: ClubSettings }
   | { type: 'RESET_TO_MOCK' };
 
 // ── Reducer ───────────────────────────────────────────────────────────
@@ -296,9 +308,15 @@ function reducer(state: AppState, action: Action): AppState {
       };
 
     case 'NOTIFY': {
-      // Recipients: coaches and admins attached to the team (specs §16.1).
-      const recipients = state.users.filter(u =>
-        u.teamIds.includes(action.teamId)
+      // Recipients: coaches and admins attached to the team (specs §16.1),
+      // filtered by each user's notification preferences (specs §16.3).
+      const recipients = state.users.filter(
+        u =>
+          u.teamIds.includes(action.teamId) &&
+          isNotificationAllowed(
+            state.notificationPreferences[u.id],
+            action.notifType
+          )
       );
       const ts = nowIso();
       const created = recipients.map(u => ({
@@ -329,6 +347,18 @@ function reducer(state: AppState, action: Action): AppState {
           n.userId === action.userId ? { ...n, read: true } : n
         ),
       };
+
+    case 'SET_NOTIFICATION_PREFERENCES':
+      return {
+        ...state,
+        notificationPreferences: {
+          ...state.notificationPreferences,
+          [action.userId]: action.preferences,
+        },
+      };
+
+    case 'SET_CLUB_SETTINGS':
+      return { ...state, clubSettings: action.settings };
 
     case 'RESET_TO_MOCK':
       /* istanbul ignore next */
@@ -562,4 +592,17 @@ export function useUnreadNotificationCount(userId?: string) {
   const { state } = useAppContext();
   const target = userId ?? CURRENT_USER_ID;
   return state.notifications.filter(n => n.userId === target && !n.read).length;
+}
+
+export function useNotificationPreferences(userId?: string) {
+  const { state } = useAppContext();
+  const target = userId ?? CURRENT_USER_ID;
+  return (
+    state.notificationPreferences[target] ?? DEFAULT_NOTIFICATION_PREFERENCES
+  );
+}
+
+export function useClubSettings() {
+  const { state } = useAppContext();
+  return state.clubSettings;
 }

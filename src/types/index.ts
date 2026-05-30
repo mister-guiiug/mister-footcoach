@@ -408,6 +408,23 @@ export interface Notification {
   createdAt: string;
 }
 
+export type ReminderDelay = 'J-1' | 'J-2' | 'H-2';
+
+export interface NotificationPreferences {
+  /** Master switch — when false, no in-app notification is delivered. */
+  enabled: boolean;
+  /** Notification categories the user has muted (see utils/notifications). */
+  mutedCategories: string[];
+  reminderDelay: ReminderDelay;
+}
+
+// ── Club-level settings ───────────────────────────────────────────────
+
+export interface ClubSettings {
+  /** Auto-create a presence survey when a match is created (RG-SONDAGE-04). */
+  autoSurveyOnMatch: boolean;
+}
+
 // ── App state ────────────────────────────────────────────────────────
 
 export interface AppData {
@@ -430,6 +447,8 @@ export interface AppData {
   surveys: Survey[];
   surveyResponses: SurveyResponse[];
   notifications: Notification[];
+  notificationPreferences: Record<string, NotificationPreferences>;
+  clubSettings: ClubSettings;
   unavailabilities: Unavailability[];
   injuries: Injury[];
 }
