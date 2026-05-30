@@ -14,10 +14,12 @@ import {
   useMatch,
   useInjuries,
   useUnavailabilities,
+  useTournamentGroups,
 } from './AppContext';
 import type {
   Match,
   Tournament,
+  TournamentGroup,
   Exercise,
   TrainingBlock,
   CarpoolOffer,
@@ -209,6 +211,45 @@ describe('carpool actions', () => {
       })
     );
     expect(result.current.offers.length).toBe(0);
+  });
+});
+
+describe('tournament group actions', () => {
+  it('adds, updates and deletes a tournament group', () => {
+    const { result } = renderHook(
+      () => ({ ctx: useAppContext(), groups: useTournamentGroups('to1') }),
+      { wrapper }
+    );
+    const before = result.current.groups.length;
+    const group: TournamentGroup = {
+      id: 'gx',
+      tournamentId: 'to1',
+      name: 'Poule Z',
+      type: 'poule',
+      order: 9,
+    };
+    act(() =>
+      result.current.ctx.dispatch({ type: 'ADD_TOURNAMENT_GROUP', group })
+    );
+    expect(result.current.groups.length).toBe(before + 1);
+
+    act(() =>
+      result.current.ctx.dispatch({
+        type: 'UPDATE_TOURNAMENT_GROUP',
+        group: { ...group, name: 'Poule Renommée' },
+      })
+    );
+    expect(result.current.groups.find(g => g.id === 'gx')?.name).toBe(
+      'Poule Renommée'
+    );
+
+    act(() =>
+      result.current.ctx.dispatch({
+        type: 'DELETE_TOURNAMENT_GROUP',
+        groupId: 'gx',
+      })
+    );
+    expect(result.current.groups.find(g => g.id === 'gx')).toBeUndefined();
   });
 });
 

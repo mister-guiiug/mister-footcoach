@@ -14,6 +14,7 @@ const TrainingsPage = lazy(() => import('./pages/TrainingsPage'));
 const TrainingDetailPage = lazy(() => import('./pages/TrainingDetailPage'));
 const LineupPage = lazy(() => import('./pages/LineupPage'));
 const TournamentsPage = lazy(() => import('./pages/TournamentsPage'));
+const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage'));
 const SurveysPage = lazy(() => import('./pages/SurveysPage'));
 const StatsPage = lazy(() => import('./pages/StatsPage'));
 const ExercisesPage = lazy(() => import('./pages/ExercisesPage'));
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="entrainements/:id" element={<TrainingDetailPage />} />
             <Route path="compositions" element={<LineupPage />} />
             <Route path="tournois" element={<TournamentsPage />} />
+            <Route path="tournois/:id" element={<TournamentDetailPage />} />
             <Route path="sondages" element={<SurveysPage />} />
             <Route path="statistiques" element={<StatsPage />} />
             <Route path="exercices" element={<ExercisesPage />} />

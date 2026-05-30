@@ -12,6 +12,7 @@ import type {
   Lineup,
   PositionHistory,
   Tournament,
+  TournamentGroup,
   Survey,
   SurveyResponse,
   Unavailability,
@@ -826,6 +827,74 @@ const tournaments: Tournament[] = [
   },
 ];
 
+// ── Tournament groups & matches ───────────────────────────────────────
+
+const tournamentGroups: TournamentGroup[] = [
+  { id: 'tg1', tournamentId: 'to1', name: 'Poule A', type: 'poule', order: 1 },
+  {
+    id: 'tg2',
+    tournamentId: 'to1',
+    name: 'Demi-finale',
+    type: 'elimination',
+    order: 2,
+  },
+];
+
+const tournamentMatches: Match[] = [
+  {
+    id: 'tm1',
+    teamId: 't1',
+    seasonId: 's1',
+    tournamentId: 'to1',
+    tournamentGroupId: 'tg1',
+    date: '2026-05-23',
+    time: '09:00',
+    location: 'Complexe Sportif Nord',
+    address: '12 Allée des Lilas, 75019 Paris',
+    isHome: true,
+    opponent: 'FC Lyon',
+    status: 'tournoi',
+    phase: 'Poule A',
+    scoreHome: 3,
+    scoreAway: 1,
+    liveActive: false,
+  },
+  {
+    id: 'tm2',
+    teamId: 't1',
+    seasonId: 's1',
+    tournamentId: 'to1',
+    tournamentGroupId: 'tg1',
+    date: '2026-05-23',
+    time: '10:30',
+    location: 'Complexe Sportif Nord',
+    address: '12 Allée des Lilas, 75019 Paris',
+    isHome: true,
+    opponent: 'AS Martin',
+    status: 'tournoi',
+    phase: 'Poule A',
+    scoreHome: 2,
+    scoreAway: 2,
+    liveActive: false,
+  },
+  {
+    id: 'tm3',
+    teamId: 't1',
+    seasonId: 's1',
+    tournamentId: 'to1',
+    tournamentGroupId: 'tg1',
+    date: '2026-05-23',
+    time: '12:00',
+    location: 'Complexe Sportif Nord',
+    address: '12 Allée des Lilas, 75019 Paris',
+    isHome: true,
+    opponent: 'US Ouest',
+    status: 'tournoi',
+    phase: 'Poule A',
+    liveActive: false,
+  },
+];
+
 // ── Surveys ──────────────────────────────────────────────────────────
 
 const surveys: Survey[] = [
@@ -965,7 +1034,7 @@ export const MOCK_DATA: AppData = {
   players,
   contacts,
   users,
-  matches,
+  matches: [...matches, ...tournamentMatches],
   matchEvents,
   trainings,
   trainingBlocks: [],
@@ -974,7 +1043,7 @@ export const MOCK_DATA: AppData = {
   lineups,
   positionHistory,
   tournaments,
-  tournamentGroups: [],
+  tournamentGroups,
   carpoolOffers: [],
   surveys,
   surveyResponses,
