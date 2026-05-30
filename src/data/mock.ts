@@ -1048,6 +1048,8 @@ export const MOCK_DATA: AppData = {
   surveys,
   surveyResponses,
   notifications,
+  notificationPreferences: {},
+  clubSettings: { autoSurveyOnMatch: true },
   unavailabilities,
   injuries,
 };
