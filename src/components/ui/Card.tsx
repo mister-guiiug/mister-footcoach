@@ -5,7 +5,12 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: boolean;
 }
 
-export function Card({ children, padding = true, className = '', ...props }: CardProps) {
+export function Card({
+  children,
+  padding = true,
+  className = '',
+  ...props
+}: CardProps) {
   return (
     <div
       className={`rounded-2xl bg-surface border border-border-ui shadow-sm ${padding ? 'p-4' : ''} ${className}`}

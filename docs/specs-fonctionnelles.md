@@ -8,11 +8,11 @@
 
 **Historique des versions**
 
-| Version | Date | Modifications |
-|---|---|---|
-| 1.0 | 05/05/2026 | Version initiale |
-| 1.1 | 05/05/2026 | Ajout §4.6–4.7 (indisponibilités, blessures), §7.5 (mode match live), §8.5–8.6 (contenu séance, bibliothèque exercices), §12 (tournois), §13 (calendrier externe) |
-| 1.2 | 05/05/2026 | Ajout §14 (logistique des déplacements), §15 (sondages de présence) ; mise à jour matrice permissions, modèle de données, user stories, découpage et points ouverts |
+| Version | Date       | Modifications                                                                                                                                                       |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 05/05/2026 | Version initiale                                                                                                                                                    |
+| 1.1     | 05/05/2026 | Ajout §4.6–4.7 (indisponibilités, blessures), §7.5 (mode match live), §8.5–8.6 (contenu séance, bibliothèque exercices), §12 (tournois), §13 (calendrier externe)   |
+| 1.2     | 05/05/2026 | Ajout §14 (logistique des déplacements), §15 (sondages de présence) ; mise à jour matrice permissions, modèle de données, user stories, découpage et points ouverts |
 
 ---
 
@@ -51,13 +51,13 @@ Un club de football amateur gère une ou plusieurs **catégories jeunes** (forma
 
 ### 1.2 Objectifs principaux
 
-| Objectif | Description |
-|---|---|
-| Fiabiliser les données | Centraliser joueurs, contacts, calendriers dans une source unique |
-| Faciliter le travail des coachs | Réduire la charge administrative, simplifier la composition et le suivi |
-| Visibilité parents | Donner un accès en lecture aux informations utiles aux familles |
-| Conformité RGPD | Garantir la protection des données de mineurs avec traçabilité du consentement |
-| Base durable | Fournir une architecture évolutive adaptée à la croissance du club |
+| Objectif                        | Description                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------------ |
+| Fiabiliser les données          | Centraliser joueurs, contacts, calendriers dans une source unique              |
+| Faciliter le travail des coachs | Réduire la charge administrative, simplifier la composition et le suivi        |
+| Visibilité parents              | Donner un accès en lecture aux informations utiles aux familles                |
+| Conformité RGPD                 | Garantir la protection des données de mineurs avec traçabilité du consentement |
+| Base durable                    | Fournir une architecture évolutive adaptée à la croissance du club             |
 
 ### 1.3 Contraintes générales
 
@@ -155,45 +155,45 @@ Un utilisateur peut cumuler plusieurs rôles. Exemples :
 
 ### 3.3 Matrice rôles / permissions
 
-| Fonctionnalité | Admin | Coach | Parent |
-|---|:---:|:---:|:---:|
-| Gérer le club / les équipes | ✅ | ❌ | ❌ |
-| Gérer les utilisateurs | ✅ | ❌ | ❌ |
-| Voir toutes les équipes | ✅ | ❌ | ❌ |
-| Gérer ses équipes | ✅ | ✅ | ❌ |
-| Créer / modifier un joueur | ✅ | ✅ (ses équipes) | ❌ |
-| Consulter un joueur | ✅ | ✅ (ses équipes) | ✅ (ses enfants) |
-| Déclarer une indisponibilité | ✅ | ✅ (ses équipes) | ✅ (ses enfants) |
-| Consulter les indisponibilités | ✅ | ✅ (ses équipes) | ✅ (ses enfants) |
-| Créer / modifier un suivi blessure | ✅ | ✅ (ses équipes) | ❌ |
-| Consulter un suivi blessure | ✅ | ✅ (ses équipes) | ❌ |
-| Voir les contacts légaux | ✅ | ✅ (lecture) | ✅ (les siens) |
-| Modifier les contacts légaux | ✅ | ❌ | ❌ |
-| Créer / modifier un match | ✅ | ✅ (ses équipes) | ❌ |
-| Consulter un match | ✅ | ✅ | ✅ (ses enfants) |
-| Mode match en temps réel | ✅ | ✅ (ses équipes) | ❌ |
-| Consulter le score live | ✅ | ✅ | ✅ (ses enfants) |
-| Créer / modifier un entraînement | ✅ | ✅ (ses équipes) | ❌ |
-| Gérer le contenu d'une séance | ✅ | ✅ (ses équipes) | ❌ |
-| Consulter un entraînement | ✅ | ✅ | ✅ (ses enfants) |
-| Gérer la bibliothèque d'exercices | ✅ | ✅ (ses exercices) | ❌ |
-| Saisir l'assiduité | ✅ | ✅ (ses équipes) | ❌ |
-| Consulter l'assiduité | ✅ | ✅ (ses équipes) | ✅ (ses enfants) |
-| Gérer les compositions | ✅ | ✅ (ses équipes) | ❌ |
-| Accéder aux statistiques | ✅ | ✅ (ses équipes) | ✅ (ses enfants) |
-| Gérer un tournoi | ✅ | ✅ (ses équipes) | ❌ |
-| Consulter un tournoi | ✅ | ✅ | ✅ (ses enfants) |
-| Gérer la logistique déplacement | ✅ | ✅ (ses équipes) | ❌ |
-| Proposer un covoiturage | ✅ | ✅ | ✅ |
-| Consulter la logistique | ✅ | ✅ | ✅ (ses enfants) |
-| Créer un sondage | ✅ | ✅ (ses équipes) | ❌ |
-| Consulter les résultats d'un sondage | ✅ | ✅ (ses équipes) | ✅ (ses réponses) |
-| Répondre à un sondage (officiel) | ✅ | ✅ | ✅ (pour ses enfants) |
-| Exprimer une intention joueur | — | — | ✅ (au nom de l'enfant, V1) |
-| Abonnement flux iCal | ✅ | ✅ | ✅ (personnel) |
-| Paramétrage global | ✅ | ❌ | ❌ |
-| Gérer les notifications | ✅ | ✅ (ses équipes) | ✅ (ses préférences) |
-| Export RGPD | ✅ | ❌ | ✅ (ses données) |
+| Fonctionnalité                       | Admin |       Coach        |           Parent            |
+| ------------------------------------ | :---: | :----------------: | :-------------------------: |
+| Gérer le club / les équipes          |  ✅   |         ❌         |             ❌              |
+| Gérer les utilisateurs               |  ✅   |         ❌         |             ❌              |
+| Voir toutes les équipes              |  ✅   |         ❌         |             ❌              |
+| Gérer ses équipes                    |  ✅   |         ✅         |             ❌              |
+| Créer / modifier un joueur           |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Consulter un joueur                  |  ✅   |  ✅ (ses équipes)  |      ✅ (ses enfants)       |
+| Déclarer une indisponibilité         |  ✅   |  ✅ (ses équipes)  |      ✅ (ses enfants)       |
+| Consulter les indisponibilités       |  ✅   |  ✅ (ses équipes)  |      ✅ (ses enfants)       |
+| Créer / modifier un suivi blessure   |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Consulter un suivi blessure          |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Voir les contacts légaux             |  ✅   |    ✅ (lecture)    |       ✅ (les siens)        |
+| Modifier les contacts légaux         |  ✅   |         ❌         |             ❌              |
+| Créer / modifier un match            |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Consulter un match                   |  ✅   |         ✅         |      ✅ (ses enfants)       |
+| Mode match en temps réel             |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Consulter le score live              |  ✅   |         ✅         |      ✅ (ses enfants)       |
+| Créer / modifier un entraînement     |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Gérer le contenu d'une séance        |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Consulter un entraînement            |  ✅   |         ✅         |      ✅ (ses enfants)       |
+| Gérer la bibliothèque d'exercices    |  ✅   | ✅ (ses exercices) |             ❌              |
+| Saisir l'assiduité                   |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Consulter l'assiduité                |  ✅   |  ✅ (ses équipes)  |      ✅ (ses enfants)       |
+| Gérer les compositions               |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Accéder aux statistiques             |  ✅   |  ✅ (ses équipes)  |      ✅ (ses enfants)       |
+| Gérer un tournoi                     |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Consulter un tournoi                 |  ✅   |         ✅         |      ✅ (ses enfants)       |
+| Gérer la logistique déplacement      |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Proposer un covoiturage              |  ✅   |         ✅         |             ✅              |
+| Consulter la logistique              |  ✅   |         ✅         |      ✅ (ses enfants)       |
+| Créer un sondage                     |  ✅   |  ✅ (ses équipes)  |             ❌              |
+| Consulter les résultats d'un sondage |  ✅   |  ✅ (ses équipes)  |      ✅ (ses réponses)      |
+| Répondre à un sondage (officiel)     |  ✅   |         ✅         |    ✅ (pour ses enfants)    |
+| Exprimer une intention joueur        |   —   |         —          | ✅ (au nom de l'enfant, V1) |
+| Abonnement flux iCal                 |  ✅   |         ✅         |       ✅ (personnel)        |
+| Paramétrage global                   |  ✅   |         ❌         |             ❌              |
+| Gérer les notifications              |  ✅   |  ✅ (ses équipes)  |    ✅ (ses préférences)     |
+| Export RGPD                          |  ✅   |         ❌         |      ✅ (ses données)       |
 
 ### 3.4 Règles de gestion des rôles
 
@@ -209,34 +209,34 @@ Un utilisateur peut cumuler plusieurs rôles. Exemples :
 
 ### 4.1 Données d'un joueur
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | Généré automatiquement |
-| Prénom | Texte | ✅ | 1–50 caractères |
-| Nom | Texte | ✅ | 1–50 caractères |
-| Date de naissance | Date | ✅ | Cohérente avec la catégorie d'âge |
-| Équipe principale | Référence équipe | ✅ | Une seule équipe principale |
-| Équipe secondaire | Référence équipe | ❌ | Maximum une équipe secondaire |
-| Numéro de maillot | Entier | ❌ | Unique au sein de l'équipe principale |
-| Poste de prédilection | Enum Position | ✅ | Voir référentiel des postes |
-| Appétences par poste | Map Position → Note | ❌ | Note de 1 à 5 par poste |
-| Photo | URL ou binaire | ❌ | Format image standard |
-| Actif | Booléen | ✅ | Par défaut : vrai |
+| Champ                 | Type                | Obligatoire | Règles                                |
+| --------------------- | ------------------- | :---------: | ------------------------------------- |
+| Identifiant           | UUID                |     ✅      | Généré automatiquement                |
+| Prénom                | Texte               |     ✅      | 1–50 caractères                       |
+| Nom                   | Texte               |     ✅      | 1–50 caractères                       |
+| Date de naissance     | Date                |     ✅      | Cohérente avec la catégorie d'âge     |
+| Équipe principale     | Référence équipe    |     ✅      | Une seule équipe principale           |
+| Équipe secondaire     | Référence équipe    |     ❌      | Maximum une équipe secondaire         |
+| Numéro de maillot     | Entier              |     ❌      | Unique au sein de l'équipe principale |
+| Poste de prédilection | Enum Position       |     ✅      | Voir référentiel des postes           |
+| Appétences par poste  | Map Position → Note |     ❌      | Note de 1 à 5 par poste               |
+| Photo                 | URL ou binaire      |     ❌      | Format image standard                 |
+| Actif                 | Booléen             |     ✅      | Par défaut : vrai                     |
 
 ### 4.2 Référentiel des postes (foot à 8)
 
-| Code | Libellé | Catégorie |
-|---|---|---|
-| GK | Gardien de But | Gardien |
-| DD | Défenseur Droit | Défense |
-| DC | Défenseur Central | Défense |
-| DG | Défenseur Gauche | Défense |
-| MD | Milieu Défensif | Milieu |
-| MC | Milieu Central | Milieu |
-| MO | Meneur de Jeu | Milieu |
-| ATD | Ailier Droit | Attaque |
-| ATG | Ailier Gauche | Attaque |
-| AT | Attaquant de Pointe | Attaque |
+| Code | Libellé             | Catégorie |
+| ---- | ------------------- | --------- |
+| GK   | Gardien de But      | Gardien   |
+| DD   | Défenseur Droit     | Défense   |
+| DC   | Défenseur Central   | Défense   |
+| DG   | Défenseur Gauche    | Défense   |
+| MD   | Milieu Défensif     | Milieu    |
+| MC   | Milieu Central      | Milieu    |
+| MO   | Meneur de Jeu       | Milieu    |
+| ATD  | Ailier Droit        | Attaque   |
+| ATG  | Ailier Gauche       | Attaque   |
+| AT   | Attaquant de Pointe | Attaque   |
 
 ### 4.3 Appétences par poste
 
@@ -256,14 +256,14 @@ Un utilisateur peut cumuler plusieurs rôles. Exemples :
 
 Chaque poste joué est enregistré avec la granularité suivante :
 
-| Champ | Description |
-|---|---|
-| Match | Référence au match |
-| Date du match | Pour faciliter les requêtes temporelles |
-| Adversaire | Pour l'affichage |
-| Période | `1ère mi-temps`, `2ème mi-temps`, `complet`, `remplaçant entrant`, `remplaçant sortant` |
-| Poste joué | Code du poste |
-| Minute | Entier optionnel (alimenté automatiquement par le mode match live) |
+| Champ         | Description                                                                             |
+| ------------- | --------------------------------------------------------------------------------------- |
+| Match         | Référence au match                                                                      |
+| Date du match | Pour faciliter les requêtes temporelles                                                 |
+| Adversaire    | Pour l'affichage                                                                        |
+| Période       | `1ère mi-temps`, `2ème mi-temps`, `complet`, `remplaçant entrant`, `remplaçant sortant` |
+| Poste joué    | Code du poste                                                                           |
+| Minute        | Entier optionnel (alimenté automatiquement par le mode match live)                      |
 
 > **Point ouvert PO-01** : La granularité à la minute est-elle requise dès le MVP ? Elle est naturellement produite par le mode match live, mais la saisie manuelle est plus complexe.
 
@@ -271,16 +271,16 @@ Chaque poste joué est enregistré avec la granularité suivante :
 
 #### 4.6.1 Données d'une indisponibilité
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Joueur | Référence | ✅ | |
-| Date de début | Date | ✅ | |
-| Date de fin | Date | ❌ | Si absente : indisponibilité ouverte jusqu'à clôture manuelle |
-| Motif | Enum | ✅ | `blessure`, `maladie`, `vacances`, `suspension`, `personnel`, `autre` |
-| Déclaré par | Référence User | ✅ | Coach ou parent (V1) |
-| Note | Texte | ❌ | Visible uniquement par le coach et l'admin |
-| Référence blessure | Référence | ❌ | Lien vers un suivi de blessure si motif = `blessure` |
+| Champ              | Type           | Obligatoire | Règles                                                                |
+| ------------------ | -------------- | :---------: | --------------------------------------------------------------------- |
+| Identifiant        | UUID           |     ✅      |                                                                       |
+| Joueur             | Référence      |     ✅      |                                                                       |
+| Date de début      | Date           |     ✅      |                                                                       |
+| Date de fin        | Date           |     ❌      | Si absente : indisponibilité ouverte jusqu'à clôture manuelle         |
+| Motif              | Enum           |     ✅      | `blessure`, `maladie`, `vacances`, `suspension`, `personnel`, `autre` |
+| Déclaré par        | Référence User |     ✅      | Coach ou parent (V1)                                                  |
+| Note               | Texte          |     ❌      | Visible uniquement par le coach et l'admin                            |
+| Référence blessure | Référence      |     ❌      | Lien vers un suivi de blessure si motif = `blessure`                  |
 
 #### 4.6.2 Règles de gestion
 
@@ -296,17 +296,17 @@ Chaque poste joué est enregistré avec la granularité suivante :
 
 #### 4.7.1 Données d'un suivi de blessure
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Joueur | Référence | ✅ | |
-| Zone anatomique | Enum | ✅ | `cheville`, `genou`, `cuisse`, `ischio-jambier`, `dos`, `épaule`, `tête`, `autre` |
-| Nature | Texte libre | ✅ | Ex. "entorse", "élongation" — 100 caractères max |
-| Date de survenue | Date | ✅ | |
-| Date de reprise estimée | Date | ❌ | Peut évoluer |
-| Date de reprise effective | Date | ❌ | Renseignée lors du passage au statut `apte` |
-| Statut | Enum | ✅ | `en rééducation`, `reprise progressive`, `apte` |
-| Note coach | Texte | ❌ | Invisible pour le parent — précautions, contexte sportif |
+| Champ                     | Type        | Obligatoire | Règles                                                                            |
+| ------------------------- | ----------- | :---------: | --------------------------------------------------------------------------------- |
+| Identifiant               | UUID        |     ✅      |                                                                                   |
+| Joueur                    | Référence   |     ✅      |                                                                                   |
+| Zone anatomique           | Enum        |     ✅      | `cheville`, `genou`, `cuisse`, `ischio-jambier`, `dos`, `épaule`, `tête`, `autre` |
+| Nature                    | Texte libre |     ✅      | Ex. "entorse", "élongation" — 100 caractères max                                  |
+| Date de survenue          | Date        |     ✅      |                                                                                   |
+| Date de reprise estimée   | Date        |     ❌      | Peut évoluer                                                                      |
+| Date de reprise effective | Date        |     ❌      | Renseignée lors du passage au statut `apte`                                       |
+| Statut                    | Enum        |     ✅      | `en rééducation`, `reprise progressive`, `apte`                                   |
+| Note coach                | Texte       |     ❌      | Invisible pour le parent — précautions, contexte sportif                          |
 
 #### 4.7.2 Règles de gestion
 
@@ -322,17 +322,17 @@ Chaque poste joué est enregistré avec la granularité suivante :
 
 ### 5.1 Données d'un contact
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | Généré automatiquement |
-| Prénom | Texte | ✅ | |
-| Nom | Texte | ✅ | |
-| Téléphone | Texte | ✅ | Format FR ou international |
-| Email | Texte | ✅ | Format email valide |
-| Type de relation | Enum | ✅ | père, mère, beau-père, belle-mère, tuteur, autre |
-| Joueurs rattachés | Liste de références | ✅ | Au moins un |
-| Utilisateur lié | Référence User | ❌ | Si le contact a un compte |
-| Date de consentement RGPD | Date | ❌ | Requise pour l'activation du compte |
+| Champ                     | Type                | Obligatoire | Règles                                           |
+| ------------------------- | ------------------- | :---------: | ------------------------------------------------ |
+| Identifiant               | UUID                |     ✅      | Généré automatiquement                           |
+| Prénom                    | Texte               |     ✅      |                                                  |
+| Nom                       | Texte               |     ✅      |                                                  |
+| Téléphone                 | Texte               |     ✅      | Format FR ou international                       |
+| Email                     | Texte               |     ✅      | Format email valide                              |
+| Type de relation          | Enum                |     ✅      | père, mère, beau-père, belle-mère, tuteur, autre |
+| Joueurs rattachés         | Liste de références |     ✅      | Au moins un                                      |
+| Utilisateur lié           | Référence User      |     ❌      | Si le contact a un compte                        |
+| Date de consentement RGPD | Date                |     ❌      | Requise pour l'activation du compte              |
 
 ### 5.2 Règles de gestion
 
@@ -364,15 +364,15 @@ Club
 
 ### 6.2 Données d'une équipe
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Nom | Texte | ✅ | Ex. "U13 A" |
-| Catégorie | Texte | ✅ | Ex. "U13", "U11" |
-| Saison | Référence | ✅ | |
-| Coach principal | Référence User | ✅ | Rôle coach requis |
-| Coach adjoint | Référence User | ❌ | |
-| Couleur | Hex | ❌ | Pour affichage |
+| Champ           | Type           | Obligatoire | Règles            |
+| --------------- | -------------- | :---------: | ----------------- |
+| Identifiant     | UUID           |     ✅      |                   |
+| Nom             | Texte          |     ✅      | Ex. "U13 A"       |
+| Catégorie       | Texte          |     ✅      | Ex. "U13", "U11"  |
+| Saison          | Référence      |     ✅      |                   |
+| Coach principal | Référence User |     ✅      | Rôle coach requis |
+| Coach adjoint   | Référence User |     ❌      |                   |
+| Couleur         | Hex            |     ❌      | Pour affichage    |
 
 ### 6.3 Saisons
 
@@ -386,34 +386,34 @@ Club
 
 ### 7.1 Données d'un match
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Équipe | Référence | ✅ | |
-| Saison | Référence | ✅ | |
-| Tournoi | Référence | ❌ | Si le match appartient à un tournoi |
-| Date | Date | ✅ | |
-| Heure | Heure | ✅ | Format HH:MM |
-| Lieu / terrain | Texte | ✅ | Nom du terrain |
-| Adresse | Texte | ✅ | Pour navigation GPS |
-| Domicile / Extérieur | Booléen | ✅ | |
-| Adversaire | Texte | ✅ | |
-| Statut | Enum | ✅ | `prévisionnel`, `engagé`, `saison`, `tournoi`, `annulé` |
-| Phase | Texte | ✅ | Ex. "Poule A", "Phase aller", "Finale" |
-| Score domicile | Entier | ❌ | Renseigné en live ou après le match |
-| Score extérieur | Entier | ❌ | |
-| Note | Texte | ❌ | Compte-rendu libre |
-| Mode live actif | Booléen | ✅ | Par défaut : faux |
+| Champ                | Type      | Obligatoire | Règles                                                  |
+| -------------------- | --------- | :---------: | ------------------------------------------------------- |
+| Identifiant          | UUID      |     ✅      |                                                         |
+| Équipe               | Référence |     ✅      |                                                         |
+| Saison               | Référence |     ✅      |                                                         |
+| Tournoi              | Référence |     ❌      | Si le match appartient à un tournoi                     |
+| Date                 | Date      |     ✅      |                                                         |
+| Heure                | Heure     |     ✅      | Format HH:MM                                            |
+| Lieu / terrain       | Texte     |     ✅      | Nom du terrain                                          |
+| Adresse              | Texte     |     ✅      | Pour navigation GPS                                     |
+| Domicile / Extérieur | Booléen   |     ✅      |                                                         |
+| Adversaire           | Texte     |     ✅      |                                                         |
+| Statut               | Enum      |     ✅      | `prévisionnel`, `engagé`, `saison`, `tournoi`, `annulé` |
+| Phase                | Texte     |     ✅      | Ex. "Poule A", "Phase aller", "Finale"                  |
+| Score domicile       | Entier    |     ❌      | Renseigné en live ou après le match                     |
+| Score extérieur      | Entier    |     ❌      |                                                         |
+| Note                 | Texte     |     ❌      | Compte-rendu libre                                      |
+| Mode live actif      | Booléen   |     ✅      | Par défaut : faux                                       |
 
 ### 7.2 Statuts des matchs
 
-| Statut | Description |
-|---|---|
+| Statut         | Description                                         |
+| -------------- | --------------------------------------------------- |
 | `prévisionnel` | Non confirmé, date et heure susceptibles de changer |
-| `engagé` | Confirmé, équipes et lieu définis |
-| `saison` | Match officiel de championnat validé |
-| `tournoi` | Match dans le cadre d'un tournoi |
-| `annulé` | Annulé, conservé dans l'historique |
+| `engagé`       | Confirmé, équipes et lieu définis                   |
+| `saison`       | Match officiel de championnat validé                |
+| `tournoi`      | Match dans le cadre d'un tournoi                    |
+| `annulé`       | Annulé, conservé dans l'historique                  |
 
 ### 7.3 Règles de gestion
 
@@ -423,11 +423,11 @@ Club
 
 ### 7.4 Calendrier multi-vues
 
-| Vue | Rôle | Description |
-|---|---|---|
+| Vue        | Rôle         | Description                                   |
+| ---------- | ------------ | --------------------------------------------- |
 | Par équipe | Coach, Admin | Tous les matchs et entraînements d'une équipe |
-| Par joueur | Coach, Admin | Tous les événements d'un joueur spécifique |
-| Personnel | Parent | Événements des enfants rattachés au compte |
+| Par joueur | Coach, Admin | Tous les événements d'un joueur spécifique    |
+| Personnel  | Parent       | Événements des enfants rattachés au compte    |
 
 ### 7.5 Mode match en temps réel
 
@@ -437,28 +437,28 @@ Permettre au coach de saisir les événements d'un match depuis le bord du terra
 
 #### 7.5.2 Données d'un événement de match
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Match | Référence | ✅ | |
-| Type | Enum | ✅ | Voir tableau ci-dessous |
-| Minute | Entier | ❌ | 1–90+, renseigné par le chronomètre ou saisi manuellement |
-| Joueur principal | Référence | ❌ | Buteur, joueur concerné par l'événement |
-| Joueur secondaire | Référence | ❌ | Passeur décisif, joueur sortant lors d'un remplacement |
-| Note | Texte | ❌ | Commentaire libre |
-| Horodatage | DateTime | ✅ | Généré automatiquement |
+| Champ             | Type      | Obligatoire | Règles                                                    |
+| ----------------- | --------- | :---------: | --------------------------------------------------------- |
+| Identifiant       | UUID      |     ✅      |                                                           |
+| Match             | Référence |     ✅      |                                                           |
+| Type              | Enum      |     ✅      | Voir tableau ci-dessous                                   |
+| Minute            | Entier    |     ❌      | 1–90+, renseigné par le chronomètre ou saisi manuellement |
+| Joueur principal  | Référence |     ❌      | Buteur, joueur concerné par l'événement                   |
+| Joueur secondaire | Référence |     ❌      | Passeur décisif, joueur sortant lors d'un remplacement    |
+| Note              | Texte     |     ❌      | Commentaire libre                                         |
+| Horodatage        | DateTime  |     ✅      | Généré automatiquement                                    |
 
 #### 7.5.3 Types d'événements
 
-| Code | Libellé | Joueur principal | Joueur secondaire |
-|---|---|---|---|
-| `but` | But marqué | Buteur | Passeur (opt.) |
-| `but_csc` | But contre son camp | Joueur adverse (texte libre) | — |
-| `carton_jaune` | Carton jaune | Joueur averti | — |
-| `carton_rouge` | Carton rouge | Joueur expulsé | — |
-| `remplacement` | Remplacement | Joueur entrant | Joueur sortant |
-| `blessure_live` | Blessure pendant le match | Joueur blessé | — |
-| `arret_mi_temps` | Fin de mi-temps | — | — |
+| Code             | Libellé                   | Joueur principal             | Joueur secondaire |
+| ---------------- | ------------------------- | ---------------------------- | ----------------- |
+| `but`            | But marqué                | Buteur                       | Passeur (opt.)    |
+| `but_csc`        | But contre son camp       | Joueur adverse (texte libre) | —                 |
+| `carton_jaune`   | Carton jaune              | Joueur averti                | —                 |
+| `carton_rouge`   | Carton rouge              | Joueur expulsé               | —                 |
+| `remplacement`   | Remplacement              | Joueur entrant               | Joueur sortant    |
+| `blessure_live`  | Blessure pendant le match | Joueur blessé                | —                 |
+| `arret_mi_temps` | Fin de mi-temps           | —                            | —                 |
 
 #### 7.5.4 Fonctionnalités de l'interface live
 
@@ -470,12 +470,12 @@ Permettre au coach de saisir les événements d'un match depuis le bord du terra
 
 #### 7.5.5 Conséquences automatiques
 
-| Événement | Conséquence automatique |
-|---|---|
-| But | Score mis à jour |
-| Remplacement | Historique des postes alimenté pour les deux joueurs |
-| Blessure_live | Proposition de créer un suivi de blessure + indisponibilité |
-| Clôture du match | Proposition de saisir l'assiduité |
+| Événement        | Conséquence automatique                                     |
+| ---------------- | ----------------------------------------------------------- |
+| But              | Score mis à jour                                            |
+| Remplacement     | Historique des postes alimenté pour les deux joueurs        |
+| Blessure_live    | Proposition de créer un suivi de blessure + indisponibilité |
+| Clôture du match | Proposition de saisir l'assiduité                           |
 
 #### 7.5.6 Règles de gestion
 
@@ -491,17 +491,17 @@ Permettre au coach de saisir les événements d'un match depuis le bord du terra
 
 ### 8.1 Données d'un entraînement
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Équipe | Référence | ✅ | |
-| Date | Date | ✅ | |
-| Heure de début | Heure | ✅ | Format HH:MM |
-| Durée | Entier | ✅ | En minutes |
-| Type | Enum | ✅ | `régulier`, `exceptionnel` |
-| Annulé | Booléen | ✅ | Par défaut : faux |
-| Thème | Texte | ❌ | Ex. "Pressing haut", "Jeu en transition" |
-| Note / compte-rendu | Texte | ❌ | Programme ou compte-rendu post-séance |
+| Champ               | Type      | Obligatoire | Règles                                   |
+| ------------------- | --------- | :---------: | ---------------------------------------- |
+| Identifiant         | UUID      |     ✅      |                                          |
+| Équipe              | Référence |     ✅      |                                          |
+| Date                | Date      |     ✅      |                                          |
+| Heure de début      | Heure     |     ✅      | Format HH:MM                             |
+| Durée               | Entier    |     ✅      | En minutes                               |
+| Type                | Enum      |     ✅      | `régulier`, `exceptionnel`               |
+| Annulé              | Booléen   |     ✅      | Par défaut : faux                        |
+| Thème               | Texte     |     ❌      | Ex. "Pressing haut", "Jeu en transition" |
+| Note / compte-rendu | Texte     |     ❌      | Programme ou compte-rendu post-séance    |
 
 ### 8.2 Récurrence
 
@@ -511,11 +511,11 @@ Permettre au coach de saisir les événements d'un match depuis le bord du terra
 
 ### 8.3 Cas particuliers
 
-| Cas | Comportement |
-|---|---|
-| Décalage horaire | Modification de l'heure + notification |
-| Entraînement exceptionnel | Création ponctuelle avec type `exceptionnel` |
-| Annulation | `annulé = vrai` + notification + conservation dans l'historique |
+| Cas                       | Comportement                                                    |
+| ------------------------- | --------------------------------------------------------------- |
+| Décalage horaire          | Modification de l'heure + notification                          |
+| Entraînement exceptionnel | Création ponctuelle avec type `exceptionnel`                    |
+| Annulation                | `annulé = vrai` + notification + conservation dans l'historique |
 
 ### 8.4 Règles de gestion
 
@@ -527,13 +527,13 @@ Permettre au coach de saisir les événements d'un match depuis le bord du terra
 
 #### 8.5.1 Données d'un bloc de séance
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Ordre | Entier | ✅ | Position dans le déroulement |
-| Durée | Entier | ✅ | En minutes |
-| Titre | Texte | ✅ | |
-| Description | Texte | ❌ | Consignes, variantes |
-| Exercice lié | Référence bibliothèque | ❌ | |
+| Champ        | Type                   | Obligatoire | Règles                       |
+| ------------ | ---------------------- | :---------: | ---------------------------- |
+| Ordre        | Entier                 |     ✅      | Position dans le déroulement |
+| Durée        | Entier                 |     ✅      | En minutes                   |
+| Titre        | Texte                  |     ✅      |                              |
+| Description  | Texte                  |     ❌      | Consignes, variantes         |
+| Exercice lié | Référence bibliothèque |     ❌      |                              |
 
 #### 8.5.2 Règles de gestion
 
@@ -545,15 +545,15 @@ Permettre au coach de saisir les événements d'un match depuis le bord du terra
 
 #### 8.6.1 Données d'un exercice
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Titre | Texte | ✅ | 2–100 caractères |
-| Description | Texte | ❌ | |
-| Catégorie | Enum | ✅ | `échauffement`, `technique`, `physique`, `tactique`, `jeu`, `retour au calme` |
-| Durée suggérée | Entier | ❌ | En minutes |
-| Tags | Liste de textes | ❌ | |
-| Créé par | Référence User | ✅ | |
+| Champ          | Type            | Obligatoire | Règles                                                                        |
+| -------------- | --------------- | :---------: | ----------------------------------------------------------------------------- |
+| Identifiant    | UUID            |     ✅      |                                                                               |
+| Titre          | Texte           |     ✅      | 2–100 caractères                                                              |
+| Description    | Texte           |     ❌      |                                                                               |
+| Catégorie      | Enum            |     ✅      | `échauffement`, `technique`, `physique`, `tactique`, `jeu`, `retour au calme` |
+| Durée suggérée | Entier          |     ❌      | En minutes                                                                    |
+| Tags           | Liste de textes |     ❌      |                                                                               |
+| Créé par       | Référence User  |     ✅      |                                                                               |
 
 #### 8.6.2 Règles de gestion
 
@@ -576,14 +576,14 @@ Permettre au coach de saisir les événements d'un match depuis le bord du terra
 
 ### 9.2 Données d'une présence
 
-| Champ | Type | Obligatoire |
-|---|---|:---:|
-| Identifiant | UUID | ✅ |
-| Type de séance | `match` ou `entraînement` | ✅ |
-| Référence séance | UUID | ✅ |
-| Joueur | Référence | ✅ |
-| Statut | Enum | ✅ |
-| Note | Texte | ❌ |
+| Champ            | Type                      | Obligatoire |
+| ---------------- | ------------------------- | :---------: |
+| Identifiant      | UUID                      |     ✅      |
+| Type de séance   | `match` ou `entraînement` |     ✅      |
+| Référence séance | UUID                      |     ✅      |
+| Joueur           | Référence                 |     ✅      |
+| Statut           | Enum                      |     ✅      |
+| Note             | Texte                     |     ❌      |
 
 ### 9.3 Règles de gestion
 
@@ -598,41 +598,41 @@ Permettre au coach de saisir les événements d'un match depuis le bord du terra
 
 ### 10.1 Statistiques d'assiduité
 
-| Indicateur | Description |
-|---|---|
-| Taux de présence | % séances présentes / séances totales |
-| Nombre de présences | Absences, excusées, non renseignées |
-| Évolution | Courbe sur la période sélectionnée |
+| Indicateur          | Description                           |
+| ------------------- | ------------------------------------- |
+| Taux de présence    | % séances présentes / séances totales |
+| Nombre de présences | Absences, excusées, non renseignées   |
+| Évolution           | Courbe sur la période sélectionnée    |
 
 ### 10.2 Statistiques sportives par joueur
 
-| Indicateur | Description |
-|---|---|
-| Matchs joués | Total et par période |
-| Temps de jeu | Total en minutes si granularité disponible |
-| Postes joués | Répartition par poste |
-| Buts marqués | Via mode live |
-| Passes décisives | Via mode live |
-| Cartons jaunes / rouges | Via mode live |
-| Évolution | Historique des postes dans le temps |
+| Indicateur              | Description                                |
+| ----------------------- | ------------------------------------------ |
+| Matchs joués            | Total et par période                       |
+| Temps de jeu            | Total en minutes si granularité disponible |
+| Postes joués            | Répartition par poste                      |
+| Buts marqués            | Via mode live                              |
+| Passes décisives        | Via mode live                              |
+| Cartons jaunes / rouges | Via mode live                              |
+| Évolution               | Historique des postes dans le temps        |
 
 ### 10.3 Statistiques d'équipe
 
-| Indicateur | Description |
-|---|---|
-| Résultats | Victoires, nuls, défaites |
-| Buts pour / contre | Total et par match |
-| Meilleur buteur | Classement des buteurs de l'équipe |
-| Taux de présence global | Moyenne de présence aux séances |
+| Indicateur              | Description                        |
+| ----------------------- | ---------------------------------- |
+| Résultats               | Victoires, nuls, défaites          |
+| Buts pour / contre      | Total et par match                 |
+| Meilleur buteur         | Classement des buteurs de l'équipe |
+| Taux de présence global | Moyenne de présence aux séances    |
 
 ### 10.4 Filtres disponibles
 
-| Filtre | Valeurs |
-|---|---|
-| Période | Glissant 30j, 60j, depuis début de saison, saison complète |
-| Joueur | Sélection individuelle |
-| Équipe | Sélection d'équipe |
-| Type de séance | Matchs, entraînements, tous |
+| Filtre         | Valeurs                                                    |
+| -------------- | ---------------------------------------------------------- |
+| Période        | Glissant 30j, 60j, depuis début de saison, saison complète |
+| Joueur         | Sélection individuelle                                     |
+| Équipe         | Sélection d'équipe                                         |
+| Type de séance | Matchs, entraînements, tous                                |
 
 ### 10.5 Règles de gestion
 
@@ -650,32 +650,32 @@ Le simulateur permet au coach de préparer sa composition avant un match, en pos
 
 ### 11.2 Formations supportées (foot à 8)
 
-| Formation | Description |
-|---|---|
-| 2-3-2 | 2 défenseurs, 3 milieux, 2 attaquants |
-| 3-2-2 | 3 défenseurs, 2 milieux, 2 attaquants |
-| 3-3-1 | 3 défenseurs, 3 milieux, 1 attaquant |
-| 2-4-1 | 2 défenseurs, 4 milieux, 1 attaquant |
+| Formation | Description                           |
+| --------- | ------------------------------------- |
+| 2-3-2     | 2 défenseurs, 3 milieux, 2 attaquants |
+| 3-2-2     | 3 défenseurs, 2 milieux, 2 attaquants |
+| 3-3-1     | 3 défenseurs, 3 milieux, 1 attaquant  |
+| 2-4-1     | 2 défenseurs, 4 milieux, 1 attaquant  |
 
 ### 11.3 Données d'une composition
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Équipe | Référence | ✅ | |
-| Match associé | Référence | ❌ | |
-| Nom | Texte | ✅ | |
-| Formation | Enum | ✅ | |
-| Slots | Liste de SlotPoste | ✅ | 8 slots (1 GK + 7 joueurs de champ) |
-| Remplaçants | Liste de Références | ❌ | |
-| Date de création | DateTime | ✅ | |
+| Champ            | Type                | Obligatoire | Règles                              |
+| ---------------- | ------------------- | :---------: | ----------------------------------- |
+| Identifiant      | UUID                |     ✅      |                                     |
+| Équipe           | Référence           |     ✅      |                                     |
+| Match associé    | Référence           |     ❌      |                                     |
+| Nom              | Texte               |     ✅      |                                     |
+| Formation        | Enum                |     ✅      |                                     |
+| Slots            | Liste de SlotPoste  |     ✅      | 8 slots (1 GK + 7 joueurs de champ) |
+| Remplaçants      | Liste de Références |     ❌      |                                     |
+| Date de création | DateTime            |     ✅      |                                     |
 
 ### 11.4 Slot de poste
 
-| Champ | Description |
-|---|---|
-| Position | Code du poste (GK, DD, DC…) |
-| Joueur affecté | Référence joueur (optionnel) |
+| Champ           | Description                             |
+| --------------- | --------------------------------------- |
+| Position        | Code du poste (GK, DD, DC…)             |
+| Joueur affecté  | Référence joueur (optionnel)            |
 | Coordonnées x/y | Position visuelle sur le terrain (en %) |
 
 ### 11.5 Suggestions automatiques
@@ -686,13 +686,13 @@ Le simulateur permet au coach de préparer sa composition avant un match, en pos
 
 ### 11.6 Disponibilité des joueurs dans le simulateur
 
-| État du joueur | Rendu |
-|---|---|
-| Disponible | Affiché normalement |
-| Indisponible | Grisé 🚫 avec motif |
-| Reprise progressive | Grisé ⚠️ — alignement possible avec confirmation |
-| Absent confirmé (assiduité ou sondage) | Grisé 🔴 |
-| Absent répondu "absent" par le parent (sondage) | Grisé 🔴 avec indicateur "sondage" |
+| État du joueur                                  | Rendu                                            |
+| ----------------------------------------------- | ------------------------------------------------ |
+| Disponible                                      | Affiché normalement                              |
+| Indisponible                                    | Grisé 🚫 avec motif                              |
+| Reprise progressive                             | Grisé ⚠️ — alignement possible avec confirmation |
+| Absent confirmé (assiduité ou sondage)          | Grisé 🔴                                         |
+| Absent répondu "absent" par le parent (sondage) | Grisé 🔴 avec indicateur "sondage"               |
 
 > **RG-COMPO-01** : Les suggestions excluent les joueurs indisponibles.  
 > **RG-COMPO-02** : Un joueur ne peut être affecté qu'à un seul poste par composition.  
@@ -714,19 +714,19 @@ Gérer des compétitions concentrées (une journée ou un week-end) regroupant p
 
 ### 12.2 Données d'un tournoi
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Nom | Texte | ✅ | Ex. "Tournoi de Noël 2025" |
-| Saison | Référence | ✅ | |
-| Date de début | Date | ✅ | |
-| Date de fin | Date | ❌ | Si multi-jours |
-| Lieu / Adresse | Texte | ✅ | |
-| Organisateur | Texte | ✅ | Nom du club organisateur |
-| Organisé par le club | Booléen | ✅ | |
-| Équipes du club | Liste de références | ✅ | Au moins une |
-| Format | Enum | ✅ | `poules`, `élimination_directe`, `poules_finale` |
-| Statut | Enum | ✅ | `planifié`, `en_cours`, `terminé` |
+| Champ                | Type                | Obligatoire | Règles                                           |
+| -------------------- | ------------------- | :---------: | ------------------------------------------------ |
+| Identifiant          | UUID                |     ✅      |                                                  |
+| Nom                  | Texte               |     ✅      | Ex. "Tournoi de Noël 2025"                       |
+| Saison               | Référence           |     ✅      |                                                  |
+| Date de début        | Date                |     ✅      |                                                  |
+| Date de fin          | Date                |     ❌      | Si multi-jours                                   |
+| Lieu / Adresse       | Texte               |     ✅      |                                                  |
+| Organisateur         | Texte               |     ✅      | Nom du club organisateur                         |
+| Organisé par le club | Booléen             |     ✅      |                                                  |
+| Équipes du club      | Liste de références |     ✅      | Au moins une                                     |
+| Format               | Enum                |     ✅      | `poules`, `élimination_directe`, `poules_finale` |
+| Statut               | Enum                |     ✅      | `planifié`, `en_cours`, `terminé`                |
 
 ### 12.3 Structure interne
 
@@ -741,11 +741,11 @@ TOURNOI
 
 ### 12.4 Classement de poule
 
-| Résultat | Points |
-|---|---|
-| Victoire | 3 points |
-| Match nul | 1 point |
-| Défaite | 0 point |
+| Résultat  | Points   |
+| --------- | -------- |
+| Victoire  | 3 points |
+| Match nul | 1 point  |
+| Défaite   | 0 point  |
 
 Départage : différence de buts → buts marqués → confrontation directe.
 
@@ -754,6 +754,7 @@ Départage : différence de buts → buts marqués → confrontation directe.
 ### 12.5 Organisation d'un tournoi maison
 
 Quand le club est organisateur :
+
 - Saisie des équipes adverses invitées (nom, club — sans données joueurs)
 - Gestion des **terrains** : numéro/nom, affecté à chaque match
 - Planning par terrain (grille horaire)
@@ -776,23 +777,23 @@ Synchroniser les événements de l'application dans le calendrier personnel (Goo
 
 ### 13.2 Flux disponibles
 
-| Flux | Destinataires | Contenu |
-|---|---|---|
-| Équipe | Coach, Admin | Matchs + entraînements + tournois de l'équipe |
-| Joueur | Coach, Admin | Tous les événements d'un joueur |
-| Personnel | Parent | Événements de son ou ses enfants |
+| Flux      | Destinataires | Contenu                                       |
+| --------- | ------------- | --------------------------------------------- |
+| Équipe    | Coach, Admin  | Matchs + entraînements + tournois de l'équipe |
+| Joueur    | Coach, Admin  | Tous les événements d'un joueur               |
+| Personnel | Parent        | Événements de son ou ses enfants              |
 
 ### 13.3 Contenu exporté par événement
 
-| Champ iCal | Valeur |
-|---|---|
-| `SUMMARY` | Ex. "⚽ Match vs FC Lyon — U13A" |
-| `DTSTART` / `DTEND` | Début et fin calculée |
-| `LOCATION` | Lieu + adresse |
-| `DESCRIPTION` | Équipe, statut, phase, tournoi si applicable, point de RDV si défini |
-| `STATUS` | `CONFIRMED` / `TENTATIVE` / `CANCELLED` |
-| `LAST-MODIFIED` | Horodatage de la dernière modification |
-| `UID` | Identifiant stable pour mise à jour différentielle |
+| Champ iCal          | Valeur                                                               |
+| ------------------- | -------------------------------------------------------------------- |
+| `SUMMARY`           | Ex. "⚽ Match vs FC Lyon — U13A"                                     |
+| `DTSTART` / `DTEND` | Début et fin calculée                                                |
+| `LOCATION`          | Lieu + adresse                                                       |
+| `DESCRIPTION`       | Équipe, statut, phase, tournoi si applicable, point de RDV si défini |
+| `STATUS`            | `CONFIRMED` / `TENTATIVE` / `CANCELLED`                              |
+| `LAST-MODIFIED`     | Horodatage de la dernière modification                               |
+| `UID`               | Identifiant stable pour mise à jour différentielle                   |
 
 ### 13.4 Accès et sécurité
 
@@ -821,12 +822,12 @@ Pour tout match extérieur (`isHome = faux`) ou tournoi, le coach peut définir 
 
 #### 14.2.1 Données du point de RDV
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | Rattaché au match ou tournoi |
-| Adresse | Texte | ✅ | Adresse complète |
-| Heure de rendez-vous | Heure | ✅ | Format HH:MM — différente de l'heure du match |
-| Note | Texte | ❌ | Ex. "Parking du supermarché, entrée rue du Moulin" |
+| Champ                | Type  | Obligatoire | Règles                                             |
+| -------------------- | ----- | :---------: | -------------------------------------------------- |
+| Identifiant          | UUID  |     ✅      | Rattaché au match ou tournoi                       |
+| Adresse              | Texte |     ✅      | Adresse complète                                   |
+| Heure de rendez-vous | Heure |     ✅      | Format HH:MM — différente de l'heure du match      |
+| Note                 | Texte |     ❌      | Ex. "Parking du supermarché, entrée rue du Moulin" |
 
 #### 14.2.2 Règles de gestion
 
@@ -850,26 +851,26 @@ Les parents peuvent proposer des places de covoiturage pour les matchs extérieu
 
 #### 14.4.2 Données d'une offre de covoiturage
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Match | Référence | ✅ | |
-| Proposé par | Référence User (parent) | ✅ | |
-| Nombre de places disponibles | Entier | ✅ | 1–8 |
-| Lieu de départ | Texte | ❌ | Ex. "Place de la mairie" |
-| Heure de départ | Heure | ❌ | |
-| Joueurs pris en charge | Liste de références | ❌ | Renseignée par le parent conducteur |
-| Note | Texte | ❌ | Visible par le coach uniquement |
+| Champ                        | Type                    | Obligatoire | Règles                              |
+| ---------------------------- | ----------------------- | :---------: | ----------------------------------- |
+| Identifiant                  | UUID                    |     ✅      |                                     |
+| Match                        | Référence               |     ✅      |                                     |
+| Proposé par                  | Référence User (parent) |     ✅      |                                     |
+| Nombre de places disponibles | Entier                  |     ✅      | 1–8                                 |
+| Lieu de départ               | Texte                   |     ❌      | Ex. "Place de la mairie"            |
+| Heure de départ              | Heure                   |     ❌      |                                     |
+| Joueurs pris en charge       | Liste de références     |     ❌      | Renseignée par le parent conducteur |
+| Note                         | Texte                   |     ❌      | Visible par le coach uniquement     |
 
 #### 14.4.3 Vue coach — récapitulatif du covoiturage
 
 Le coach dispose d'un tableau de bord par match extérieur :
 
-| Conducteur | Places | Départ | Joueurs pris en charge | Places libres |
-|---|---|---|---|---|
-| M. Dupont | 4 | Place de la mairie, 13h00 | Lucas, Emma | 2 |
-| Mme Martin | 3 | Rue de l'Église, 13h15 | Tom | 2 |
-| — | — | — | Julien, Anouk (sans solution) | — |
+| Conducteur | Places | Départ                    | Joueurs pris en charge        | Places libres |
+| ---------- | ------ | ------------------------- | ----------------------------- | ------------- |
+| M. Dupont  | 4      | Place de la mairie, 13h00 | Lucas, Emma                   | 2             |
+| Mme Martin | 3      | Rue de l'Église, 13h15    | Tom                           | 2             |
+| —          | —      | —                         | Julien, Anouk (sans solution) | —             |
 
 Le coach voit les joueurs sans solution de transport identifiée.
 
@@ -899,63 +900,63 @@ Le sondage de présence permet au coach de recueillir **à l'avance** les confir
 
 Le module repose sur une distinction essentielle entre deux niveaux de réponse :
 
-| Niveau | Acteur | Valeur | Portée |
-|---|---|---|---|
-| **Intention** | Le joueur (ou le parent au nom du joueur, V1) | Indicative, non contraignante | Informative pour le coach |
-| **Confirmation officielle** | Le parent / tuteur légal | Définitive, contraignante | Retenue par le coach pour la composition et l'assiduité |
+| Niveau                      | Acteur                                        | Valeur                        | Portée                                                  |
+| --------------------------- | --------------------------------------------- | ----------------------------- | ------------------------------------------------------- |
+| **Intention**               | Le joueur (ou le parent au nom du joueur, V1) | Indicative, non contraignante | Informative pour le coach                               |
+| **Confirmation officielle** | Le parent / tuteur légal                      | Définitive, contraignante     | Retenue par le coach pour la composition et l'assiduité |
 
 > **Règle fondamentale :** la réponse du parent prévaut systématiquement sur l'intention du joueur. Un enfant peut exprimer ce qu'il souhaite — seul le parent engage la famille.
 
 ### 15.2 Données d'un sondage
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Équipe | Référence | ✅ | |
-| Type de séance | Enum | ✅ | `match`, `entraînement`, `tournoi`, `libre` |
-| Séance associée | Référence | ❌ | Lien vers le match, entraînement ou tournoi |
-| Question | Texte | ✅ | Ex. "Serez-vous présent au match du 15/05 vs AS Martin ?" |
-| Date limite de réponse | DateTime | ✅ | |
-| Créé par | Référence User | ✅ | Coach ou admin |
-| Statut | Enum | ✅ | `ouvert`, `fermé`, `archivé` |
-| Notification à l'ouverture | Booléen | ✅ | Envoyer une notification à la création |
-| Créé le | DateTime | ✅ | |
+| Champ                      | Type           | Obligatoire | Règles                                                    |
+| -------------------------- | -------------- | :---------: | --------------------------------------------------------- |
+| Identifiant                | UUID           |     ✅      |                                                           |
+| Équipe                     | Référence      |     ✅      |                                                           |
+| Type de séance             | Enum           |     ✅      | `match`, `entraînement`, `tournoi`, `libre`               |
+| Séance associée            | Référence      |     ❌      | Lien vers le match, entraînement ou tournoi               |
+| Question                   | Texte          |     ✅      | Ex. "Serez-vous présent au match du 15/05 vs AS Martin ?" |
+| Date limite de réponse     | DateTime       |     ✅      |                                                           |
+| Créé par                   | Référence User |     ✅      | Coach ou admin                                            |
+| Statut                     | Enum           |     ✅      | `ouvert`, `fermé`, `archivé`                              |
+| Notification à l'ouverture | Booléen        |     ✅      | Envoyer une notification à la création                    |
+| Créé le                    | DateTime       |     ✅      |                                                           |
 
 ### 15.3 Options de réponse
 
 Les mêmes options s'appliquent aux deux niveaux (intention joueur et confirmation parent) :
 
-| Valeur | Signification |
-|---|---|
-| `présent` | La présence est confirmée |
-| `absent` | La présence ne sera pas possible |
+| Valeur      | Signification                       |
+| ----------- | ----------------------------------- |
+| `présent`   | La présence est confirmée           |
+| `absent`    | La présence ne sera pas possible    |
 | `incertain` | La présence n'est pas encore connue |
 
 ### 15.4 Données d'une réponse
 
-| Champ | Type | Obligatoire | Règles |
-|---|---|:---:|---|
-| Identifiant | UUID | ✅ | |
-| Sondage | Référence | ✅ | |
-| Joueur | Référence | ✅ | |
-| **Intention joueur** | Enum | ❌ | Renseignée par le joueur (V2) ou par le parent au nom du joueur (V1) |
-| Date intention joueur | DateTime | ❌ | |
-| **Confirmation parent** | Enum | ❌ | Renseignée par le parent — valeur officielle |
-| Date confirmation parent | DateTime | ❌ | |
-| Parent répondant | Référence User | ❌ | |
-| Note | Texte | ❌ | Visible par le coach uniquement |
+| Champ                    | Type           | Obligatoire | Règles                                                               |
+| ------------------------ | -------------- | :---------: | -------------------------------------------------------------------- |
+| Identifiant              | UUID           |     ✅      |                                                                      |
+| Sondage                  | Référence      |     ✅      |                                                                      |
+| Joueur                   | Référence      |     ✅      |                                                                      |
+| **Intention joueur**     | Enum           |     ❌      | Renseignée par le joueur (V2) ou par le parent au nom du joueur (V1) |
+| Date intention joueur    | DateTime       |     ❌      |                                                                      |
+| **Confirmation parent**  | Enum           |     ❌      | Renseignée par le parent — valeur officielle                         |
+| Date confirmation parent | DateTime       |     ❌      |                                                                      |
+| Parent répondant         | Référence User |     ❌      |                                                                      |
+| Note                     | Texte          |     ❌      | Visible par le coach uniquement                                      |
 
 ### 15.5 Vue synthèse coach
 
 Le coach dispose d'un tableau de bord par sondage :
 
-| Joueur | Intention joueur | Confirmation parent | Écart | Statut retenu |
-|---|---|---|---|---|
-| Lucas D. | ✅ Présent | ✅ Présent | — | ✅ Présent |
-| Emma R. | ✅ Présent | ❌ Absent | ⚠️ Divergence | ❌ Absent |
-| Tom B. | ❌ Absent | _(non répondu)_ | — | ❓ Non confirmé |
-| Anouk M. | _(non renseigné)_ | ✅ Présent | — | ✅ Présent |
-| Julien C. | _(non renseigné)_ | _(non répondu)_ | — | ❓ Non confirmé |
+| Joueur    | Intention joueur  | Confirmation parent | Écart         | Statut retenu   |
+| --------- | ----------------- | ------------------- | ------------- | --------------- |
+| Lucas D.  | ✅ Présent        | ✅ Présent          | —             | ✅ Présent      |
+| Emma R.   | ✅ Présent        | ❌ Absent           | ⚠️ Divergence | ❌ Absent       |
+| Tom B.    | ❌ Absent         | _(non répondu)_     | —             | ❓ Non confirmé |
+| Anouk M.  | _(non renseigné)_ | ✅ Présent          | —             | ✅ Présent      |
+| Julien C. | _(non renseigné)_ | _(non répondu)_     | —             | ❓ Non confirmé |
 
 - La **divergence** (intention joueur ≠ confirmation parent) est mise en évidence visuellement.
 - Le **statut retenu** est toujours la confirmation parent si elle existe, sinon l'intention joueur avec mention "non confirmé par le parent", sinon "non répondu".
@@ -989,12 +990,12 @@ Le coach dispose d'un tableau de bord par sondage :
 
 Un joueur peut avoir plusieurs contacts avec un compte utilisateur (ex. père et mère).
 
-| Situation | Comportement |
-|---|---|
-| Un seul parent a répondu | Sa réponse est retenue comme confirmation officielle |
-| Les deux parents ont répondu **de la même façon** | La réponse commune est retenue |
-| Les deux parents ont répondu **différemment** | Une alerte ⚠️ "Réponses divergentes entre tuteurs" est affichée au coach |
-| Aucun parent n'a répondu | Statut "non confirmé" |
+| Situation                                         | Comportement                                                             |
+| ------------------------------------------------- | ------------------------------------------------------------------------ |
+| Un seul parent a répondu                          | Sa réponse est retenue comme confirmation officielle                     |
+| Les deux parents ont répondu **de la même façon** | La réponse commune est retenue                                           |
+| Les deux parents ont répondu **différemment**     | Une alerte ⚠️ "Réponses divergentes entre tuteurs" est affichée au coach |
+| Aucun parent n'a répondu                          | Statut "non confirmé"                                                    |
 
 > En cas de divergence entre tuteurs, le coach voit les deux réponses et choisit laquelle retenir. La dernière réponse saisie est affichée en premier.
 
@@ -1006,28 +1007,28 @@ Un joueur peut avoir plusieurs contacts avec un compte utilisateur (ex. père et
 
 ### 16.1 Événements déclencheurs
 
-| Événement | Destinataires | Déclencheur |
-|---|---|---|
-| Nouveau match ajouté | Coach + Parents de l'équipe | Création d'un match |
-| Changement d'horaire de match | Coach + Parents de l'équipe | Modification date ou heure |
-| Changement de lieu de match | Coach + Parents de l'équipe | Modification terrain ou adresse |
-| Match annulé | Coach + Parents de l'équipe | Statut → `annulé` |
-| Entraînement modifié | Coach + Parents de l'équipe | Modification heure |
-| Entraînement exceptionnel | Coach + Parents de l'équipe | Création type `exceptionnel` |
-| Entraînement annulé | Coach + Parents de l'équipe | `annulé = vrai` |
-| Composition publiée | Parents (configurable) | Publication de la composition |
-| Rappel de séance | Parents | J-1 (configurable) |
-| Indisponibilité déclarée (parent) | Coach de l'équipe | Déclaration parent |
-| Blessure pendant le match live | Coach + Admin | Événement `blessure_live` |
-| Nouveau tournoi | Coach + Parents de l'équipe | Création |
-| Modification d'un tournoi | Coach + Parents de l'équipe | Date, lieu ou format modifié |
-| Point de RDV modifié | Parents de l'équipe | Modification adresse ou heure |
-| Nouveau sondage ouvert | Parents de l'équipe | Création sondage avec notification activée |
-| Deadline sondage dans 24h | Parents n'ayant pas répondu | Rappel automatique |
-| Récapitulatif sondage à clôture | Coach | Fermeture du sondage |
-| Réponse tardive à un sondage | Coach | Réponse après deadline |
-| Nouvelle offre de covoiturage | Coach | Soumission d'une offre |
-| Divergence de réponses tuteurs | Coach | Deux tuteurs ont répondu différemment |
+| Événement                         | Destinataires               | Déclencheur                                |
+| --------------------------------- | --------------------------- | ------------------------------------------ |
+| Nouveau match ajouté              | Coach + Parents de l'équipe | Création d'un match                        |
+| Changement d'horaire de match     | Coach + Parents de l'équipe | Modification date ou heure                 |
+| Changement de lieu de match       | Coach + Parents de l'équipe | Modification terrain ou adresse            |
+| Match annulé                      | Coach + Parents de l'équipe | Statut → `annulé`                          |
+| Entraînement modifié              | Coach + Parents de l'équipe | Modification heure                         |
+| Entraînement exceptionnel         | Coach + Parents de l'équipe | Création type `exceptionnel`               |
+| Entraînement annulé               | Coach + Parents de l'équipe | `annulé = vrai`                            |
+| Composition publiée               | Parents (configurable)      | Publication de la composition              |
+| Rappel de séance                  | Parents                     | J-1 (configurable)                         |
+| Indisponibilité déclarée (parent) | Coach de l'équipe           | Déclaration parent                         |
+| Blessure pendant le match live    | Coach + Admin               | Événement `blessure_live`                  |
+| Nouveau tournoi                   | Coach + Parents de l'équipe | Création                                   |
+| Modification d'un tournoi         | Coach + Parents de l'équipe | Date, lieu ou format modifié               |
+| Point de RDV modifié              | Parents de l'équipe         | Modification adresse ou heure              |
+| Nouveau sondage ouvert            | Parents de l'équipe         | Création sondage avec notification activée |
+| Deadline sondage dans 24h         | Parents n'ayant pas répondu | Rappel automatique                         |
+| Récapitulatif sondage à clôture   | Coach                       | Fermeture du sondage                       |
+| Réponse tardive à un sondage      | Coach                       | Réponse après deadline                     |
+| Nouvelle offre de covoiturage     | Coach                       | Soumission d'une offre                     |
+| Divergence de réponses tuteurs    | Coach                       | Deux tuteurs ont répondu différemment      |
 
 ### 16.2 Canaux
 
@@ -1039,6 +1040,7 @@ Un joueur peut avoir plusieurs contacts avec un compte utilisateur (ex. père et
 ### 16.3 Paramétrage utilisateur
 
 Chaque utilisateur peut depuis ses préférences :
+
 - Activer / désactiver chaque type de notification
 - Choisir le délai de rappel (J-1, J-2, H-2…)
 - Désactiver toutes les notifications
@@ -1058,11 +1060,11 @@ Synchroniser automatiquement le calendrier officiel des matchs et les résultats
 
 ### 17.2 Données récupérées
 
-| Donnée | Direction | Fréquence |
-|---|---|---|
+| Donnée              | Direction        | Fréquence                   |
+| ------------------- | ---------------- | --------------------------- |
 | Calendrier officiel | Fédération → App | Quotidienne ou à la demande |
-| Résultats | Fédération → App | Après chaque journée |
-| Classement | Fédération → App | Après chaque journée |
+| Résultats           | Fédération → App | Après chaque journée        |
+| Classement          | Fédération → App | Après chaque journée        |
 
 ### 17.3 Stratégie de rapprochement
 
@@ -1073,10 +1075,10 @@ Synchroniser automatiquement le calendrier officiel des matchs et les résultats
 
 ### 17.4 Gestion des conflits
 
-| Conflit | Comportement |
-|---|---|
-| Date différente | Alerte coach — choix manuel |
-| Lieu différent | Valeur fédérale par défaut (configurable) |
+| Conflit         | Comportement                                |
+| --------------- | ------------------------------------------- |
+| Date différente | Alerte coach — choix manuel                 |
+| Lieu différent  | Valeur fédérale par défaut (configurable)   |
 | Score différent | Valeur fédérale (sauf si mode live utilisé) |
 
 ### 17.5 Gestion des erreurs
@@ -1098,18 +1100,18 @@ Synchroniser automatiquement le calendrier officiel des matchs et les résultats
 
 ### 18.2 Données collectées et finalités
 
-| Catégorie | Données | Finalité |
-|---|---|---|
-| Joueur | Nom, prénom, date de naissance, photo | Identification, composition, statistiques |
-| Joueur | Poste, appétences | Optimisation sportive |
-| Joueur | Indisponibilités (motif, dates) | Gestion de l'effectif, composition |
-| Joueur | Suivi de blessure (zone, nature, statut) | Disponibilité sportive — aucune donnée médicale |
-| Contact | Nom, prénom, téléphone, email | Communication, accès à l'application |
-| Assiduité | Présences / absences | Suivi sportif |
-| Événements live | Buts, changements, cartons | Statistiques sportives |
-| Sondage | Intention joueur, confirmation parent | Planification de l'effectif |
-| Covoiturage | Offre de transport (sans coordonnées exposées) | Logistique des déplacements |
-| Token iCal | Identifiant de flux calendrier | Synchronisation calendrier personnel |
+| Catégorie       | Données                                        | Finalité                                        |
+| --------------- | ---------------------------------------------- | ----------------------------------------------- |
+| Joueur          | Nom, prénom, date de naissance, photo          | Identification, composition, statistiques       |
+| Joueur          | Poste, appétences                              | Optimisation sportive                           |
+| Joueur          | Indisponibilités (motif, dates)                | Gestion de l'effectif, composition              |
+| Joueur          | Suivi de blessure (zone, nature, statut)       | Disponibilité sportive — aucune donnée médicale |
+| Contact         | Nom, prénom, téléphone, email                  | Communication, accès à l'application            |
+| Assiduité       | Présences / absences                           | Suivi sportif                                   |
+| Événements live | Buts, changements, cartons                     | Statistiques sportives                          |
+| Sondage         | Intention joueur, confirmation parent          | Planification de l'effectif                     |
+| Covoiturage     | Offre de transport (sans coordonnées exposées) | Logistique des déplacements                     |
+| Token iCal      | Identifiant de flux calendrier                 | Synchronisation calendrier personnel            |
 
 ### 18.3 Données explicitement exclues
 
@@ -1121,22 +1123,22 @@ Synchroniser automatiquement le calendrier officiel des matchs et les résultats
 
 ### 18.4 Droits des personnes
 
-| Droit | Modalité |
-|---|---|
-| Accès | Export via l'interface parent ou sur demande admin |
-| Rectification | Signalement parent → correction par le coach |
-| Suppression | Demande via l'interface → traitement admin |
-| Portabilité | Export JSON ou CSV |
-| Opposition | Désactivation notifications et compte |
+| Droit         | Modalité                                           |
+| ------------- | -------------------------------------------------- |
+| Accès         | Export via l'interface parent ou sur demande admin |
+| Rectification | Signalement parent → correction par le coach       |
+| Suppression   | Demande via l'interface → traitement admin         |
+| Portabilité   | Export JSON ou CSV                                 |
+| Opposition    | Désactivation notifications et compte              |
 
 ### 18.5 Traçabilité du consentement
 
-| Information | Description |
-|---|---|
-| Date du consentement | Horodatage ISO |
-| Version du document | Référence CGU / politique de confidentialité |
-| Identité du consentant | Référence contact |
-| Canal | in-app, email, papier |
+| Information            | Description                                  |
+| ---------------------- | -------------------------------------------- |
+| Date du consentement   | Horodatage ISO                               |
+| Version du document    | Référence CGU / politique de confidentialité |
+| Identité du consentant | Référence contact                            |
+| Canal                  | in-app, email, papier                        |
 
 ### 18.6 Sécurité et accès
 
@@ -1564,80 +1566,80 @@ Then je vois matchs, entraînements et tournois de mon enfant
 
 Objectif : cœur fonctionnel utilisable par un coach, sans authentification multi-utilisateurs.
 
-| Module | Fonctionnalités incluses |
-|---|---|
-| Équipes | Création, modification, liste |
-| Joueurs | CRUD complet, postes, appétences |
-| Indisponibilités | Déclaration coach, affichage dans simulateur |
-| Matchs | CRUD, calendrier, score manuel |
-| Mode match live | Chronomètre, buts, changements, cartons — offline |
-| Entraînements | Création manuelle, annulation, contenu de séance |
-| Bibliothèque d'exercices | CRUD, utilisation dans les plans de séance |
-| Assiduité | Saisie simple (présent / absent / excusé) |
-| Composition | Simulateur visuel, grisage des indisponibles |
-| Statistiques | Taux de présence, postes joués, buts/cartons (via live) |
-| Navigation | PWA installable, offline partiel |
-| RGPD | Stockage local uniquement, aucune donnée tiers |
+| Module                   | Fonctionnalités incluses                                |
+| ------------------------ | ------------------------------------------------------- |
+| Équipes                  | Création, modification, liste                           |
+| Joueurs                  | CRUD complet, postes, appétences                        |
+| Indisponibilités         | Déclaration coach, affichage dans simulateur            |
+| Matchs                   | CRUD, calendrier, score manuel                          |
+| Mode match live          | Chronomètre, buts, changements, cartons — offline       |
+| Entraînements            | Création manuelle, annulation, contenu de séance        |
+| Bibliothèque d'exercices | CRUD, utilisation dans les plans de séance              |
+| Assiduité                | Saisie simple (présent / absent / excusé)               |
+| Composition              | Simulateur visuel, grisage des indisponibles            |
+| Statistiques             | Taux de présence, postes joués, buts/cartons (via live) |
+| Navigation               | PWA installable, offline partiel                        |
+| RGPD                     | Stockage local uniquement, aucune donnée tiers          |
 
 **Hors MVP :** suivi blessures, tournois, iCal, notifications, multi-utilisateurs, contacts/filiation, sondages, covoiturage, point de RDV, intégration fédération.
 
 ### 21.2 V1
 
-| Module | Fonctionnalités ajoutées |
-|---|---|
-| Authentification | Inscription, connexion, gestion de session |
-| Rôles | Admin, Coach, Parent avec droits différenciés |
-| Contacts & filiation | CRUD contacts, lien joueur ↔ contact |
-| Indisponibilités | Déclaration parent, notification au coach |
-| Suivi des blessures | Suivi complet, liaison automatique indisponibilité |
-| Tournois | Création, poules, classement automatique |
-| Calendrier iCal | Flux par équipe, joueur et parent |
-| Logistique | Point de RDV, navigation GPS, covoiturage simplifié |
-| Sondages de présence | Création, réponse parent (intention + confirmation), tableau de bord coach |
-| Notifications in-app | Événements principaux + push PWA |
-| RGPD | Consentement, export, suppression |
-| Entraînements récurrents | Création en série, modification d'occurrence |
+| Module                   | Fonctionnalités ajoutées                                                   |
+| ------------------------ | -------------------------------------------------------------------------- |
+| Authentification         | Inscription, connexion, gestion de session                                 |
+| Rôles                    | Admin, Coach, Parent avec droits différenciés                              |
+| Contacts & filiation     | CRUD contacts, lien joueur ↔ contact                                       |
+| Indisponibilités         | Déclaration parent, notification au coach                                  |
+| Suivi des blessures      | Suivi complet, liaison automatique indisponibilité                         |
+| Tournois                 | Création, poules, classement automatique                                   |
+| Calendrier iCal          | Flux par équipe, joueur et parent                                          |
+| Logistique               | Point de RDV, navigation GPS, covoiturage simplifié                        |
+| Sondages de présence     | Création, réponse parent (intention + confirmation), tableau de bord coach |
+| Notifications in-app     | Événements principaux + push PWA                                           |
+| RGPD                     | Consentement, export, suppression                                          |
+| Entraînements récurrents | Création en série, modification d'occurrence                               |
 
 ### 21.3 Évolutions ultérieures
 
-| Module | Description |
-|---|---|
-| Intégration fédération | Synchronisation calendrier et résultats |
-| Notifications email / SMS | Canal complémentaire |
-| Organisation tournoi maison | Gestion terrains, équipes adverses, planning |
-| Compte joueur | Saisie de l'intention par le joueur lui-même (sondage) |
-| Analyse tactique | Annotations, schémas dessinés |
-| Application native | Publication iOS / Android |
-| Multi-club | Gestion de plusieurs clubs depuis un seul compte admin |
-| Export PDF | Feuille de match, rapport d'assiduité |
-| Estimation de trajet | Intégration API cartographique |
+| Module                      | Description                                            |
+| --------------------------- | ------------------------------------------------------ |
+| Intégration fédération      | Synchronisation calendrier et résultats                |
+| Notifications email / SMS   | Canal complémentaire                                   |
+| Organisation tournoi maison | Gestion terrains, équipes adverses, planning           |
+| Compte joueur               | Saisie de l'intention par le joueur lui-même (sondage) |
+| Analyse tactique            | Annotations, schémas dessinés                          |
+| Application native          | Publication iOS / Android                              |
+| Multi-club                  | Gestion de plusieurs clubs depuis un seul compte admin |
+| Export PDF                  | Feuille de match, rapport d'assiduité                  |
+| Estimation de trajet        | Intégration API cartographique                         |
 
 ---
 
 ## 22. Points ouverts
 
-| Ref | Sujet | Impact | Priorité |
-|---|---|---|---|
-| PO-01 | Granularité à la minute pour l'historique des postes : saisie manuelle requise en plus du mode live ? | Modèle, UX | Haute |
-| PO-02 | Nombre de remplaçants autorisés en foot à 8 selon catégorie | Simulateur, mode live | Haute |
-| PO-03 | Notifications email / SMS dans le périmètre V1 ? | Architecture, coût | Moyenne |
-| PO-04 | API fédération : disponibilité, format, documentation | Intégration fédération | Haute |
-| PO-05 | Hébergement prévu : prestataire, localisation (UE requis RGPD) | Architecture, RGPD | Haute |
-| PO-06 | Gestion de plusieurs catégories (U11 + U13) dans la V1 ? | Structure de données | Moyenne |
-| PO-07 | Délai de saisie de l'assiduité (7 jours) : configurable ou fixe ? | Règle métier | Faible |
-| PO-08 | La composition peut-elle être partagée avec les parents ? | Notifications, droits | Moyenne |
-| PO-09 | Gestion des surclassements : règles fédérales à respecter pour les indisponibilités ? | Données joueurs | Haute |
-| PO-10 | Identité visuelle et charte graphique définies ? | UI/UX | Faible |
-| PO-11 | Critères de départage dans les tournois : règle fixe ou configurable par tournoi ? | Tournois | Moyenne |
-| PO-12 | Score live pour les parents : push WebSocket ou polling ? | Architecture technique | Haute |
-| PO-13 | Bibliothèque d'exercices : partage inter-clubs prévu ? | Périmètre, données | Faible |
-| PO-14 | Mode live : fenêtre de tolérance avant J-0 pour préparer la saisie ? | UX, règle métier | Moyenne |
-| PO-15 | Token iCal : durée de validité ou révocation manuelle uniquement ? | Sécurité, RGPD | Moyenne |
-| PO-16 | API cartographique pour estimation de trajet et covoiturage : périmètre V1 ? Impact RGPD ? | Architecture, coût | Moyenne |
-| PO-17 | Sondage — divergence entre tuteurs : résolution automatique (plus récente prévaut) ou décision manuelle du coach ? | Règle métier | Haute |
-| PO-18 | Sondage — création automatique à la création d'un match : activée par défaut ou opt-in au niveau du club ? | Paramétrage | Faible |
-| PO-19 | Covoiturage — mise en relation directe entre parents envisagée en V2 ? (avec consentement explicite) | RGPD, fonctionnel | Faible |
+| Ref   | Sujet                                                                                                              | Impact                 | Priorité |
+| ----- | ------------------------------------------------------------------------------------------------------------------ | ---------------------- | -------- |
+| PO-01 | Granularité à la minute pour l'historique des postes : saisie manuelle requise en plus du mode live ?              | Modèle, UX             | Haute    |
+| PO-02 | Nombre de remplaçants autorisés en foot à 8 selon catégorie                                                        | Simulateur, mode live  | Haute    |
+| PO-03 | Notifications email / SMS dans le périmètre V1 ?                                                                   | Architecture, coût     | Moyenne  |
+| PO-04 | API fédération : disponibilité, format, documentation                                                              | Intégration fédération | Haute    |
+| PO-05 | Hébergement prévu : prestataire, localisation (UE requis RGPD)                                                     | Architecture, RGPD     | Haute    |
+| PO-06 | Gestion de plusieurs catégories (U11 + U13) dans la V1 ?                                                           | Structure de données   | Moyenne  |
+| PO-07 | Délai de saisie de l'assiduité (7 jours) : configurable ou fixe ?                                                  | Règle métier           | Faible   |
+| PO-08 | La composition peut-elle être partagée avec les parents ?                                                          | Notifications, droits  | Moyenne  |
+| PO-09 | Gestion des surclassements : règles fédérales à respecter pour les indisponibilités ?                              | Données joueurs        | Haute    |
+| PO-10 | Identité visuelle et charte graphique définies ?                                                                   | UI/UX                  | Faible   |
+| PO-11 | Critères de départage dans les tournois : règle fixe ou configurable par tournoi ?                                 | Tournois               | Moyenne  |
+| PO-12 | Score live pour les parents : push WebSocket ou polling ?                                                          | Architecture technique | Haute    |
+| PO-13 | Bibliothèque d'exercices : partage inter-clubs prévu ?                                                             | Périmètre, données     | Faible   |
+| PO-14 | Mode live : fenêtre de tolérance avant J-0 pour préparer la saisie ?                                               | UX, règle métier       | Moyenne  |
+| PO-15 | Token iCal : durée de validité ou révocation manuelle uniquement ?                                                 | Sécurité, RGPD         | Moyenne  |
+| PO-16 | API cartographique pour estimation de trajet et covoiturage : périmètre V1 ? Impact RGPD ?                         | Architecture, coût     | Moyenne  |
+| PO-17 | Sondage — divergence entre tuteurs : résolution automatique (plus récente prévaut) ou décision manuelle du coach ? | Règle métier           | Haute    |
+| PO-18 | Sondage — création automatique à la création d'un match : activée par défaut ou opt-in au niveau du club ?         | Paramétrage            | Faible   |
+| PO-19 | Covoiturage — mise en relation directe entre parents envisagée en V2 ? (avec consentement explicite)               | RGPD, fonctionnel      | Faible   |
 
 ---
 
-*Document v1.2 — 05/05/2026 — à valider avec les parties prenantes avant démarrage du développement.*
+_Document v1.2 — 05/05/2026 — à valider avec les parties prenantes avant démarrage du développement._

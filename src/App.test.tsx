@@ -16,7 +16,7 @@ describe('App', () => {
         <AppProvider>
           <App />
         </AppProvider>
-      </ThemeProvider>,
+      </ThemeProvider>
     );
     expect(container.firstChild).toBeTruthy();
   });

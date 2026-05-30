@@ -2,7 +2,7 @@ import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 
 export const getAll = query({
-  handler: async (ctx) => ctx.db.query('attendances').collect(),
+  handler: async ctx => ctx.db.query('attendances').collect(),
 });
 
 export const set = mutation({
@@ -18,10 +18,10 @@ export const set = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query('attendances')
-      .withIndex('by_session', (q) =>
-        q.eq('sessionType', args.sessionType).eq('sessionId', args.sessionId),
+      .withIndex('by_session', q =>
+        q.eq('sessionType', args.sessionType).eq('sessionId', args.sessionId)
       )
-      .filter((q) => q.eq(q.field('playerId'), args.playerId))
+      .filter(q => q.eq(q.field('playerId'), args.playerId))
       .first();
     if (existing) {
       await ctx.db.patch(existing._id, {

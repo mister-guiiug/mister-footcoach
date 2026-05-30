@@ -2,11 +2,11 @@ import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 
 export const getAll = query({
-  handler: async (ctx) => ctx.db.query('surveys').collect(),
+  handler: async ctx => ctx.db.query('surveys').collect(),
 });
 
 export const getAllResponses = query({
-  handler: async (ctx) => ctx.db.query('surveyResponses').collect(),
+  handler: async ctx => ctx.db.query('surveyResponses').collect(),
 });
 
 export const addResponse = mutation({
@@ -37,7 +37,7 @@ export const updateResponse = mutation({
   handler: async (ctx, { id, ...fields }) => {
     const doc = await ctx.db
       .query('surveyResponses')
-      .filter((q) => q.eq(q.field('id'), id))
+      .filter(q => q.eq(q.field('id'), id))
       .first();
     if (doc) await ctx.db.patch(doc._id, fields);
   },

@@ -27,7 +27,9 @@ export function TopBar({ title, showBack, actions }: TopBarProps) {
       ) : (
         <div className="flex items-center gap-2 flex-1">
           <span className="text-xl">⚽</span>
-          <span className="font-bold text-fg-heading text-sm">Mister Footcoach</span>
+          <span className="font-bold text-fg-heading text-sm">
+            Mister Footcoach
+          </span>
         </div>
       )}
 

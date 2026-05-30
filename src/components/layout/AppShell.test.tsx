@@ -18,7 +18,7 @@ describe('AppShell', () => {
             </Routes>
           </AppProvider>
         </ThemeProvider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
     // TopBar is present (logo)
     expect(screen.getByText('Mister Footcoach')).toBeInTheDocument();

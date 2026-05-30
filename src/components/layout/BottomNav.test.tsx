@@ -10,7 +10,7 @@ function renderNav(path = '/') {
       <Routes>
         <Route path="*" element={<BottomNav />} />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 }
 
@@ -43,7 +43,9 @@ describe('BottomNav', () => {
     await userEvent.click(screen.getByText('Plus'));
     expect(screen.getByText('Tournois')).toBeInTheDocument();
     // click the dark overlay (first child of fixed inset-0)
-    const overlay = document.querySelector('.fixed.inset-0.z-40') as HTMLElement;
+    const overlay = document.querySelector(
+      '.fixed.inset-0.z-40'
+    ) as HTMLElement;
     await userEvent.click(overlay);
     expect(screen.queryByText('Tournois')).not.toBeInTheDocument();
   });

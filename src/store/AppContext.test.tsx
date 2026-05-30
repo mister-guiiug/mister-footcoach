@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, renderHook, act } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import {
   AppProvider,
@@ -46,7 +46,16 @@ describe('loadState', () => {
     const stored = {
       ...MOCK_DATA,
       selectedTeamId: 't2',
-      teams: [{ id: 'tx', name: 'Stored Team', category: 'U11', coachId: 'u1', seasonId: 's1', color: '#000' }],
+      teams: [
+        {
+          id: 'tx',
+          name: 'Stored Team',
+          category: 'U11',
+          coachId: 'u1',
+          seasonId: 's1',
+          color: '#000',
+        },
+      ],
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
     const { result } = renderHook(() => useTeams(), { wrapper });
@@ -75,12 +84,16 @@ describe('saveState', () => {
   });
 
   it('silently ignores localStorage write errors', () => {
-    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('QuotaExceededError');
-    });
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(() => {
+        throw new Error('QuotaExceededError');
+      });
     const { result } = renderHook(() => useAppContext(), { wrapper });
     expect(() =>
-      act(() => result.current.dispatch({ type: 'SET_SELECTED_TEAM', teamId: 't2' })),
+      act(() =>
+        result.current.dispatch({ type: 'SET_SELECTED_TEAM', teamId: 't2' })
+      )
     ).not.toThrow();
     setItemSpy.mockRestore();
   });
@@ -93,7 +106,7 @@ describe('useAppContext outside provider', () => {
     // Suppress the expected React error boundary log
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => renderHook(() => useAppContext())).toThrow(
-      'useAppContext must be used within AppProvider',
+      'useAppContext must be used within AppProvider'
     );
     spy.mockRestore();
   });
@@ -104,7 +117,9 @@ describe('useAppContext outside provider', () => {
 describe('reducer: SET_SELECTED_TEAM', () => {
   it('changes selectedTeamId', () => {
     const { result } = renderHook(() => useAppContext(), { wrapper });
-    act(() => result.current.dispatch({ type: 'SET_SELECTED_TEAM', teamId: 't2' }));
+    act(() =>
+      result.current.dispatch({ type: 'SET_SELECTED_TEAM', teamId: 't2' })
+    );
     expect(result.current.state.selectedTeamId).toBe('t2');
   });
 });
@@ -128,7 +143,7 @@ describe('reducer: ADD_PLAYER / UPDATE_PLAYER', () => {
           appetences: {},
           active: true,
         },
-      }),
+      })
     );
     expect(result.current.state.players).toHaveLength(before + 1);
   });
@@ -140,7 +155,7 @@ describe('reducer: ADD_PLAYER / UPDATE_PLAYER', () => {
       result.current.dispatch({
         type: 'UPDATE_PLAYER',
         player: { ...existing, firstName: 'Updated' },
-      }),
+      })
     );
     expect(result.current.state.players[0].firstName).toBe('Updated');
   });
@@ -154,7 +169,7 @@ describe('reducer: ADD_MATCH_EVENT', () => {
       result.current.dispatch({
         type: 'ADD_MATCH_EVENT',
         event: { id: 'evNEW', matchId: 'm1', type: 'but', minute: 5 },
-      }),
+      })
     );
     expect(result.current.state.matchEvents).toHaveLength(before + 1);
   });
@@ -163,16 +178,29 @@ describe('reducer: ADD_MATCH_EVENT', () => {
 describe('reducer: SET_MATCH_LIVE / UPDATE_MATCH_SCORE', () => {
   it('SET_MATCH_LIVE toggles liveActive', () => {
     const { result } = renderHook(() => useAppContext(), { wrapper });
-    act(() => result.current.dispatch({ type: 'SET_MATCH_LIVE', matchId: 'm1', active: true }));
-    expect(result.current.state.matches.find((m) => m.id === 'm1')?.liveActive).toBe(true);
+    act(() =>
+      result.current.dispatch({
+        type: 'SET_MATCH_LIVE',
+        matchId: 'm1',
+        active: true,
+      })
+    );
+    expect(
+      result.current.state.matches.find(m => m.id === 'm1')?.liveActive
+    ).toBe(true);
   });
 
   it('UPDATE_MATCH_SCORE sets both scores', () => {
     const { result } = renderHook(() => useAppContext(), { wrapper });
     act(() =>
-      result.current.dispatch({ type: 'UPDATE_MATCH_SCORE', matchId: 'm1', scoreHome: 3, scoreAway: 1 }),
+      result.current.dispatch({
+        type: 'UPDATE_MATCH_SCORE',
+        matchId: 'm1',
+        scoreHome: 3,
+        scoreAway: 1,
+      })
     );
-    const m = result.current.state.matches.find((m) => m.id === 'm1');
+    const m = result.current.state.matches.find(m => m.id === 'm1');
     expect(m?.scoreHome).toBe(3);
     expect(m?.scoreAway).toBe(1);
   });
@@ -194,7 +222,7 @@ describe('reducer: ADD_TRAINING / UPDATE_TRAINING', () => {
           type: 'regulier',
           cancelled: false,
         },
-      }),
+      })
     );
     expect(result.current.state.trainings).toHaveLength(before + 1);
   });
@@ -206,10 +234,10 @@ describe('reducer: ADD_TRAINING / UPDATE_TRAINING', () => {
       result.current.dispatch({
         type: 'UPDATE_TRAINING',
         training: { ...existing, theme: 'Updated theme' },
-      }),
+      })
     );
     expect(
-      result.current.state.trainings.find((t) => t.id === existing.id)?.theme,
+      result.current.state.trainings.find(t => t.id === existing.id)?.theme
     ).toBe('Updated theme');
   });
 });
@@ -228,7 +256,7 @@ describe('reducer: SET_ATTENDANCE', () => {
           playerId: 'p1',
           status: 'present',
         },
-      }),
+      })
     );
     expect(result.current.state.attendances).toHaveLength(before + 1);
   });
@@ -246,7 +274,7 @@ describe('reducer: SET_ATTENDANCE', () => {
           playerId: 'p1',
           status: 'present',
         },
-      }),
+      })
     );
     const before = result.current.state.attendances.length;
     // Update same session/player combo
@@ -260,13 +288,16 @@ describe('reducer: SET_ATTENDANCE', () => {
           playerId: 'p1',
           status: 'absent',
         },
-      }),
+      })
     );
     expect(result.current.state.attendances).toHaveLength(before);
     expect(
       result.current.state.attendances.find(
-        (a) => a.sessionType === 'training' && a.sessionId === 'tr2' && a.playerId === 'p1',
-      )?.status,
+        a =>
+          a.sessionType === 'training' &&
+          a.sessionId === 'tr2' &&
+          a.playerId === 'p1'
+      )?.status
     ).toBe('absent');
   });
 });
@@ -285,24 +316,28 @@ describe('reducer: SAVE_LINEUP', () => {
   it('adds new lineup when id does not exist', () => {
     const { result } = renderHook(() => useAppContext(), { wrapper });
     const before = result.current.state.lineups.length;
-    act(() => result.current.dispatch({ type: 'SAVE_LINEUP', lineup: newLineup }));
+    act(() =>
+      result.current.dispatch({ type: 'SAVE_LINEUP', lineup: newLineup })
+    );
     expect(result.current.state.lineups).toHaveLength(before + 1);
   });
 
   it('updates existing lineup when id matches', () => {
     const { result } = renderHook(() => useAppContext(), { wrapper });
-    act(() => result.current.dispatch({ type: 'SAVE_LINEUP', lineup: newLineup }));
+    act(() =>
+      result.current.dispatch({ type: 'SAVE_LINEUP', lineup: newLineup })
+    );
     const before = result.current.state.lineups.length;
     act(() =>
       result.current.dispatch({
         type: 'SAVE_LINEUP',
         lineup: { ...newLineup, name: 'Updated Name' },
-      }),
+      })
     );
     expect(result.current.state.lineups).toHaveLength(before);
-    expect(
-      result.current.state.lineups.find((l) => l.id === 'lNEW')?.name,
-    ).toBe('Updated Name');
+    expect(result.current.state.lineups.find(l => l.id === 'lNEW')?.name).toBe(
+      'Updated Name'
+    );
   });
 });
 
@@ -314,7 +349,7 @@ describe('reducer: survey responses', () => {
       result.current.dispatch({
         type: 'ADD_SURVEY_RESPONSE',
         response: { id: 'srNEW', surveyId: 'sv1', playerId: 'p5' },
-      }),
+      })
     );
     expect(result.current.state.surveyResponses).toHaveLength(before + 1);
   });
@@ -326,10 +361,11 @@ describe('reducer: survey responses', () => {
       result.current.dispatch({
         type: 'UPDATE_SURVEY_RESPONSE',
         response: { ...existing, confirmationParent: 'absent' },
-      }),
+      })
     );
     expect(
-      result.current.state.surveyResponses.find((r) => r.id === existing.id)?.confirmationParent,
+      result.current.state.surveyResponses.find(r => r.id === existing.id)
+        ?.confirmationParent
     ).toBe('absent');
   });
 });
@@ -348,7 +384,7 @@ describe('reducer: ADD_UNAVAILABILITY / ADD_INJURY', () => {
           motif: 'maladie',
           declaredBy: 'u1',
         },
-      }),
+      })
     );
     expect(result.current.state.unavailabilities).toHaveLength(before + 1);
   });
@@ -367,7 +403,7 @@ describe('reducer: ADD_UNAVAILABILITY / ADD_INJURY', () => {
           startDate: '2026-05-01',
           status: 'apte',
         },
-      }),
+      })
     );
     expect(result.current.state.injuries).toHaveLength(before + 1);
   });
@@ -376,7 +412,9 @@ describe('reducer: ADD_UNAVAILABILITY / ADD_INJURY', () => {
 describe('reducer: RESET_TO_MOCK', () => {
   it('restores original mock data', () => {
     const { result } = renderHook(() => useAppContext(), { wrapper });
-    act(() => result.current.dispatch({ type: 'SET_SELECTED_TEAM', teamId: 't2' }));
+    act(() =>
+      result.current.dispatch({ type: 'SET_SELECTED_TEAM', teamId: 't2' })
+    );
     act(() => result.current.dispatch({ type: 'RESET_TO_MOCK' }));
     expect(result.current.state.selectedTeamId).toBe(MOCK_DATA.teams[0].id);
     expect(result.current.state.teams).toHaveLength(MOCK_DATA.teams.length);
@@ -399,9 +437,13 @@ describe('selector hooks', () => {
   });
 
   it('useSelectedTeam falls back to first team when selectedTeamId not found', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      ...MOCK_DATA, selectedTeamId: 'nonexistent',
-    }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...MOCK_DATA,
+        selectedTeamId: 'nonexistent',
+      })
+    );
     const { result } = renderHook(() => useSelectedTeam(), { wrapper });
     expect(result.current?.id).toBe(MOCK_DATA.teams[0].id);
   });
@@ -414,13 +456,13 @@ describe('selector hooks', () => {
   it('usePlayers without teamId returns all active players', () => {
     const { result } = renderHook(() => usePlayers(), { wrapper });
     expect(result.current.length).toBeGreaterThan(0);
-    result.current.forEach((p) => expect(p.active).toBe(true));
+    result.current.forEach(p => expect(p.active).toBe(true));
   });
 
   it('usePlayers with teamId returns primary + secondary players', () => {
     const { result } = renderHook(() => usePlayers('t2'), { wrapper });
-    result.current.forEach((p) =>
-      expect(p.primaryTeamId === 't2' || p.secondaryTeamId === 't2').toBe(true),
+    result.current.forEach(p =>
+      expect(p.primaryTeamId === 't2' || p.secondaryTeamId === 't2').toBe(true)
     );
   });
 
@@ -439,7 +481,7 @@ describe('selector hooks', () => {
 
   it('useMatches with teamId filters to that team', () => {
     const { result } = renderHook(() => useMatches('t1'), { wrapper });
-    result.current.forEach((m) => expect(m.teamId).toBe('t1'));
+    result.current.forEach(m => expect(m.teamId).toBe('t1'));
   });
 
   it('useMatch returns undefined for unknown id', () => {
@@ -450,7 +492,9 @@ describe('selector hooks', () => {
   it('useMatchEvents filters by matchId and sorts by minute', () => {
     const { result } = renderHook(() => useMatchEvents('m2'), { wrapper });
     for (let i = 1; i < result.current.length; i++) {
-      expect((result.current[i - 1].minute ?? 0) <= (result.current[i].minute ?? 0)).toBe(true);
+      expect(
+        (result.current[i - 1].minute ?? 0) <= (result.current[i].minute ?? 0)
+      ).toBe(true);
     }
   });
 
@@ -461,7 +505,7 @@ describe('selector hooks', () => {
 
   it('useTrainings with teamId filters', () => {
     const { result } = renderHook(() => useTrainings('t1'), { wrapper });
-    result.current.forEach((t) => expect(t.teamId).toBe('t1'));
+    result.current.forEach(t => expect(t.teamId).toBe('t1'));
   });
 
   it('useTraining returns undefined for unknown id', () => {
@@ -470,8 +514,10 @@ describe('selector hooks', () => {
   });
 
   it('useAttendances filters by sessionType and sessionId', () => {
-    const { result } = renderHook(() => useAttendances('training', 'tr2'), { wrapper });
-    result.current.forEach((a) => {
+    const { result } = renderHook(() => useAttendances('training', 'tr2'), {
+      wrapper,
+    });
+    result.current.forEach(a => {
       expect(a.sessionType).toBe('training');
       expect(a.sessionId).toBe('tr2');
     });
@@ -479,7 +525,7 @@ describe('selector hooks', () => {
 
   it('useLineups filters by teamId', () => {
     const { result } = renderHook(() => useLineups('t1'), { wrapper });
-    result.current.forEach((l) => expect(l.teamId).toBe('t1'));
+    result.current.forEach(l => expect(l.teamId).toBe('t1'));
   });
 
   it('useSurveys without teamId returns all', () => {
@@ -489,12 +535,12 @@ describe('selector hooks', () => {
 
   it('useSurveys with teamId filters', () => {
     const { result } = renderHook(() => useSurveys('t1'), { wrapper });
-    result.current.forEach((s) => expect(s.teamId).toBe('t1'));
+    result.current.forEach(s => expect(s.teamId).toBe('t1'));
   });
 
   it('useSurveyResponses filters by surveyId', () => {
     const { result } = renderHook(() => useSurveyResponses('sv1'), { wrapper });
-    result.current.forEach((r) => expect(r.surveyId).toBe('sv1'));
+    result.current.forEach(r => expect(r.surveyId).toBe('sv1'));
   });
 
   it('useTournaments returns all tournaments', () => {
@@ -509,7 +555,7 @@ describe('selector hooks', () => {
 
   it('useUnavailabilities with playerId filters', () => {
     const { result } = renderHook(() => useUnavailabilities('p4'), { wrapper });
-    result.current.forEach((u) => expect(u.playerId).toBe('p4'));
+    result.current.forEach(u => expect(u.playerId).toBe('p4'));
   });
 
   it('useInjuries without playerId returns all', () => {
@@ -519,12 +565,12 @@ describe('selector hooks', () => {
 
   it('useInjuries with playerId filters', () => {
     const { result } = renderHook(() => useInjuries('p4'), { wrapper });
-    result.current.forEach((i) => expect(i.playerId).toBe('p4'));
+    result.current.forEach(i => expect(i.playerId).toBe('p4'));
   });
 
   it('usePositionHistory filters by playerId', () => {
     const { result } = renderHook(() => usePositionHistory('p8'), { wrapper });
-    result.current.forEach((h) => expect(h.playerId).toBe('p8'));
+    result.current.forEach(h => expect(h.playerId).toBe('p8'));
   });
 
   it('useExercises returns all exercises', () => {

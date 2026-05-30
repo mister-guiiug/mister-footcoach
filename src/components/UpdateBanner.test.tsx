@@ -4,9 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { UpdateBanner } from './UpdateBanner';
 
 // The module is mocked in setup.ts with needRefresh: [false] by default
-const { useRegisterSW } = await vi.importMock<typeof import('virtual:pwa-register/react')>(
-  'virtual:pwa-register/react',
-);
+const { useRegisterSW } = await vi.importMock<
+  typeof import('virtual:pwa-register/react')
+>('virtual:pwa-register/react');
 
 describe('UpdateBanner', () => {
   it('renders nothing when needRefresh is false', () => {
@@ -25,7 +25,9 @@ describe('UpdateBanner', () => {
     });
     render(<UpdateBanner />);
     expect(screen.getByText('Mise à jour disponible')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Actualiser' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Actualiser' })
+    ).toBeInTheDocument();
   });
 
   it('calls updateServiceWorker(true) when button is clicked', async () => {

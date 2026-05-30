@@ -25,19 +25,25 @@ describe('SettingsPage', () => {
   it('clicking Clair sets light theme', async () => {
     renderWithProviders(<SettingsPage />);
     await userEvent.click(screen.getByText('Clair'));
-    expect(screen.getByText('Clair').closest('button')).toHaveClass('border-primary');
+    expect(screen.getByText('Clair').closest('button')).toHaveClass(
+      'border-primary'
+    );
   });
 
   it('clicking Sombre sets dark theme', async () => {
     renderWithProviders(<SettingsPage />);
     await userEvent.click(screen.getByText('Sombre'));
-    expect(screen.getByText('Sombre').closest('button')).toHaveClass('border-primary');
+    expect(screen.getByText('Sombre').closest('button')).toHaveClass(
+      'border-primary'
+    );
   });
 
   it('clicking Système sets system theme', async () => {
     renderWithProviders(<SettingsPage />);
     await userEvent.click(screen.getByText('Système'));
-    expect(screen.getByText('Système').closest('button')).toHaveClass('border-primary');
+    expect(screen.getByText('Système').closest('button')).toHaveClass(
+      'border-primary'
+    );
   });
 
   it('shows season info', () => {
@@ -68,7 +74,9 @@ describe('SettingsPage', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderWithProviders(<SettingsPage />);
     await userEvent.click(screen.getByText('Réinitialiser les données'));
-    expect(window.confirm).toHaveBeenCalledWith('Réinitialiser toutes les données de démonstration ?');
+    expect(window.confirm).toHaveBeenCalledWith(
+      'Réinitialiser toutes les données de démonstration ?'
+    );
   });
 
   it('clicking reset with confirm false does not reset', async () => {

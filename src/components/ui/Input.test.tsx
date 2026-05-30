@@ -62,7 +62,7 @@ describe('Select', () => {
       <Select>
         <option value="a">A</option>
         <option value="b">B</option>
-      </Select>,
+      </Select>
     );
     expect(screen.getByRole('combobox')).toBeInTheDocument();
     expect(screen.getByText('A')).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('Select', () => {
     render(
       <Select label="Team">
         <option>T1</option>
-      </Select>,
+      </Select>
     );
     expect(screen.getByText('Team')).toBeInTheDocument();
   });
@@ -82,7 +82,7 @@ describe('Select', () => {
     render(
       <Select label="T" id="sel">
         <option>X</option>
-      </Select>,
+      </Select>
     );
     expect(screen.getByRole('combobox')).toHaveAttribute('id', 'sel');
   });
@@ -91,7 +91,7 @@ describe('Select', () => {
     const { container } = render(
       <Select error="Pick one">
         <option>X</option>
-      </Select>,
+      </Select>
     );
     expect(screen.getByText('Pick one')).toBeInTheDocument();
     expect(container.querySelector('select')).toHaveClass('border-red-500');
@@ -101,7 +101,7 @@ describe('Select', () => {
     const { container } = render(
       <Select>
         <option>X</option>
-      </Select>,
+      </Select>
     );
     expect(container.querySelector('select')).not.toHaveClass('border-red-500');
   });
@@ -110,7 +110,7 @@ describe('Select', () => {
     render(
       <Select disabled>
         <option>X</option>
-      </Select>,
+      </Select>
     );
     expect(screen.getByRole('combobox')).toBeDisabled();
   });
@@ -119,7 +119,7 @@ describe('Select', () => {
     const { container } = render(
       <Select className="my-sel">
         <option>X</option>
-      </Select>,
+      </Select>
     );
     expect(container.querySelector('select')).toHaveClass('my-sel');
   });
