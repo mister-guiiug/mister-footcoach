@@ -8,12 +8,10 @@ import {
 import type {
   AppData,
   Player,
-  Match,
   MatchEvent,
   Training,
   Attendance,
   Lineup,
-  Survey,
   SurveyResponse,
   Unavailability,
   Injury,
@@ -36,7 +34,12 @@ type Action =
   | { type: 'UPDATE_PLAYER'; player: Player }
   | { type: 'ADD_MATCH_EVENT'; event: MatchEvent }
   | { type: 'SET_MATCH_LIVE'; matchId: string; active: boolean }
-  | { type: 'UPDATE_MATCH_SCORE'; matchId: string; scoreHome: number; scoreAway: number }
+  | {
+      type: 'UPDATE_MATCH_SCORE';
+      matchId: string;
+      scoreHome: number;
+      scoreAway: number;
+    }
   | { type: 'ADD_TRAINING'; training: Training }
   | { type: 'UPDATE_TRAINING'; training: Training }
   | { type: 'SET_ATTENDANCE'; attendance: Attendance }
@@ -60,8 +63,8 @@ function reducer(state: AppState, action: Action): AppState {
     case 'UPDATE_PLAYER':
       return {
         ...state,
-        players: state.players.map((p) =>
-          p.id === action.player.id ? action.player : p,
+        players: state.players.map(p =>
+          p.id === action.player.id ? action.player : p
         ),
       };
 
@@ -71,18 +74,18 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_MATCH_LIVE':
       return {
         ...state,
-        matches: state.matches.map((m) =>
-          m.id === action.matchId ? { ...m, liveActive: action.active } : m,
+        matches: state.matches.map(m =>
+          m.id === action.matchId ? { ...m, liveActive: action.active } : m
         ),
       };
 
     case 'UPDATE_MATCH_SCORE':
       return {
         ...state,
-        matches: state.matches.map((m) =>
+        matches: state.matches.map(m =>
           m.id === action.matchId
             ? { ...m, scoreHome: action.scoreHome, scoreAway: action.scoreAway }
-            : m,
+            : m
         ),
       };
 
@@ -92,28 +95,31 @@ function reducer(state: AppState, action: Action): AppState {
     case 'UPDATE_TRAINING':
       return {
         ...state,
-        trainings: state.trainings.map((t) =>
-          t.id === action.training.id ? action.training : t,
+        trainings: state.trainings.map(t =>
+          t.id === action.training.id ? action.training : t
         ),
       };
 
     case 'SET_ATTENDANCE': {
       const existing = state.attendances.findIndex(
-        (a) =>
+        a =>
           a.sessionType === action.attendance.sessionType &&
           a.sessionId === action.attendance.sessionId &&
-          a.playerId === action.attendance.playerId,
+          a.playerId === action.attendance.playerId
       );
       if (existing >= 0) {
         const updated = [...state.attendances];
         updated[existing] = action.attendance;
         return { ...state, attendances: updated };
       }
-      return { ...state, attendances: [...state.attendances, action.attendance] };
+      return {
+        ...state,
+        attendances: [...state.attendances, action.attendance],
+      };
     }
 
     case 'SAVE_LINEUP': {
-      const existing = state.lineups.findIndex((l) => l.id === action.lineup.id);
+      const existing = state.lineups.findIndex(l => l.id === action.lineup.id);
       if (existing >= 0) {
         const updated = [...state.lineups];
         updated[existing] = action.lineup;
@@ -131,8 +137,8 @@ function reducer(state: AppState, action: Action): AppState {
     case 'UPDATE_SURVEY_RESPONSE':
       return {
         ...state,
-        surveyResponses: state.surveyResponses.map((r) =>
-          r.id === action.response.id ? action.response : r,
+        surveyResponses: state.surveyResponses.map(r =>
+          r.id === action.response.id ? action.response : r
         ),
       };
 
@@ -153,7 +159,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...MOCK_DATA, selectedTeamId: MOCK_DATA.teams[0]!.id };
 
     /* c8 ignore next */
-    default: return state;
+    default:
+      return state;
   }
 }
 
@@ -218,83 +225,87 @@ export function useTeams() {
 
 export function useSelectedTeam() {
   const { state } = useAppContext();
-  return state.teams.find((t) => t.id === state.selectedTeamId) ?? state.teams[0];
+  return state.teams.find(t => t.id === state.selectedTeamId) ?? state.teams[0];
 }
 
 export function useTeam(teamId: string) {
   const { state } = useAppContext();
-  return state.teams.find((t) => t.id === teamId);
+  return state.teams.find(t => t.id === teamId);
 }
 
 export function usePlayers(teamId?: string) {
   const { state } = useAppContext();
-  if (!teamId) return state.players.filter((p) => p.active);
+  if (!teamId) return state.players.filter(p => p.active);
   return state.players.filter(
-    (p) => p.active && (p.primaryTeamId === teamId || p.secondaryTeamId === teamId),
+    p =>
+      p.active && (p.primaryTeamId === teamId || p.secondaryTeamId === teamId)
   );
 }
 
 export function usePlayer(playerId: string) {
   const { state } = useAppContext();
-  return state.players.find((p) => p.id === playerId);
+  return state.players.find(p => p.id === playerId);
 }
 
 export function useMatches(teamId?: string) {
   const { state } = useAppContext();
   const all = [...state.matches].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
   if (!teamId) return all;
-  return all.filter((m) => m.teamId === teamId);
+  return all.filter(m => m.teamId === teamId);
 }
 
 export function useMatch(matchId: string) {
   const { state } = useAppContext();
-  return state.matches.find((m) => m.id === matchId);
+  return state.matches.find(m => m.id === matchId);
 }
 
 export function useMatchEvents(matchId: string) {
   const { state } = useAppContext();
   return state.matchEvents
-    .filter((e) => e.matchId === matchId)
+    .filter(e => e.matchId === matchId)
     .sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
 }
 
 export function useTrainings(teamId?: string) {
   const { state } = useAppContext();
   const all = [...state.trainings].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
   if (!teamId) return all;
-  return all.filter((t) => t.teamId === teamId);
+  return all.filter(t => t.teamId === teamId);
 }
 
 export function useTraining(trainingId: string) {
   const { state } = useAppContext();
-  return state.trainings.find((t) => t.id === trainingId);
+  return state.trainings.find(t => t.id === trainingId);
 }
 
-export function useAttendances(sessionType: 'match' | 'training', sessionId: string) {
+export function useAttendances(
+  sessionType: 'match' | 'training',
+  sessionId: string
+) {
   const { state } = useAppContext();
   return state.attendances.filter(
-    (a) => a.sessionType === sessionType && a.sessionId === sessionId,
+    a => a.sessionType === sessionType && a.sessionId === sessionId
   );
 }
 
 export function useLineups(teamId: string) {
   const { state } = useAppContext();
-  return state.lineups.filter((l) => l.teamId === teamId);
+  return state.lineups.filter(l => l.teamId === teamId);
 }
 
 export function useSurveys(teamId?: string) {
   const { state } = useAppContext();
   if (!teamId) return state.surveys;
-  return state.surveys.filter((s) => s.teamId === teamId);
+  return state.surveys.filter(s => s.teamId === teamId);
 }
 
 export function useSurveyResponses(surveyId: string) {
   const { state } = useAppContext();
-  return state.surveyResponses.filter((r) => r.surveyId === surveyId);
+  return state.surveyResponses.filter(r => r.surveyId === surveyId);
 }
 
 export function useTournaments() {
@@ -305,18 +316,18 @@ export function useTournaments() {
 export function useUnavailabilities(playerId?: string) {
   const { state } = useAppContext();
   if (!playerId) return state.unavailabilities;
-  return state.unavailabilities.filter((u) => u.playerId === playerId);
+  return state.unavailabilities.filter(u => u.playerId === playerId);
 }
 
 export function useInjuries(playerId?: string) {
   const { state } = useAppContext();
   if (!playerId) return state.injuries;
-  return state.injuries.filter((i) => i.playerId === playerId);
+  return state.injuries.filter(i => i.playerId === playerId);
 }
 
 export function usePositionHistory(playerId: string) {
   const { state } = useAppContext();
-  return state.positionHistory.filter((h) => h.playerId === playerId);
+  return state.positionHistory.filter(h => h.playerId === playerId);
 }
 
 export function useExercises() {

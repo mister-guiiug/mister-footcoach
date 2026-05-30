@@ -34,3 +34,6 @@ dev-dist
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Coverage (rapport généré)
+/coverage/
