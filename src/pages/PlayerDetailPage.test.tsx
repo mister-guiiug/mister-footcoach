@@ -1,10 +1,27 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  beforeAll,
+  afterAll,
+  vi,
+} from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderAtRoute } from '../test/helpers';
 import PlayerDetailPage from './PlayerDetailPage';
 import { MOCK_DATA } from '../data/mock';
 
 describe('PlayerDetailPage', () => {
+  // Fige « aujourd'hui » dans la saison 2025-2026 (indispo/blessure de p4 :
+  // 2026-04-20 → 2026-05-15) pour que les cartes « en cours » s'affichent
+  // sans rotation temporelle. `toFake: ['Date']` ne fige que Date.
+  beforeAll(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-05-01T12:00:00'));
+  });
+  afterAll(() => vi.useRealTimers());
+
   beforeEach(() => localStorage.clear());
 
   it('renders empty state for unknown player', () => {
@@ -48,7 +65,9 @@ describe('PlayerDetailPage', () => {
       routePattern: '/joueurs/:id',
     });
     expect(screen.getAllByText(/Entorse grade 2/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Reprise progressive/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Reprise progressive/).length).toBeGreaterThan(
+      0
+    );
   });
 
   it('shows position history when available', () => {
@@ -107,13 +126,18 @@ describe('PlayerDetailPage', () => {
 
   it('shows raw position key for unknown position in appetences', () => {
     const playerWithUnknownPos = {
-      ...MOCK_DATA.players[0], id: 'p-custom',
+      ...MOCK_DATA.players[0],
+      id: 'p-custom',
       appetences: { UNKNOWN_POS: 4 },
     };
-    localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, players: [...MOCK_DATA.players, playerWithUnknownPos],
-      selectedTeamId: MOCK_DATA.teams[0]!.id,
-    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        players: [...MOCK_DATA.players, playerWithUnknownPos],
+        selectedTeamId: MOCK_DATA.teams[0]!.id,
+      })
+    );
     renderAtRoute(<PlayerDetailPage />, {
       initialPath: '/joueurs/p-custom',
       routePattern: '/joueurs/:id',
