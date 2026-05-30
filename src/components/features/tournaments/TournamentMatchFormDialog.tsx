@@ -32,6 +32,7 @@ export function TournamentMatchFormDialog({
     teamId: match?.teamId ?? eligibleTeams[0]?.id ?? '',
     opponent: match?.opponent ?? '',
     time: match?.time ?? '',
+    field: match?.field ?? '',
     scoreHome: match?.scoreHome?.toString() ?? '',
     scoreAway: match?.scoreAway?.toString() ?? '',
   }));
@@ -56,6 +57,7 @@ export function TournamentMatchFormDialog({
       tournamentGroupId: group.id,
       date: match?.date ?? tournament.dateStart,
       time: form.time || '00:00',
+      field: form.field.trim() || undefined,
       location: match?.location ?? tournament.location,
       address: match?.address ?? tournament.address,
       isHome: true, // club team treated as home for score mapping
@@ -105,12 +107,22 @@ export function TournamentMatchFormDialog({
           onChange={e => set('opponent', e.target.value)}
           placeholder="Ex. AS Martin"
         />
-        <Input
-          label="Heure"
-          type="time"
-          value={form.time}
-          onChange={e => set('time', e.target.value)}
-        />
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="Heure"
+            type="time"
+            value={form.time}
+            onChange={e => set('time', e.target.value)}
+          />
+          {tournament.isOrganizedByClub && (
+            <Input
+              label="Terrain"
+              value={form.field}
+              onChange={e => set('field', e.target.value)}
+              placeholder="Ex. Terrain 1"
+            />
+          )}
+        </div>
         <div>
           <p className="mb-1 text-xs font-medium text-fg-muted">
             Score (laisser vide si non joué)

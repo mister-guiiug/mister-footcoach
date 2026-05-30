@@ -1,5 +1,15 @@
-import { Moon, Sun, Monitor, RefreshCw, Info, Check } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Moon,
+  Sun,
+  Monitor,
+  RefreshCw,
+  Info,
+  Check,
+  RadioTower,
+} from 'lucide-react';
 import { Card } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useTheme } from '../theme/ThemeContext';
 import {
@@ -10,6 +20,13 @@ import {
 } from '../store/AppContext';
 import type { NotificationPreferences, ReminderDelay } from '../types';
 import { NOTIFICATION_CATEGORIES } from '../utils/notifications';
+import {
+  reconcileFederationMatches,
+  type ReconcileResult,
+} from '../utils/federation';
+import { FEDERATION_SAMPLE } from '../data/federation';
+import { genId, nowIso } from '../utils/id';
+import { formatDate } from '../utils/date';
 
 const REMINDER_DELAYS: { value: ReminderDelay; label: string }[] = [
   { value: 'J-1', label: 'J-1' },
@@ -23,6 +40,28 @@ export default function SettingsPage() {
   const currentUser = useCurrentUser();
   const prefs = useNotificationPreferences();
   const clubSettings = useClubSettings();
+  const [syncResult, setSyncResult] = useState<ReconcileResult | null>(null);
+
+  function syncFederation() {
+    const teamId = state.teams[0]?.id ?? '';
+    const result = reconcileFederationMatches(
+      state.matches,
+      FEDERATION_SAMPLE,
+      {
+        teamId,
+        seasonId: state.season.id,
+        makeId: () => genId('match'),
+      }
+    );
+    for (const m of result.updated)
+      dispatch({ type: 'UPDATE_MATCH', match: m });
+    for (const m of result.created) dispatch({ type: 'ADD_MATCH', match: m });
+    dispatch({
+      type: 'SET_CLUB_SETTINGS',
+      settings: { ...clubSettings, federationLastSync: nowIso() },
+    });
+    setSyncResult(result);
+  }
 
   function resetData() {
     if (window.confirm('Réinitialiser toutes les données de démonstration ?')) {
@@ -187,6 +226,53 @@ export default function SettingsPage() {
             />
           </span>
         </button>
+      </Card>
+
+      {/* Federation integration (specs §17) */}
+      <Card>
+        <div className="mb-3 flex items-center gap-2">
+          <RadioTower size={16} className="text-fg-muted" />
+          <p className="text-sm font-semibold text-fg-heading">
+            Intégration fédération
+          </p>
+        </div>
+        <p className="mb-3 text-xs text-fg-muted">
+          Synchronise le calendrier et les résultats officiels. Les champs
+          locaux (note, assiduité, composition, événements live) ne sont jamais
+          écrasés.
+        </p>
+        {clubSettings.federationLastSync && (
+          <p className="mb-2 text-xs text-fg-faint">
+            Dernière synchronisation :{' '}
+            {formatDate(clubSettings.federationLastSync.split('T')[0]!)}
+          </p>
+        )}
+        <Button variant="secondary" onClick={syncFederation} className="w-full">
+          <RefreshCw size={14} /> Synchroniser la fédération
+        </Button>
+
+        {syncResult && (
+          <div className="mt-3 space-y-2 text-sm">
+            <div className="flex gap-2">
+              <Badge variant="success">
+                {syncResult.updated.length} mis à jour
+              </Badge>
+              <Badge variant="primary">{syncResult.created.length} créés</Badge>
+              <Badge variant="warning">
+                {syncResult.conflicts.length} conflit
+                {syncResult.conflicts.length > 1 ? 's' : ''}
+              </Badge>
+            </div>
+            {syncResult.conflicts.map((c, i) => (
+              <div
+                key={i}
+                className="rounded-xl bg-amber-50 dark:bg-amber-900/10 p-2.5 text-xs text-amber-700 dark:text-amber-400"
+              >
+                Conflit {c.field} — local : {c.local} · fédéral : {c.federal}
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
 
       {/* Season info */}

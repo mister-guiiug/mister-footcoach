@@ -18,6 +18,7 @@ import {
   useNotificationPreferences,
   useClubSettings,
   useContactsForPlayer,
+  usePositionHistory,
 } from './AppContext';
 import type {
   Match,
@@ -30,6 +31,7 @@ import type {
   Injury,
   Unavailability,
   Contact,
+  PositionHistory,
 } from '../types';
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -215,6 +217,31 @@ describe('carpool actions', () => {
       })
     );
     expect(result.current.offers.length).toBe(0);
+  });
+});
+
+describe('position history', () => {
+  it('appends position history entries (live substitution)', () => {
+    const { result } = renderHook(
+      () => ({ ctx: useAppContext(), history: usePositionHistory('p1') }),
+      { wrapper }
+    );
+    const before = result.current.history.length;
+    const entries: PositionHistory[] = [
+      {
+        id: 'phx',
+        playerId: 'p1',
+        matchId: 'm1',
+        matchDate: '2026-05-10',
+        opponent: 'FC Rivale',
+        period: 'remplaçant entrant',
+        position: 'GK',
+      },
+    ];
+    act(() =>
+      result.current.ctx.dispatch({ type: 'ADD_POSITION_HISTORY', entries })
+    );
+    expect(result.current.history.length).toBe(before + 1);
   });
 });
 
