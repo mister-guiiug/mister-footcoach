@@ -8,6 +8,7 @@ import {
 import type {
   AppData,
   Player,
+  Contact,
   Match,
   MatchEvent,
   Training,
@@ -47,6 +48,9 @@ type Action =
   | { type: 'SET_SELECTED_TEAM'; teamId: string }
   | { type: 'ADD_PLAYER'; player: Player }
   | { type: 'UPDATE_PLAYER'; player: Player }
+  | { type: 'ADD_CONTACT'; contact: Contact }
+  | { type: 'UPDATE_CONTACT'; contact: Contact }
+  | { type: 'DELETE_CONTACT'; contactId: string }
   | { type: 'ADD_MATCH'; match: Match }
   | { type: 'UPDATE_MATCH'; match: Match }
   | { type: 'ADD_MATCH_EVENT'; event: MatchEvent }
@@ -113,6 +117,23 @@ function reducer(state: AppState, action: Action): AppState {
         players: state.players.map(p =>
           p.id === action.player.id ? action.player : p
         ),
+      };
+
+    case 'ADD_CONTACT':
+      return { ...state, contacts: [...state.contacts, action.contact] };
+
+    case 'UPDATE_CONTACT':
+      return {
+        ...state,
+        contacts: state.contacts.map(c =>
+          c.id === action.contact.id ? action.contact : c
+        ),
+      };
+
+    case 'DELETE_CONTACT':
+      return {
+        ...state,
+        contacts: state.contacts.filter(c => c.id !== action.contactId),
       };
 
     case 'ADD_MATCH':
@@ -573,6 +594,11 @@ export function useCarpoolOffers(matchId: string) {
 export function useContacts() {
   const { state } = useAppContext();
   return state.contacts;
+}
+
+export function useContactsForPlayer(playerId: string) {
+  const { state } = useAppContext();
+  return state.contacts.filter(c => c.playerIds.includes(playerId));
 }
 
 export function useCurrentUser() {

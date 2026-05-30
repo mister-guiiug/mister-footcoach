@@ -6,6 +6,7 @@ import {
   Pencil,
   CalendarOff,
   Plus,
+  Download,
 } from 'lucide-react';
 import { Card, CardHeader } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -35,6 +36,8 @@ import {
   today,
 } from '../utils/date';
 import { computePlayerStats } from '../utils/stats';
+import { buildPlayerExport, exportToJson } from '../utils/rgpd';
+import { downloadFile } from '../utils/download';
 
 export default function PlayerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -178,6 +181,31 @@ export default function PlayerDetailPage() {
           <Plus size={15} /> Blessure
         </Button>
       </div>
+
+      {/* RGPD export (specs §18.4) */}
+      <Button
+        variant="ghost"
+        className="w-full"
+        onClick={() =>
+          downloadFile(
+            `${player.firstName}-${player.lastName}-rgpd.json`,
+            exportToJson(
+              buildPlayerExport(player.id, {
+                players: state.players,
+                contacts: state.contacts,
+                attendances: state.attendances,
+                unavailabilities: state.unavailabilities,
+                injuries: state.injuries,
+                positionHistory: state.positionHistory,
+                surveyResponses: state.surveyResponses,
+              })
+            ),
+            'application/json'
+          )
+        }
+      >
+        <Download size={15} /> Export RGPD (JSON)
+      </Button>
 
       {/* Unavailability alert */}
       {activeUnavail && (
