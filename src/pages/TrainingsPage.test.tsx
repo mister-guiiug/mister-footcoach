@@ -84,9 +84,14 @@ describe('TrainingsPage', () => {
   });
 
   it('shows "Aucun entraînement trouvé" when no trainings exist', () => {
-    localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, trainings: [], selectedTeamId: MOCK_DATA.teams[0]?.id ?? '',
-    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        trainings: [],
+        selectedTeamId: MOCK_DATA.teams[0]?.id ?? '',
+      })
+    );
     renderWithProviders(<TrainingsPage />);
     expect(screen.getByText('Aucun entraînement trouvé')).toBeInTheDocument();
   });

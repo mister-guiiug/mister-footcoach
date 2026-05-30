@@ -6,7 +6,9 @@ import { Button } from './Button';
 describe('Button', () => {
   it('renders children', () => {
     render(<Button>Click me</Button>);
-    expect(screen.getByRole('button', { name: 'Click me' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Click me' })
+    ).toBeInTheDocument();
   });
 
   it('calls onClick when clicked', async () => {
@@ -32,19 +34,23 @@ describe('Button', () => {
 
   it('does not fire onClick while loading', async () => {
     const handler = vi.fn();
-    render(<Button loading onClick={handler}>Save</Button>);
+    render(
+      <Button loading onClick={handler}>
+        Save
+      </Button>
+    );
     await userEvent.click(screen.getByRole('button'));
     expect(handler).not.toHaveBeenCalled();
   });
 
-  (['primary', 'secondary', 'ghost', 'danger'] as const).forEach((v) => {
+  (['primary', 'secondary', 'ghost', 'danger'] as const).forEach(v => {
     it(`renders variant "${v}"`, () => {
       const { container } = render(<Button variant={v}>{v}</Button>);
       expect(container.firstChild).toBeInTheDocument();
     });
   });
 
-  (['sm', 'md', 'lg', 'icon'] as const).forEach((s) => {
+  (['sm', 'md', 'lg', 'icon'] as const).forEach(s => {
     it(`renders size "${s}"`, () => {
       const { container } = render(<Button size={s}>x</Button>);
       expect(container.firstChild).toBeInTheDocument();

@@ -12,13 +12,20 @@ export default function TeamsPage() {
       <h1 className="text-xl font-bold text-fg-heading">Équipes</h1>
 
       <div className="space-y-3">
-        {teams.map((team) => {
-          const playerCount = allPlayers.filter((p) => p.primaryTeamId === team.id).length;
-          const secondaryCount = allPlayers.filter((p) => p.secondaryTeamId === team.id).length;
+        {teams.map(team => {
+          const playerCount = allPlayers.filter(
+            p => p.primaryTeamId === team.id
+          ).length;
+          const secondaryCount = allPlayers.filter(
+            p => p.secondaryTeamId === team.id
+          ).length;
 
           return (
             <Link key={team.id} to={`/equipes/${team.id}`}>
-              <Card padding={false} className="hover:bg-surface-muted transition-colors">
+              <Card
+                padding={false}
+                className="hover:bg-surface-muted transition-colors"
+              >
                 <div className="flex items-center gap-4 p-4">
                   <div
                     className="h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0"
@@ -33,7 +40,10 @@ export default function TeamsPage() {
                       {secondaryCount > 0 && ` · ${secondaryCount} renforts`}
                     </p>
                   </div>
-                  <ChevronRight size={18} className="text-fg-faint flex-shrink-0" />
+                  <ChevronRight
+                    size={18}
+                    className="text-fg-faint flex-shrink-0"
+                  />
                 </div>
               </Card>
             </Link>

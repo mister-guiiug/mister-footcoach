@@ -12,7 +12,7 @@ export default function TrainingsPage() {
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all');
 
-  const filtered = allTrainings.filter((t) => {
+  const filtered = allTrainings.filter(t => {
     if (teamFilter !== 'all' && t.teamId !== teamFilter) return false;
     if (filter === 'upcoming') return isUpcoming(t.date);
     if (filter === 'past') return !isUpcoming(t.date);
@@ -25,7 +25,7 @@ export default function TrainingsPage() {
 
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-        {(['all', 'upcoming', 'past'] as const).map((f) => (
+        {(['all', 'upcoming', 'past'] as const).map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -51,7 +51,7 @@ export default function TrainingsPage() {
         >
           Toutes
         </button>
-        {teams.map((t) => (
+        {teams.map(t => (
           <button
             key={t.id}
             onClick={() => setTeamFilter(t.id)}
@@ -68,14 +68,21 @@ export default function TrainingsPage() {
 
       {/* Training list */}
       <div className="space-y-3">
-        {/* istanbul ignore next */filtered.length === 0 && (
-          <p className="text-sm text-fg-muted text-center py-8">Aucun entraînement trouvé</p>
-        )}
-        {filtered.map((training) => {
-          const team = teams.find((t) => t.id === training.teamId);
+        {
+          /* istanbul ignore next */ filtered.length === 0 && (
+            <p className="text-sm text-fg-muted text-center py-8">
+              Aucun entraînement trouvé
+            </p>
+          )
+        }
+        {filtered.map(training => {
+          const team = teams.find(t => t.id === training.teamId);
           return (
             <Link key={training.id} to={`/entrainements/${training.id}`}>
-              <Card padding={false} className={`hover:bg-surface-muted transition-colors ${training.cancelled ? 'opacity-60' : ''}`}>
+              <Card
+                padding={false}
+                className={`hover:bg-surface-muted transition-colors ${training.cancelled ? 'opacity-60' : ''}`}
+              >
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -96,9 +103,10 @@ export default function TrainingsPage() {
                       {training.cancelled && (
                         <Badge variant="danger">Annulé</Badge>
                       )}
-                      {training.type === 'exceptionnel' && !training.cancelled && (
-                        <Badge variant="warning">Exceptionnel</Badge>
-                      )}
+                      {training.type === 'exceptionnel' &&
+                        !training.cancelled && (
+                          <Badge variant="warning">Exceptionnel</Badge>
+                        )}
                     </div>
                   </div>
                   {training.note && (

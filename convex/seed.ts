@@ -1,14 +1,14 @@
 import { mutation, query } from './_generated/server';
 
 export const isSeeded = query({
-  handler: async (ctx) => {
+  handler: async ctx => {
     const team = await ctx.db.query('teams').first();
     return team !== null;
   },
 });
 
 export const populate = mutation({
-  handler: async (ctx) => {
+  handler: async ctx => {
     // Guard: skip if already seeded
     const existing = await ctx.db.query('teams').first();
     if (existing) return { skipped: true };
@@ -255,7 +255,7 @@ export const populate = mutation({
     for (const p of players)
       await ctx.db.insert(
         'players',
-        p as (typeof players)[number] & { appetences: Record<string, number> },
+        p as (typeof players)[number] & { appetences: Record<string, number> }
       );
 
     // Contacts
@@ -426,14 +426,38 @@ export const populate = mutation({
     const matchEvents = [
       { id: 'me1', matchId: 'm2', type: 'but', minute: 12, playerId: 'p8' },
       { id: 'me2', matchId: 'm2', type: 'but', minute: 34, playerId: 'p6' },
-      { id: 'me3', matchId: 'm2', type: 'carton_jaune', minute: 28, playerId: 'p3' },
+      {
+        id: 'me3',
+        matchId: 'm2',
+        type: 'carton_jaune',
+        minute: 28,
+        playerId: 'p3',
+      },
       { id: 'me4', matchId: 'm3', type: 'but', minute: 8, playerId: 'p7' },
       { id: 'me5', matchId: 'm3', type: 'but', minute: 22, playerId: 'p8' },
       { id: 'me6', matchId: 'm3', type: 'but', minute: 31, playerId: 'p8' },
       { id: 'me7', matchId: 'm3', type: 'but', minute: 40, playerId: 'p6' },
-      { id: 'me8', matchId: 'm3', type: 'remplacement', minute: 35, playerId: 'p9' },
-      { id: 'me9', matchId: 'm3', type: 'blessure_live', minute: 34, playerId: 'p4' },
-      { id: 'me10', matchId: 'm3', type: 'carton_rouge', minute: 38, playerId: 'p5' },
+      {
+        id: 'me8',
+        matchId: 'm3',
+        type: 'remplacement',
+        minute: 35,
+        playerId: 'p9',
+      },
+      {
+        id: 'me9',
+        matchId: 'm3',
+        type: 'blessure_live',
+        minute: 34,
+        playerId: 'p4',
+      },
+      {
+        id: 'me10',
+        matchId: 'm3',
+        type: 'carton_rouge',
+        minute: 38,
+        playerId: 'p5',
+      },
       { id: 'me11', matchId: 'm3', type: 'arret_mi_temps', minute: 45 },
     ];
     for (const e of matchEvents) await ctx.db.insert('matchEvents', e);
@@ -509,7 +533,8 @@ export const populate = mutation({
       {
         id: 'ex1',
         title: 'Jeu de passes 3 contre 1',
-        description: 'Triangle de 3 joueurs avec un défenseur central. Garder la balle 10 passes.',
+        description:
+          'Triangle de 3 joueurs avec un défenseur central. Garder la balle 10 passes.',
         category: 'technique',
         suggestedDuration: 10,
         tags: ['passes', 'technique', 'pression'],
@@ -744,7 +769,8 @@ export const populate = mutation({
         position: 'MO',
       },
     ];
-    for (const ph of positionHistory) await ctx.db.insert('positionHistory', ph);
+    for (const ph of positionHistory)
+      await ctx.db.insert('positionHistory', ph);
 
     // Tournaments
     await ctx.db.insert('tournaments', {
@@ -843,7 +869,8 @@ export const populate = mutation({
         dateIntentionJoueur: '2026-05-05',
       },
     ];
-    for (const sr of surveyResponses) await ctx.db.insert('surveyResponses', sr);
+    for (const sr of surveyResponses)
+      await ctx.db.insert('surveyResponses', sr);
 
     // Unavailabilities
     await ctx.db.insert('unavailabilities', {
@@ -866,7 +893,8 @@ export const populate = mutation({
       startDate: '2026-04-20',
       estimatedReturnDate: '2026-05-15',
       status: 'reprise_progressive',
-      noteCoach: 'Kinésithérapeute vu 2x/semaine. Reprise progressive autorisée.',
+      noteCoach:
+        'Kinésithérapeute vu 2x/semaine. Reprise progressive autorisée.',
     });
 
     return { seeded: true };

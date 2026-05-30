@@ -3,8 +3,15 @@ import { render, screen } from '@testing-library/react';
 import { Badge } from './Badge';
 
 const variants = [
-  'default', 'primary', 'success', 'warning', 'danger', 'muted',
-  'present', 'absent', 'excuse',
+  'default',
+  'primary',
+  'success',
+  'warning',
+  'danger',
+  'muted',
+  'present',
+  'absent',
+  'excuse',
 ] as const;
 
 describe('Badge', () => {
@@ -23,7 +30,7 @@ describe('Badge', () => {
     expect(container.firstChild).toHaveClass('custom-class');
   });
 
-  variants.forEach((v) => {
+  variants.forEach(v => {
     it(`renders variant "${v}" without crashing`, () => {
       const { container } = render(<Badge variant={v}>{v}</Badge>);
       expect(container.firstChild).toBeInTheDocument();
