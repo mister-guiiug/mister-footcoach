@@ -3,7 +3,13 @@ import { useSearchParams } from 'react-router-dom';
 import { Save } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { useTeams, usePlayers, useLineups, useUnavailabilities, useAppContext } from '../store/AppContext';
+import {
+  useTeams,
+  usePlayers,
+  useLineups,
+  useUnavailabilities,
+  useAppContext,
+} from '../store/AppContext';
 import {
   FORMATIONS,
   POSITION_LABELS,
@@ -18,10 +24,14 @@ export default function LineupPage() {
   const { dispatch } = useAppContext();
 
   const [selectedTeamId, setSelectedTeamId] = useState(
-    searchParams.get('teamId') ?? teams[0]!.id,
+    searchParams.get('teamId') ?? teams[0]!.id
   );
-  const [selectedFormation, setSelectedFormation] = useState<Formation>(FORMATIONS[0]);
-  const [slots, setSlots] = useState<LineupSlot[]>(FORMATIONS[0].slots.map((s) => ({ ...s })));
+  const [selectedFormation, setSelectedFormation] = useState<Formation>(
+    FORMATIONS[0]
+  );
+  const [slots, setSlots] = useState<LineupSlot[]>(
+    FORMATIONS[0].slots.map(s => ({ ...s }))
+  );
   const [selectedSlotPos, setSelectedSlotPos] = useState<string | null>(null);
   const [substituteIds, setSubstituteIds] = useState<string[]>([]);
 
@@ -34,19 +44,21 @@ export default function LineupPage() {
     () =>
       unavailabilities
         .filter(
-          (u) =>
+          u =>
             isActiveUnavailability(u.startDate, u.endDate, todayStr) &&
-            players.some((p) => p.id === u.playerId),
+            players.some(p => p.id === u.playerId)
         )
-        .map((u) => u.playerId),
-    [unavailabilities, players, todayStr],
+        .map(u => u.playerId),
+    [unavailabilities, players, todayStr]
   );
 
-  const assignedPlayerIds = slots.map((s) => s.playerId).filter(Boolean) as string[];
+  const assignedPlayerIds = slots
+    .map(s => s.playerId)
+    .filter(Boolean) as string[];
 
   function changeFormation(formation: Formation) {
     setSelectedFormation(formation);
-    setSlots(formation.slots.map((s) => ({ ...s })));
+    setSlots(formation.slots.map(s => ({ ...s })));
     setSelectedSlotPos(null);
   }
 
@@ -57,21 +69,23 @@ export default function LineupPage() {
   function assignPlayer(playerId: string) {
     /* c8 ignore next */
     if (!selectedSlotPos) return;
-    setSlots((prev) =>
-      prev.map((s) => {
+    setSlots(prev =>
+      prev.map(s => {
         if (s.position === selectedSlotPos) return { ...s, playerId };
         /* c8 ignore next */
         if (s.playerId === playerId) return { ...s, playerId: undefined };
         return s;
-      }),
+      })
     );
-    setSubstituteIds((prev) => prev.filter((id) => id !== playerId));
+    setSubstituteIds(prev => prev.filter(id => id !== playerId));
     setSelectedSlotPos(null);
   }
 
   function removeFromSlot(position: string) {
-    setSlots((prev) =>
-      prev.map((s) => (s.position === position ? { ...s, playerId: undefined } : s)),
+    setSlots(prev =>
+      prev.map(s =>
+        s.position === position ? { ...s, playerId: undefined } : s
+      )
     );
     setSelectedSlotPos(null);
   }
@@ -79,8 +93,10 @@ export default function LineupPage() {
   function toggleSubstitute(playerId: string) {
     /* c8 ignore next */
     if (assignedPlayerIds.includes(playerId)) return;
-    setSubstituteIds((prev) =>
-      prev.includes(playerId) ? prev.filter((id) => id !== playerId) : [...prev, playerId],
+    setSubstituteIds(prev =>
+      prev.includes(playerId)
+        ? prev.filter(id => id !== playerId)
+        : [...prev, playerId]
     );
   }
 
@@ -100,17 +116,18 @@ export default function LineupPage() {
   }
 
   function loadLineup(lineupId: string) {
-    const lineup = lineups.find((l) => l.id === lineupId);
+    const lineup = lineups.find(l => l.id === lineupId);
     /* c8 ignore next */
     if (!lineup) return;
-    const formation = FORMATIONS.find((f) => f.id === lineup.formation) ?? FORMATIONS[0];
+    const formation =
+      FORMATIONS.find(f => f.id === lineup.formation) ?? FORMATIONS[0];
     setSelectedFormation(formation);
     setSlots(lineup.slots);
     setSubstituteIds(lineup.substituteIds);
   }
 
   const unassignedPlayers = players.filter(
-    (p) => !assignedPlayerIds.includes(p.id),
+    p => !assignedPlayerIds.includes(p.id)
   );
 
   return (
@@ -127,16 +144,18 @@ export default function LineupPage() {
       <div className="flex gap-2">
         <select
           value={selectedTeamId}
-          onChange={(e) => setSelectedTeamId(e.target.value)}
+          onChange={e => setSelectedTeamId(e.target.value)}
           className="flex-1 h-9 rounded-xl border border-border-ui bg-surface px-3 text-sm text-fg"
         >
-          {teams.map((t) => (
-            <option key={t.id} value={t.id}>{t.name}</option>
+          {teams.map(t => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
           ))}
         </select>
 
         <div className="flex gap-1">
-          {FORMATIONS.map((f) => (
+          {FORMATIONS.map(f => (
             <button
               key={f.id}
               onClick={() => changeFormation(f)}
@@ -167,9 +186,11 @@ export default function LineupPage() {
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-6 w-20 border-t-2 border-x-2 border-white/40 pointer-events-none" />
 
         {/* Player slots */}
-        {slots.map((slot) => {
-          const player = players.find((p) => p.id === slot.playerId);
-          const isUnavail = slot.playerId ? unavailPlayerIds.includes(slot.playerId) : false;
+        {slots.map(slot => {
+          const player = players.find(p => p.id === slot.playerId);
+          const isUnavail = slot.playerId
+            ? unavailPlayerIds.includes(slot.playerId)
+            : false;
           const isSelected = selectedSlotPos === slot.position;
 
           return (
@@ -188,12 +209,13 @@ export default function LineupPage() {
                       ? 'bg-amber-400 border-amber-600 text-white'
                       : 'bg-white border-primary text-primary'
                     : isSelected
-                    ? 'bg-primary-subtle border-primary text-primary animate-pulse'
-                    : 'bg-white/20 border-white/50 text-white'
+                      ? 'bg-primary-subtle border-primary text-primary animate-pulse'
+                      : 'bg-white/20 border-white/50 text-white'
                 }`}
               >
                 {player
-                  ? player.number ?? (player.firstName.charAt(0) + player.lastName.charAt(0))
+                  ? (player.number ??
+                    player.firstName.charAt(0) + player.lastName.charAt(0))
                   : slot.position}
               </div>
               {player && (
@@ -210,10 +232,17 @@ export default function LineupPage() {
       {selectedSlotPos && (
         <Card>
           <p className="text-xs font-medium text-fg-muted mb-2">
-            Affecter au poste : <strong>{/* istanbul ignore next */POSITION_LABELS[selectedSlotPos as keyof typeof POSITION_LABELS] ?? selectedSlotPos}</strong>
+            Affecter au poste :{' '}
+            <strong>
+              {
+                /* istanbul ignore next */ POSITION_LABELS[
+                  selectedSlotPos as keyof typeof POSITION_LABELS
+                ] ?? selectedSlotPos
+              }
+            </strong>
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {slots.find((s) => s.position === selectedSlotPos)?.playerId && (
+            {slots.find(s => s.position === selectedSlotPos)?.playerId && (
               <button
                 onClick={() => removeFromSlot(selectedSlotPos)}
                 className="px-2.5 py-1 rounded-lg text-xs font-medium border border-red-300 bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400"
@@ -222,8 +251,13 @@ export default function LineupPage() {
               </button>
             )}
             {players
-              .filter((p) => !assignedPlayerIds.includes(p.id) || p.id === slots.find((s) => s.position === selectedSlotPos)?.playerId)
-              .map((p) => (
+              .filter(
+                p =>
+                  !assignedPlayerIds.includes(p.id) ||
+                  p.id ===
+                    slots.find(s => s.position === selectedSlotPos)?.playerId
+              )
+              .map(p => (
                 <button
                   key={p.id}
                   onClick={() => assignPlayer(p.id)}
@@ -245,9 +279,11 @@ export default function LineupPage() {
       {/* Unassigned players / substitutes */}
       {unassignedPlayers.length > 0 && (
         <Card>
-          <p className="text-xs font-medium text-fg-muted mb-2">Remplaçants / non assignés</p>
+          <p className="text-xs font-medium text-fg-muted mb-2">
+            Remplaçants / non assignés
+          </p>
           <div className="flex flex-wrap gap-1.5">
-            {unassignedPlayers.map((p) => (
+            {unassignedPlayers.map(p => (
               <button
                 key={p.id}
                 onClick={() => toggleSubstitute(p.id)}
@@ -268,9 +304,11 @@ export default function LineupPage() {
       {/* Saved lineups */}
       {lineups.length > 0 && (
         <Card>
-          <p className="text-xs font-medium text-fg-muted mb-2">Compositions sauvegardées</p>
+          <p className="text-xs font-medium text-fg-muted mb-2">
+            Compositions sauvegardées
+          </p>
           <div className="space-y-1">
-            {lineups.map((l) => (
+            {lineups.map(l => (
               <button
                 key={l.id}
                 onClick={() => loadLineup(l.id)}

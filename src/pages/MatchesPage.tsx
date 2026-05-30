@@ -6,7 +6,10 @@ import { useMatches, useTeams } from '../store/AppContext';
 import { MATCH_STATUS_LABELS, type MatchStatus } from '../types';
 import { formatDateFull, isUpcoming } from '../utils/date';
 
-const statusVariant: Record<MatchStatus, 'primary' | 'success' | 'warning' | 'muted' | 'danger'> = {
+const statusVariant: Record<
+  MatchStatus,
+  'primary' | 'success' | 'warning' | 'muted' | 'danger'
+> = {
   previsionnel: 'muted',
   engage: 'warning',
   saison: 'primary',
@@ -20,7 +23,7 @@ export default function MatchesPage() {
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all');
   const [teamFilter, setTeamFilter] = useState<string>('all');
 
-  const filtered = allMatches.filter((m) => {
+  const filtered = allMatches.filter(m => {
     if (teamFilter !== 'all' && m.teamId !== teamFilter) return false;
     if (filter === 'upcoming') return isUpcoming(m.date);
     if (filter === 'past') return !isUpcoming(m.date);
@@ -33,7 +36,7 @@ export default function MatchesPage() {
 
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-        {(['all', 'upcoming', 'past'] as const).map((f) => (
+        {(['all', 'upcoming', 'past'] as const).map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -59,7 +62,7 @@ export default function MatchesPage() {
         >
           Toutes
         </button>
-        {teams.map((t) => (
+        {teams.map(t => (
           <button
             key={t.id}
             onClick={() => setTeamFilter(t.id)}
@@ -76,15 +79,23 @@ export default function MatchesPage() {
 
       {/* Match list */}
       <div className="space-y-3">
-        {/* istanbul ignore next */filtered.length === 0 && (
-          <p className="text-sm text-fg-muted text-center py-8">Aucun match trouvé</p>
-        )}
-        {filtered.map((match) => {
-          const team = teams.find((t) => t.id === match.teamId);
-          const hasScore = match.scoreHome !== undefined && match.scoreAway !== undefined;
+        {
+          /* istanbul ignore next */ filtered.length === 0 && (
+            <p className="text-sm text-fg-muted text-center py-8">
+              Aucun match trouvé
+            </p>
+          )
+        }
+        {filtered.map(match => {
+          const team = teams.find(t => t.id === match.teamId);
+          const hasScore =
+            match.scoreHome !== undefined && match.scoreAway !== undefined;
           return (
             <Link key={match.id} to={`/matchs/${match.id}`}>
-              <Card padding={false} className="hover:bg-surface-muted transition-colors">
+              <Card
+                padding={false}
+                className="hover:bg-surface-muted transition-colors"
+              >
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -96,7 +107,9 @@ export default function MatchesPage() {
                           {match.isHome ? 'Domicile' : 'Extérieur'}
                         </p>
                         <span className="text-fg-muted">·</span>
-                        <p className="font-semibold text-fg">{match.opponent}</p>
+                        <p className="font-semibold text-fg">
+                          {match.opponent}
+                        </p>
                       </div>
                       <p className="text-xs text-fg-muted mt-1">
                         {team?.name} · {match.location}

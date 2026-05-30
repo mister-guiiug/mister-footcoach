@@ -140,7 +140,7 @@ export default defineSchema({
         playerId: v.optional(v.string()),
         x: v.number(),
         y: v.number(),
-      }),
+      })
     ),
     substituteIds: v.array(v.string()),
     createdAt: v.string(),

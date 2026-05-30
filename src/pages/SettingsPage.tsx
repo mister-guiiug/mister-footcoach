@@ -47,7 +47,9 @@ export default function SettingsPage() {
 
       {/* Season info */}
       <Card>
-        <p className="text-sm font-semibold text-fg-heading mb-3">Saison active</p>
+        <p className="text-sm font-semibold text-fg-heading mb-3">
+          Saison active
+        </p>
         <div className="space-y-1 text-sm">
           <div className="flex justify-between">
             <span className="text-fg-muted">Saison</span>
@@ -55,7 +57,9 @@ export default function SettingsPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-fg-muted">Début</span>
-            <span className="font-medium text-fg">{state.season.startDate}</span>
+            <span className="font-medium text-fg">
+              {state.season.startDate}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-fg-muted">Fin</span>
@@ -67,17 +71,22 @@ export default function SettingsPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-fg-muted">Joueurs actifs</span>
-            <span className="font-medium text-fg">{state.players.filter((p) => p.active).length}</span>
+            <span className="font-medium text-fg">
+              {state.players.filter(p => p.active).length}
+            </span>
           </div>
         </div>
       </Card>
 
       {/* Data management */}
       <Card>
-        <p className="text-sm font-semibold text-fg-heading mb-3">Données de démonstration</p>
+        <p className="text-sm font-semibold text-fg-heading mb-3">
+          Données de démonstration
+        </p>
         <p className="text-xs text-fg-muted mb-3">
-          L'application utilise des données de démonstration stockées localement.
-          La réinitialisation restaure les données d'exemple originales.
+          L'application utilise des données de démonstration stockées
+          localement. La réinitialisation restaure les données d'exemple
+          originales.
         </p>
         <Button variant="secondary" onClick={resetData} className="w-full">
           <RefreshCw size={14} />
@@ -91,10 +100,12 @@ export default function SettingsPage() {
           <Info size={18} className="text-fg-muted flex-shrink-0 mt-0.5" />
           <div className="text-sm">
             <p className="font-semibold text-fg-heading">Mister Footcoach</p>
-            <p className="text-xs text-fg-muted mt-0.5">Version MVP — Phase 0</p>
             <p className="text-xs text-fg-muted mt-0.5">
-              Application PWA de gestion d'équipes jeunes de football.
-              Données stockées localement (localStorage).
+              Version MVP — Phase 0
+            </p>
+            <p className="text-xs text-fg-muted mt-0.5">
+              Application PWA de gestion d'équipes jeunes de football. Données
+              stockées localement (localStorage).
             </p>
           </div>
         </div>

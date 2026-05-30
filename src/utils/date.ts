@@ -1,6 +1,10 @@
 export function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  return d.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 export function formatDateShort(dateStr: string): string {
@@ -41,7 +45,11 @@ export function today(): string {
   return new Date().toISOString().split('T')[0];
 }
 
-export function isActiveUnavailability(start: string, end?: string, date?: string): boolean {
+export function isActiveUnavailability(
+  start: string,
+  end?: string,
+  date?: string
+): boolean {
   const checkDate = date ?? today();
   return start <= checkDate && (end === undefined || end >= checkDate);
 }

@@ -82,14 +82,14 @@
 
 ### 1.2 Principes directeurs
 
-| Principe | Décision |
-|---|---|
-| **Réactivité temps réel** | Convex comme backend principal — les queries sont des abonnements réactifs nativement |
-| **Offline-first** | IndexedDB + Service Worker pour le mode match live (§7) |
-| **Isolation du backend** | Pattern Adapter pour permettre de substituer Convex par Supabase ou Firebase sans toucher au code des composants |
-| **Type safety end-to-end** | TypeScript strict de bout en bout — le schéma Convex génère les types frontend automatiquement |
-| **Mobile-first** | PWA installable, interface conçue pour smartphone, interactions tactiles |
-| **Zéro sur-ingénierie MVP** | Le MVP utilise le stockage local (localStorage/IndexedDB) sans backend, l'adapter Convex s'active en V1 |
+| Principe                    | Décision                                                                                                         |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Réactivité temps réel**   | Convex comme backend principal — les queries sont des abonnements réactifs nativement                            |
+| **Offline-first**           | IndexedDB + Service Worker pour le mode match live (§7)                                                          |
+| **Isolation du backend**    | Pattern Adapter pour permettre de substituer Convex par Supabase ou Firebase sans toucher au code des composants |
+| **Type safety end-to-end**  | TypeScript strict de bout en bout — le schéma Convex génère les types frontend automatiquement                   |
+| **Mobile-first**            | PWA installable, interface conçue pour smartphone, interactions tactiles                                         |
+| **Zéro sur-ingénierie MVP** | Le MVP utilise le stockage local (localStorage/IndexedDB) sans backend, l'adapter Convex s'active en V1          |
 
 ---
 
@@ -97,27 +97,27 @@
 
 ### 2.1 Vue synthétique
 
-| Domaine | Technologie | Version | Rôle |
-|---|---|---|---|
-| Bundler | **Vite** | 6.x | Build, dev server, HMR |
-| Framework UI | **React** | 19.x | Rendu, Concurrent Mode, hooks |
-| Langage | **TypeScript** | 6.x | Type safety strict |
-| Style | **Tailwind CSS** | 4.x | Utility-first, tokens CSS natifs |
-| Icônes | **Lucide React** | latest | Bibliothèque d'icônes SVG |
-| Routing | **React Router** | 7.x | SPA routing, loaders, actions |
-| Backend principal | **Convex** | latest | BaaS réactif, DB, fonctions serveur |
-| Auth | **Clerk** | latest | Gestion des sessions, rôles |
-| Tests unitaires | **Vitest** | 3.x | Tests React + TypeScript |
-| Tests E2E | **Playwright** | latest | Tests navigateur PWA |
-| PWA | **vite-plugin-pwa** | latest | Manifest, Service Worker (Workbox) |
-| Offline store | **Dexie.js** | latest | Wrapper IndexedDB typé |
+| Domaine           | Technologie         | Version | Rôle                                |
+| ----------------- | ------------------- | ------- | ----------------------------------- |
+| Bundler           | **Vite**            | 6.x     | Build, dev server, HMR              |
+| Framework UI      | **React**           | 19.x    | Rendu, Concurrent Mode, hooks       |
+| Langage           | **TypeScript**      | 6.x     | Type safety strict                  |
+| Style             | **Tailwind CSS**    | 4.x     | Utility-first, tokens CSS natifs    |
+| Icônes            | **Lucide React**    | latest  | Bibliothèque d'icônes SVG           |
+| Routing           | **React Router**    | 7.x     | SPA routing, loaders, actions       |
+| Backend principal | **Convex**          | latest  | BaaS réactif, DB, fonctions serveur |
+| Auth              | **Clerk**           | latest  | Gestion des sessions, rôles         |
+| Tests unitaires   | **Vitest**          | 3.x     | Tests React + TypeScript            |
+| Tests E2E         | **Playwright**      | latest  | Tests navigateur PWA                |
+| PWA               | **vite-plugin-pwa** | latest  | Manifest, Service Worker (Workbox)  |
+| Offline store     | **Dexie.js**        | latest  | Wrapper IndexedDB typé              |
 
 ### 2.2 Alternatives backend (optionnelles)
 
-| Backend | Package | Activation |
-|---|---|---|
+| Backend      | Package                 | Activation              |
+| ------------ | ----------------------- | ----------------------- |
 | **Supabase** | `@supabase/supabase-js` | `VITE_BACKEND=supabase` |
-| **Firebase** | `firebase` | `VITE_BACKEND=firebase` |
+| **Firebase** | `firebase`              | `VITE_BACKEND=firebase` |
 
 Les deux restent des dépendances optionnelles (`devDependencies`) jusqu'à activation explicite.
 
@@ -125,15 +125,15 @@ Les deux restent des dépendances optionnelles (`devDependencies`) jusqu'à acti
 
 Convex est retenu comme backend principal pour les raisons suivantes :
 
-| Besoin fonctionnel | Ce que Convex apporte |
-|---|---|
-| Score live visible par les parents | Queries réactives WebSocket nativement — zéro polling |
-| Sondages avec réponses en temps réel | Mise à jour instantanée du tableau de bord coach |
-| Mode match offline | Mutations mises en file d'attente côté client, rejouées à la reconnexion |
-| Rappels de séance (J-1) | Scheduled functions natives |
-| Type safety backend ↔ frontend | Génération automatique des types depuis le schéma |
-| Notifications in-app | Mutations sur table `notifications` + query réactive |
-| Simplicité opérationnelle | PaaS managé — pas d'infra à gérer |
+| Besoin fonctionnel                   | Ce que Convex apporte                                                    |
+| ------------------------------------ | ------------------------------------------------------------------------ |
+| Score live visible par les parents   | Queries réactives WebSocket nativement — zéro polling                    |
+| Sondages avec réponses en temps réel | Mise à jour instantanée du tableau de bord coach                         |
+| Mode match offline                   | Mutations mises en file d'attente côté client, rejouées à la reconnexion |
+| Rappels de séance (J-1)              | Scheduled functions natives                                              |
+| Type safety backend ↔ frontend       | Génération automatique des types depuis le schéma                        |
+| Notifications in-app                 | Mutations sur table `notifications` + query réactive                     |
+| Simplicité opérationnelle            | PaaS managé — pas d'infra à gérer                                        |
 
 ---
 
@@ -276,91 +276,93 @@ Le schéma est la **source de vérité unique** pour les types TypeScript. Toute
 
 ```typescript
 // convex/schema.ts
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
 
 export default defineSchema({
-
   // ── Clubs & Saisons ─────────────────────────────────────────
   clubs: defineTable({
     name: v.string(),
-    logoStorageId: v.optional(v.id("_storage")),
+    logoStorageId: v.optional(v.id('_storage')),
   }),
 
   seasons: defineTable({
-    clubId: v.id("clubs"),
-    name: v.string(),          // "2025-2026"
-    startDate: v.string(),     // ISO date
+    clubId: v.id('clubs'),
+    name: v.string(), // "2025-2026"
+    startDate: v.string(), // ISO date
     endDate: v.string(),
     active: v.boolean(),
-  }).index("by_club", ["clubId"]),
+  }).index('by_club', ['clubId']),
 
   // ── Équipes ──────────────────────────────────────────────────
   teams: defineTable({
-    clubId: v.id("clubs"),
-    seasonId: v.id("seasons"),
+    clubId: v.id('clubs'),
+    seasonId: v.id('seasons'),
     name: v.string(),
-    category: v.string(),      // "U13", "U11"
-    coachId: v.id("users"),
-    adjointCoachId: v.optional(v.id("users")),
+    category: v.string(), // "U13", "U11"
+    coachId: v.id('users'),
+    adjointCoachId: v.optional(v.id('users')),
     color: v.optional(v.string()),
   })
-    .index("by_season", ["seasonId"])
-    .index("by_coach", ["coachId"]),
+    .index('by_season', ['seasonId'])
+    .index('by_coach', ['coachId']),
 
   // ── Joueurs ──────────────────────────────────────────────────
   players: defineTable({
     firstName: v.string(),
     lastName: v.string(),
     dateOfBirth: v.string(),
-    primaryTeamId: v.id("teams"),
-    secondaryTeamId: v.optional(v.id("teams")),
+    primaryTeamId: v.id('teams'),
+    secondaryTeamId: v.optional(v.id('teams')),
     preferredPosition: v.string(),
     appetences: v.optional(v.record(v.string(), v.number())), // Position → 1..5
     number: v.optional(v.number()),
     active: v.boolean(),
-    photoStorageId: v.optional(v.id("_storage")),
+    photoStorageId: v.optional(v.id('_storage')),
   })
-    .index("by_primary_team", ["primaryTeamId"])
-    .index("by_secondary_team", ["secondaryTeamId"]),
+    .index('by_primary_team', ['primaryTeamId'])
+    .index('by_secondary_team', ['secondaryTeamId']),
 
   // ── Indisponibilités ─────────────────────────────────────────
   unavailabilities: defineTable({
-    playerId: v.id("players"),
+    playerId: v.id('players'),
     startDate: v.string(),
     endDate: v.optional(v.string()),
     motif: v.union(
-      v.literal("blessure"), v.literal("maladie"),
-      v.literal("vacances"), v.literal("suspension"),
-      v.literal("personnel"), v.literal("autre"),
+      v.literal('blessure'),
+      v.literal('maladie'),
+      v.literal('vacances'),
+      v.literal('suspension'),
+      v.literal('personnel'),
+      v.literal('autre')
     ),
-    declaredBy: v.id("users"),
+    declaredBy: v.id('users'),
     note: v.optional(v.string()),
-    injuryId: v.optional(v.id("injuries")),
-  }).index("by_player", ["playerId"]),
+    injuryId: v.optional(v.id('injuries')),
+  }).index('by_player', ['playerId']),
 
   // ── Blessures ────────────────────────────────────────────────
   injuries: defineTable({
-    playerId: v.id("players"),
+    playerId: v.id('players'),
     zone: v.string(),
     nature: v.string(),
     startDate: v.string(),
     estimatedReturnDate: v.optional(v.string()),
     actualReturnDate: v.optional(v.string()),
     status: v.union(
-      v.literal("en_reeduc"),
-      v.literal("reprise_progressive"),
-      v.literal("apte"),
+      v.literal('en_reeduc'),
+      v.literal('reprise_progressive'),
+      v.literal('apte')
     ),
     noteCoach: v.optional(v.string()),
-  }).index("by_player", ["playerId"]),
+  }).index('by_player', ['playerId']),
 
   // ── Matchs ───────────────────────────────────────────────────
   matches: defineTable({
-    teamId: v.id("teams"),
-    seasonId: v.id("seasons"),
-    tournamentId: v.optional(v.id("tournaments")),
-    tournamentGroupId: v.optional(v.id("tournamentGroups")),
+    teamId: v.id('teams'),
+    seasonId: v.id('seasons'),
+    tournamentId: v.optional(v.id('tournaments')),
+    tournamentGroupId: v.optional(v.id('tournamentGroups')),
     date: v.string(),
     time: v.string(),
     location: v.string(),
@@ -368,8 +370,11 @@ export default defineSchema({
     isHome: v.boolean(),
     opponent: v.string(),
     status: v.union(
-      v.literal("previsionnel"), v.literal("engage"),
-      v.literal("saison"), v.literal("tournoi"), v.literal("annule"),
+      v.literal('previsionnel'),
+      v.literal('engage'),
+      v.literal('saison'),
+      v.literal('tournoi'),
+      v.literal('annule')
     ),
     phase: v.string(),
     scoreHome: v.optional(v.number()),
@@ -381,112 +386,122 @@ export default defineSchema({
     meetingTime: v.optional(v.string()),
     meetingNote: v.optional(v.string()),
   })
-    .index("by_team", ["teamId"])
-    .index("by_season", ["seasonId"])
-    .index("by_date", ["date"]),
+    .index('by_team', ['teamId'])
+    .index('by_season', ['seasonId'])
+    .index('by_date', ['date']),
 
   // ── Événements match live ────────────────────────────────────
   matchEvents: defineTable({
-    matchId: v.id("matches"),
+    matchId: v.id('matches'),
     type: v.union(
-      v.literal("but"), v.literal("but_csc"),
-      v.literal("carton_jaune"), v.literal("carton_rouge"),
-      v.literal("remplacement"), v.literal("blessure_live"),
-      v.literal("arret_mi_temps"),
+      v.literal('but'),
+      v.literal('but_csc'),
+      v.literal('carton_jaune'),
+      v.literal('carton_rouge'),
+      v.literal('remplacement'),
+      v.literal('blessure_live'),
+      v.literal('arret_mi_temps')
     ),
     minute: v.optional(v.number()),
-    playerId: v.optional(v.id("players")),
-    player2Id: v.optional(v.id("players")),
+    playerId: v.optional(v.id('players')),
+    player2Id: v.optional(v.id('players')),
     note: v.optional(v.string()),
   })
-    .index("by_match", ["matchId"])
-    .index("by_match_type", ["matchId", "type"]),
+    .index('by_match', ['matchId'])
+    .index('by_match_type', ['matchId', 'type']),
 
   // ── Entraînements ────────────────────────────────────────────
   trainings: defineTable({
-    teamId: v.id("teams"),
+    teamId: v.id('teams'),
     date: v.string(),
     time: v.string(),
     duration: v.number(),
-    type: v.union(v.literal("regulier"), v.literal("exceptionnel")),
+    type: v.union(v.literal('regulier'), v.literal('exceptionnel')),
     cancelled: v.boolean(),
     theme: v.optional(v.string()),
     note: v.optional(v.string()),
     seriesId: v.optional(v.string()), // UUID commun aux occurrences d'une série
   })
-    .index("by_team", ["teamId"])
-    .index("by_date", ["date"]),
+    .index('by_team', ['teamId'])
+    .index('by_date', ['date']),
 
   // ── Blocs de séance ──────────────────────────────────────────
   trainingBlocks: defineTable({
-    trainingId: v.id("trainings"),
+    trainingId: v.id('trainings'),
     order: v.number(),
     duration: v.number(),
     title: v.string(),
     description: v.optional(v.string()),
-    exerciseId: v.optional(v.id("exercises")),
+    exerciseId: v.optional(v.id('exercises')),
     exerciseTitleSnapshot: v.optional(v.string()), // dénormalisé
-  }).index("by_training", ["trainingId"]),
+  }).index('by_training', ['trainingId']),
 
   // ── Bibliothèque d'exercices ─────────────────────────────────
   exercises: defineTable({
-    clubId: v.id("clubs"),
+    clubId: v.id('clubs'),
     title: v.string(),
     description: v.optional(v.string()),
     category: v.union(
-      v.literal("echauffement"), v.literal("technique"),
-      v.literal("physique"), v.literal("tactique"),
-      v.literal("jeu"), v.literal("retour_au_calme"),
+      v.literal('echauffement'),
+      v.literal('technique'),
+      v.literal('physique'),
+      v.literal('tactique'),
+      v.literal('jeu'),
+      v.literal('retour_au_calme')
     ),
     suggestedDuration: v.optional(v.number()),
     tags: v.array(v.string()),
-    createdBy: v.id("users"),
+    createdBy: v.id('users'),
   })
-    .index("by_club", ["clubId"])
-    .index("by_category", ["category"]),
+    .index('by_club', ['clubId'])
+    .index('by_category', ['category']),
 
   // ── Assiduité ────────────────────────────────────────────────
   attendances: defineTable({
-    sessionType: v.union(v.literal("match"), v.literal("training")),
+    sessionType: v.union(v.literal('match'), v.literal('training')),
     sessionId: v.string(),
-    playerId: v.id("players"),
+    playerId: v.id('players'),
     status: v.union(
-      v.literal("present"), v.literal("absent"), v.literal("excuse"),
+      v.literal('present'),
+      v.literal('absent'),
+      v.literal('excuse')
     ),
     note: v.optional(v.string()),
-    recordedBy: v.id("users"),
+    recordedBy: v.id('users'),
   })
-    .index("by_session", ["sessionType", "sessionId"])
-    .index("by_player", ["playerId"]),
+    .index('by_session', ['sessionType', 'sessionId'])
+    .index('by_player', ['playerId']),
 
   // ── Historique des postes ────────────────────────────────────
   positionHistory: defineTable({
-    playerId: v.id("players"),
-    matchId: v.id("matches"),
+    playerId: v.id('players'),
+    matchId: v.id('matches'),
     period: v.string(),
     position: v.string(),
     minute: v.optional(v.number()),
-  }).index("by_player", ["playerId"]),
+  }).index('by_player', ['playerId']),
 
   // ── Compositions ────────────────────────────────────────────
   lineups: defineTable({
-    teamId: v.id("teams"),
-    matchId: v.optional(v.id("matches")),
+    teamId: v.id('teams'),
+    matchId: v.optional(v.id('matches')),
     name: v.string(),
     formation: v.string(),
-    slots: v.array(v.object({
-      position: v.string(),
-      playerId: v.optional(v.id("players")),
-      x: v.number(),
-      y: v.number(),
-    })),
-    substituteIds: v.array(v.id("players")),
-  }).index("by_team", ["teamId"]),
+    slots: v.array(
+      v.object({
+        position: v.string(),
+        playerId: v.optional(v.id('players')),
+        x: v.number(),
+        y: v.number(),
+      })
+    ),
+    substituteIds: v.array(v.id('players')),
+  }).index('by_team', ['teamId']),
 
   // ── Tournois ────────────────────────────────────────────────
   tournaments: defineTable({
-    clubId: v.id("clubs"),
-    seasonId: v.id("seasons"),
+    clubId: v.id('clubs'),
+    seasonId: v.id('seasons'),
     name: v.string(),
     dateStart: v.string(),
     dateEnd: v.optional(v.string()),
@@ -494,95 +509,103 @@ export default defineSchema({
     address: v.string(),
     organizer: v.string(),
     isOrganizedByClub: v.boolean(),
-    teamIds: v.array(v.id("teams")),
+    teamIds: v.array(v.id('teams')),
     format: v.union(
-      v.literal("poules"),
-      v.literal("elimination_directe"),
-      v.literal("poules_finale"),
+      v.literal('poules'),
+      v.literal('elimination_directe'),
+      v.literal('poules_finale')
     ),
     status: v.union(
-      v.literal("planifie"), v.literal("en_cours"), v.literal("termine"),
+      v.literal('planifie'),
+      v.literal('en_cours'),
+      v.literal('termine')
     ),
-  }).index("by_season", ["seasonId"]),
+  }).index('by_season', ['seasonId']),
 
   tournamentGroups: defineTable({
-    tournamentId: v.id("tournaments"),
+    tournamentId: v.id('tournaments'),
     name: v.string(),
-    type: v.union(v.literal("poule"), v.literal("elimination")),
+    type: v.union(v.literal('poule'), v.literal('elimination')),
     order: v.number(),
-  }).index("by_tournament", ["tournamentId"]),
+  }).index('by_tournament', ['tournamentId']),
 
   // ── Covoiturage ──────────────────────────────────────────────
   carpoolOffers: defineTable({
-    matchId: v.id("matches"),
-    offeredBy: v.id("users"),
+    matchId: v.id('matches'),
+    offeredBy: v.id('users'),
     seats: v.number(),
     departureLocation: v.optional(v.string()),
     departureTime: v.optional(v.string()),
-    playerIds: v.array(v.id("players")),
+    playerIds: v.array(v.id('players')),
     note: v.optional(v.string()),
-  }).index("by_match", ["matchId"]),
+  }).index('by_match', ['matchId']),
 
   // ── Sondages de présence ─────────────────────────────────────
   surveys: defineTable({
-    teamId: v.id("teams"),
+    teamId: v.id('teams'),
     sessionType: v.union(
-      v.literal("match"), v.literal("training"),
-      v.literal("tournament"), v.literal("libre"),
+      v.literal('match'),
+      v.literal('training'),
+      v.literal('tournament'),
+      v.literal('libre')
     ),
     sessionId: v.optional(v.string()),
     question: v.string(),
     deadline: v.string(),
     status: v.union(
-      v.literal("ouvert"), v.literal("ferme"), v.literal("archive"),
+      v.literal('ouvert'),
+      v.literal('ferme'),
+      v.literal('archive')
     ),
     sendNotification: v.boolean(),
-    createdBy: v.id("users"),
-  }).index("by_team", ["teamId"]),
+    createdBy: v.id('users'),
+  }).index('by_team', ['teamId']),
 
   surveyResponses: defineTable({
-    surveyId: v.id("surveys"),
-    playerId: v.id("players"),
+    surveyId: v.id('surveys'),
+    playerId: v.id('players'),
     // Intention du joueur (renseignée par le parent au nom du joueur en V1)
-    intentionJoueur: v.optional(v.union(
-      v.literal("present"), v.literal("absent"), v.literal("incertain"),
-    )),
+    intentionJoueur: v.optional(
+      v.union(v.literal('present'), v.literal('absent'), v.literal('incertain'))
+    ),
     dateIntentionJoueur: v.optional(v.string()),
     // Confirmation officielle du parent (valeur retenue)
-    confirmationParent: v.optional(v.union(
-      v.literal("present"), v.literal("absent"), v.literal("incertain"),
-    )),
+    confirmationParent: v.optional(
+      v.union(v.literal('present'), v.literal('absent'), v.literal('incertain'))
+    ),
     dateConfirmationParent: v.optional(v.string()),
-    parentUserId: v.optional(v.id("users")),
+    parentUserId: v.optional(v.id('users')),
     note: v.optional(v.string()),
   })
-    .index("by_survey", ["surveyId"])
-    .index("by_player_survey", ["playerId", "surveyId"]),
+    .index('by_survey', ['surveyId'])
+    .index('by_player_survey', ['playerId', 'surveyId']),
 
   // ── Notifications in-app ────────────────────────────────────
   notifications: defineTable({
-    userId: v.id("users"),
+    userId: v.id('users'),
     type: v.string(),
     message: v.string(),
     read: v.boolean(),
     relatedId: v.optional(v.string()),
     relatedType: v.optional(v.string()),
   })
-    .index("by_user", ["userId"])
-    .index("by_user_unread", ["userId", "read"]),
+    .index('by_user', ['userId'])
+    .index('by_user_unread', ['userId', 'read']),
 
   // ── Tokens iCal ─────────────────────────────────────────────
   icalTokens: defineTable({
-    userId: v.id("users"),
+    userId: v.id('users'),
     fluxType: v.union(
-      v.literal("equipe"), v.literal("joueur"), v.literal("personnel"),
+      v.literal('equipe'),
+      v.literal('joueur'),
+      v.literal('personnel')
     ),
     targetId: v.optional(v.string()),
     token: v.string(),
     active: v.boolean(),
   })
-    .index("by_user", ["userId"])
-    .index("by_token", ["token"]),
+    .index('by_user', ['userId'])
+    .index('by_token', ['token']),
 
   // ── Contacts & Filiation ────────────────────────────────────
   contacts: defineTable({
@@ -590,12 +613,12 @@ export default defineSchema({
     lastName: v.string(),
     phone: v.string(),
     email: v.string(),
-    type: v.string(),           // père, mère, tuteur…
-    playerIds: v.array(v.id("players")),
-    userId: v.optional(v.id("users")),
+    type: v.string(), // père, mère, tuteur…
+    playerIds: v.array(v.id('players')),
+    userId: v.optional(v.id('users')),
     consentDate: v.optional(v.string()),
     consentVersion: v.optional(v.string()),
-  }).index("by_email", ["email"]),
+  }).index('by_email', ['email']),
 });
 ```
 
@@ -603,50 +626,50 @@ export default defineSchema({
 
 ```typescript
 // convex/players.ts
-import { query } from "./_generated/server";
-import { v } from "convex/values";
-import { requireCoachOfTeam } from "./lib/permissions";
+import { query } from './_generated/server';
+import { v } from 'convex/values';
+import { requireCoachOfTeam } from './lib/permissions';
 
 export const listByTeam = query({
-  args: { teamId: v.id("teams") },
+  args: { teamId: v.id('teams') },
   handler: async (ctx, { teamId }) => {
     await requireCoachOfTeam(ctx, teamId);
     return ctx.db
-      .query("players")
-      .withIndex("by_primary_team", (q) => q.eq("primaryTeamId", teamId))
-      .filter((q) => q.eq(q.field("active"), true))
+      .query('players')
+      .withIndex('by_primary_team', q => q.eq('primaryTeamId', teamId))
+      .filter(q => q.eq(q.field('active'), true))
       .collect();
   },
 });
 
 export const getWithAvailability = query({
-  args: { teamId: v.id("teams"), matchDate: v.string() },
+  args: { teamId: v.id('teams'), matchDate: v.string() },
   handler: async (ctx, { teamId, matchDate }) => {
     await requireCoachOfTeam(ctx, teamId);
     const players = await ctx.db
-      .query("players")
-      .withIndex("by_primary_team", (q) => q.eq("primaryTeamId", teamId))
-      .filter((q) => q.eq(q.field("active"), true))
+      .query('players')
+      .withIndex('by_primary_team', q => q.eq('primaryTeamId', teamId))
+      .filter(q => q.eq(q.field('active'), true))
       .collect();
 
     // Pour chaque joueur, vérifier les indisponibilités actives à la date du match
     return Promise.all(
-      players.map(async (player) => {
+      players.map(async player => {
         const unavailability = await ctx.db
-          .query("unavailabilities")
-          .withIndex("by_player", (q) => q.eq("playerId", player._id))
-          .filter((q) =>
+          .query('unavailabilities')
+          .withIndex('by_player', q => q.eq('playerId', player._id))
+          .filter(q =>
             q.and(
-              q.lte(q.field("startDate"), matchDate),
+              q.lte(q.field('startDate'), matchDate),
               q.or(
-                q.eq(q.field("endDate"), undefined),
-                q.gte(q.field("endDate"), matchDate),
-              ),
-            ),
+                q.eq(q.field('endDate'), undefined),
+                q.gte(q.field('endDate'), matchDate)
+              )
+            )
           )
           .first();
         return { ...player, unavailability: unavailability ?? null };
-      }),
+      })
     );
   },
 });
@@ -656,42 +679,42 @@ export const getWithAvailability = query({
 
 ```typescript
 // convex/matchEvents.ts
-import { mutation } from "./_generated/server";
-import { v } from "convex/values";
-import { requireCoachOfTeam } from "./lib/permissions";
+import { mutation } from './_generated/server';
+import { v } from 'convex/values';
+import { requireCoachOfTeam } from './lib/permissions';
 
 export const addEvent = mutation({
   args: {
-    matchId: v.id("matches"),
+    matchId: v.id('matches'),
     type: v.string(),
     minute: v.optional(v.number()),
-    playerId: v.optional(v.id("players")),
-    player2Id: v.optional(v.id("players")),
+    playerId: v.optional(v.id('players')),
+    player2Id: v.optional(v.id('players')),
     note: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const match = await ctx.db.get(args.matchId);
-    if (!match) throw new Error("Match introuvable");
-    if (!match.liveActive) throw new Error("Mode live non actif");
+    if (!match) throw new Error('Match introuvable');
+    if (!match.liveActive) throw new Error('Mode live non actif');
     await requireCoachOfTeam(ctx, match.teamId);
 
-    const eventId = await ctx.db.insert("matchEvents", args);
+    const eventId = await ctx.db.insert('matchEvents', args);
 
     // Effets de bord selon le type d'événement
-    if (args.type === "but") {
+    if (args.type === 'but') {
       await ctx.db.patch(args.matchId, {
         scoreHome: (match.scoreHome ?? 0) + (match.isHome ? 1 : 0),
         scoreAway: (match.scoreAway ?? 0) + (!match.isHome ? 1 : 0),
       });
     }
 
-    if (args.type === "remplacement" && args.playerId && args.player2Id) {
+    if (args.type === 'remplacement' && args.playerId && args.player2Id) {
       // Alimenter l'historique des postes pour les deux joueurs
-      await ctx.db.insert("positionHistory", {
-        playerId: args.player2Id,   // joueur sortant
+      await ctx.db.insert('positionHistory', {
+        playerId: args.player2Id, // joueur sortant
         matchId: args.matchId,
-        period: "remplacement_sortant",
-        position: "?",              // à enrichir avec le poste de la compo
+        period: 'remplacement_sortant',
+        position: '?', // à enrichir avec le poste de la compo
         minute: args.minute,
       });
     }
@@ -705,16 +728,16 @@ export const addEvent = mutation({
 
 ```typescript
 // convex/scheduled.ts
-import { internalAction, internalMutation } from "./_generated/server";
-import { internal } from "./_generated/api";
-import { v } from "convex/values";
+import { internalAction, internalMutation } from './_generated/server';
+import { internal } from './_generated/api';
+import { v } from 'convex/values';
 
 // Appelé chaque jour à 8h (cron configuré dans convex/crons.ts)
 export const sendDayBeforeReminders = internalAction({
-  handler: async (ctx) => {
+  handler: async ctx => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split("T")[0];
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
     // Récupérer matchs et entraînements du lendemain
     const matches = await ctx.runQuery(internal.matches.getByDate, {
@@ -727,25 +750,25 @@ export const sendDayBeforeReminders = internalAction({
     for (const event of [...matches, ...trainings]) {
       await ctx.runMutation(internal.notifications.createForTeam, {
         teamId: event.teamId,
-        type: "rappel_veille",
-        message: `Rappel : ${event.type === "match" ? "match" : "entraînement"} demain à ${event.time}`,
+        type: 'rappel_veille',
+        message: `Rappel : ${event.type === 'match' ? 'match' : 'entraînement'} demain à ${event.time}`,
         relatedId: event._id,
         relatedType: event.type,
-        rolesTarget: ["parent"],
+        rolesTarget: ['parent'],
       });
     }
   },
 });
 
 // convex/crons.ts
-import { cronJobs } from "convex/server";
-import { internal } from "./_generated/api";
+import { cronJobs } from 'convex/server';
+import { internal } from './_generated/api';
 
 const crons = cronJobs();
 crons.daily(
-  "rappels J-1",
-  { hourUTC: 6, minuteUTC: 0 },   // 8h Paris (UTC+2 en été)
-  internal.scheduled.sendDayBeforeReminders,
+  'rappels J-1',
+  { hourUTC: 6, minuteUTC: 0 }, // 8h Paris (UTC+2 en été)
+  internal.scheduled.sendDayBeforeReminders
 );
 export default crons;
 ```
@@ -754,54 +777,52 @@ export default crons;
 
 ```typescript
 // convex/lib/permissions.ts
-import { QueryCtx, MutationCtx } from "../_generated/server";
-import { Id } from "../_generated/dataModel";
+import { QueryCtx, MutationCtx } from '../_generated/server';
+import { Id } from '../_generated/dataModel';
 
 export async function requireCoachOfTeam(
   ctx: QueryCtx | MutationCtx,
-  teamId: Id<"teams">,
+  teamId: Id<'teams'>
 ) {
   const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("Non authentifié");
+  if (!identity) throw new Error('Non authentifié');
 
   const user = await ctx.db
-    .query("users")
-    .withIndex("by_clerk_id", (q) =>
-      q.eq("clerkId", identity.subject),
-    )
+    .query('users')
+    .withIndex('by_clerk_id', q => q.eq('clerkId', identity.subject))
     .unique();
 
-  if (!user) throw new Error("Utilisateur inconnu");
+  if (!user) throw new Error('Utilisateur inconnu');
 
-  const isAdmin = user.roles.includes("admin");
+  const isAdmin = user.roles.includes('admin');
   if (isAdmin) return user;
 
-  const isCoachOfTeam = user.roles.includes("coach") &&
-    user.teamIds.includes(teamId);
-  if (!isCoachOfTeam) throw new Error("Accès refusé");
+  const isCoachOfTeam =
+    user.roles.includes('coach') && user.teamIds.includes(teamId);
+  if (!isCoachOfTeam) throw new Error('Accès refusé');
 
   return user;
 }
 
 export async function requireParentOfPlayer(
   ctx: QueryCtx | MutationCtx,
-  playerId: Id<"players">,
+  playerId: Id<'players'>
 ) {
   const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("Non authentifié");
+  if (!identity) throw new Error('Non authentifié');
 
   const contact = await ctx.db
-    .query("contacts")
-    .filter((q) =>
+    .query('contacts')
+    .filter(q =>
       q.and(
-        q.eq(q.field("userId"), identity.subject),
-        q.neq(q.field("playerIds"), []),
-      ),
+        q.eq(q.field('userId'), identity.subject),
+        q.neq(q.field('playerIds'), [])
+      )
     )
     .first();
 
   if (!contact?.playerIds.includes(playerId)) {
-    throw new Error("Accès refusé");
+    throw new Error('Accès refusé');
   }
   return contact;
 }
@@ -832,7 +853,7 @@ Chaque adapter exporte exactement les **mêmes hooks avec les mêmes signatures*
 
 ```typescript
 // src/adapters/types.ts
-import type { Id } from "@/types/convex";
+import type { Id } from '@/types/convex';
 
 // ── Types domaine ────────────────────────────────────────────
 export interface Player {
@@ -846,7 +867,7 @@ export interface Player {
   appetences?: Partial<Record<Position, number>>;
   number?: number;
   active: boolean;
-  unavailability?: Unavailability | null;   // enrichi à la query
+  unavailability?: Unavailability | null; // enrichi à la query
 }
 
 export interface UseQueryResult<T> {
@@ -860,7 +881,7 @@ export interface PlayersAdapter {
   usePlayers(teamId: string): UseQueryResult<Player[]>;
   usePlayersWithAvailability(
     teamId: string,
-    matchDate: string,
+    matchDate: string
   ): UseQueryResult<(Player & { unavailability: Unavailability | null })[]>;
   useCreatePlayer(): {
     mutate: (data: CreatePlayerData) => Promise<string>;
@@ -881,7 +902,11 @@ export interface MatchesAdapter {
     isLoading: boolean;
   };
   useUpdateMatchScore(): {
-    mutate: (matchId: string, scoreHome: number, scoreAway: number) => Promise<void>;
+    mutate: (
+      matchId: string,
+      scoreHome: number,
+      scoreAway: number
+    ) => Promise<void>;
   };
 }
 
@@ -907,9 +932,9 @@ export interface BackendAdapter {
 
 ```typescript
 // src/adapters/convex/players.hooks.ts
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@convex/_generated/api";
-import type { PlayersAdapter } from "../types";
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '@convex/_generated/api';
+import type { PlayersAdapter } from '../types';
 
 export const convexPlayersAdapter: PlayersAdapter = {
   usePlayers(teamId) {
@@ -936,7 +961,7 @@ export const convexPlayersAdapter: PlayersAdapter = {
   useCreatePlayer() {
     const mutate = useMutation(api.players.create);
     return {
-      mutate: async (data) => {
+      mutate: async data => {
         const id = await mutate(data);
         return id;
       },
@@ -947,7 +972,9 @@ export const convexPlayersAdapter: PlayersAdapter = {
   useUpdatePlayer() {
     const mutate = useMutation(api.players.update);
     return {
-      mutate: async (id, data) => { await mutate({ id: id as any, ...data }); },
+      mutate: async (id, data) => {
+        await mutate({ id: id as any, ...data });
+      },
       isLoading: false,
     };
   },
@@ -958,29 +985,29 @@ export const convexPlayersAdapter: PlayersAdapter = {
 
 ```typescript
 // src/adapters/index.ts
-import type { BackendAdapter } from "./types";
+import type { BackendAdapter } from './types';
 
-const backend = import.meta.env.VITE_BACKEND ?? "convex";
+const backend = import.meta.env.VITE_BACKEND ?? 'convex';
 
 async function loadAdapter(): Promise<BackendAdapter> {
   switch (backend) {
-    case "supabase": {
-      const mod = await import("./supabase");
+    case 'supabase': {
+      const mod = await import('./supabase');
       return mod.supabaseAdapter;
     }
-    case "firebase": {
-      const mod = await import("./firebase");
+    case 'firebase': {
+      const mod = await import('./firebase');
       return mod.firebaseAdapter;
     }
     default: {
-      const mod = await import("./convex");
+      const mod = await import('./convex');
       return mod.convexAdapter;
     }
   }
 }
 
 // Hooks réexportés — point d'entrée unique pour les composants
-export { usePlayers, usePlayersWithAvailability } from "./convex/players.hooks";
+export { usePlayers, usePlayersWithAvailability } from './convex/players.hooks';
 // (remplacés dynamiquement selon VITE_BACKEND grâce au tree-shaking Vite)
 ```
 
@@ -1008,36 +1035,36 @@ VITE_FIREBASE_PROJECT_ID=mister-footcoach
 
 ### 6.1 React 19 — patterns utilisés
 
-| Pattern | Usage |
-|---|---|
-| `useTransition` | Transitions non-bloquantes lors du chargement des pages |
-| `useDeferredValue` | Recherche dans la liste des joueurs / exercices |
-| `use(promise)` | Chargement de données dans les composants avec Suspense |
-| `useOptimistic` | Mises à jour optimistes (assiduité, sondages) |
-| Server Components | **Non utilisés** — PWA offline-first exige un rendu client |
+| Pattern            | Usage                                                      |
+| ------------------ | ---------------------------------------------------------- |
+| `useTransition`    | Transitions non-bloquantes lors du chargement des pages    |
+| `useDeferredValue` | Recherche dans la liste des joueurs / exercices            |
+| `use(promise)`     | Chargement de données dans les composants avec Suspense    |
+| `useOptimistic`    | Mises à jour optimistes (assiduité, sondages)              |
+| Server Components  | **Non utilisés** — PWA offline-first exige un rendu client |
 
 ### 6.2 Routing (`src/App.tsx`)
 
 ```tsx
 // src/App.tsx
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Suspense, lazy } from "react";
-import { AppShell } from "./components/layout/AppShell";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { Spinner } from "./components/ui/Spinner";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+import { AppShell } from './components/layout/AppShell';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { Spinner } from './components/ui/Spinner';
 
-const DashboardPage    = lazy(() => import("./pages/DashboardPage"));
-const TeamsPage        = lazy(() => import("./pages/TeamsPage"));
-const TeamDetailPage   = lazy(() => import("./pages/TeamDetailPage"));
-const PlayerDetailPage = lazy(() => import("./pages/PlayerDetailPage"));
-const MatchesPage      = lazy(() => import("./pages/MatchesPage"));
-const MatchDetailPage  = lazy(() => import("./pages/MatchDetailPage"));
-const MatchLivePage    = lazy(() => import("./pages/MatchLivePage"));
-const TrainingsPage    = lazy(() => import("./pages/TrainingsPage"));
-const LineupPage       = lazy(() => import("./pages/LineupPage"));
-const TournamentsPage  = lazy(() => import("./pages/TournamentsPage"));
-const SurveysPage      = lazy(() => import("./pages/SurveysPage"));
-const SettingsPage     = lazy(() => import("./pages/SettingsPage"));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const TeamsPage = lazy(() => import('./pages/TeamsPage'));
+const TeamDetailPage = lazy(() => import('./pages/TeamDetailPage'));
+const PlayerDetailPage = lazy(() => import('./pages/PlayerDetailPage'));
+const MatchesPage = lazy(() => import('./pages/MatchesPage'));
+const MatchDetailPage = lazy(() => import('./pages/MatchDetailPage'));
+const MatchLivePage = lazy(() => import('./pages/MatchLivePage'));
+const TrainingsPage = lazy(() => import('./pages/TrainingsPage'));
+const LineupPage = lazy(() => import('./pages/LineupPage'));
+const TournamentsPage = lazy(() => import('./pages/TournamentsPage'));
+const SurveysPage = lazy(() => import('./pages/SurveysPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 export default function App() {
   return (
@@ -1045,24 +1072,24 @@ export default function App() {
       <Suspense fallback={<Spinner fullscreen />}>
         <Routes>
           {/* Routes publiques */}
-          <Route path="/login"   element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/consent" element={<ConsentPage />} />
 
           {/* Routes protégées */}
           <Route element={<ProtectedRoute />}>
             <Route element={<AppShell />}>
               <Route index element={<DashboardPage />} />
-              <Route path="equipes"              element={<TeamsPage />} />
-              <Route path="equipes/:id"          element={<TeamDetailPage />} />
-              <Route path="joueurs/:id"          element={<PlayerDetailPage />} />
-              <Route path="matchs"               element={<MatchesPage />} />
-              <Route path="matchs/:id"           element={<MatchDetailPage />} />
-              <Route path="matchs/:id/live"      element={<MatchLivePage />} />
-              <Route path="entrainements"        element={<TrainingsPage />} />
-              <Route path="compositions"         element={<LineupPage />} />
-              <Route path="tournois"             element={<TournamentsPage />} />
-              <Route path="sondages"             element={<SurveysPage />} />
-              <Route path="parametres"           element={<SettingsPage />} />
+              <Route path="equipes" element={<TeamsPage />} />
+              <Route path="equipes/:id" element={<TeamDetailPage />} />
+              <Route path="joueurs/:id" element={<PlayerDetailPage />} />
+              <Route path="matchs" element={<MatchesPage />} />
+              <Route path="matchs/:id" element={<MatchDetailPage />} />
+              <Route path="matchs/:id/live" element={<MatchLivePage />} />
+              <Route path="entrainements" element={<TrainingsPage />} />
+              <Route path="compositions" element={<LineupPage />} />
+              <Route path="tournois" element={<TournamentsPage />} />
+              <Route path="sondages" element={<SurveysPage />} />
+              <Route path="parametres" element={<SettingsPage />} />
             </Route>
           </Route>
 
@@ -1090,53 +1117,53 @@ Tailwind v4 abandonne `tailwind.config.js`. La configuration se fait entièremen
 
 ```css
 /* src/index.css */
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Tokens sémantiques */
 html {
-  --canvas:            #f9fafb;
-  --surface:           #ffffff;
-  --surface-muted:     #f0fdf4;
-  --fg:                #111827;
-  --fg-heading:        #1f2937;
-  --fg-muted:          #4b5563;
-  --fg-faint:          #9ca3af;
-  --border-ui:         #e5e7eb;
-  --border-ui-strong:  #d1d5db;
+  --canvas: #f9fafb;
+  --surface: #ffffff;
+  --surface-muted: #f0fdf4;
+  --fg: #111827;
+  --fg-heading: #1f2937;
+  --fg-muted: #4b5563;
+  --fg-faint: #9ca3af;
+  --border-ui: #e5e7eb;
+  --border-ui-strong: #d1d5db;
   /* Accent primaire — vert football */
-  --primary:           #16a34a;
-  --primary-hover:     #15803d;
-  --primary-subtle:    #dcfce7;
-  --primary-fg:        #ffffff;
+  --primary: #16a34a;
+  --primary-hover: #15803d;
+  --primary-subtle: #dcfce7;
+  --primary-fg: #ffffff;
   /* Statuts */
-  --status-present:    #16a34a;
-  --status-absent:     #dc2626;
-  --status-excuse:     #d97706;
-  --status-unknown:    #9ca3af;
+  --status-present: #16a34a;
+  --status-absent: #dc2626;
+  --status-excuse: #d97706;
+  --status-unknown: #9ca3af;
 }
 
 html.dark {
-  --canvas:            #0f172a;
-  --surface:           #1e293b;
-  --surface-muted:     #0f2d1a;
-  --fg:                #f1f5f9;
-  --fg-heading:        #f8fafc;
-  --fg-muted:          #94a3b8;
-  --fg-faint:          #64748b;
-  --border-ui:         #334155;
-  --primary:           #22c55e;
-  --primary-hover:     #16a34a;
+  --canvas: #0f172a;
+  --surface: #1e293b;
+  --surface-muted: #0f2d1a;
+  --fg: #f1f5f9;
+  --fg-heading: #f8fafc;
+  --fg-muted: #94a3b8;
+  --fg-faint: #64748b;
+  --border-ui: #334155;
+  --primary: #22c55e;
+  --primary-hover: #16a34a;
 }
 
 @theme inline {
-  --color-canvas:       var(--canvas);
-  --color-surface:      var(--surface);
-  --color-fg:           var(--fg);
-  --color-fg-muted:     var(--fg-muted);
-  --color-primary:      var(--primary);
-  --color-border-ui:    var(--border-ui);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-primary: var(--primary);
+  --color-border-ui: var(--border-ui);
 }
 ```
 
@@ -1203,15 +1230,15 @@ Le mode match live est le seul flux qui doit fonctionner **entièrement hors-lig
 
 ```typescript
 // src/offline/db.ts
-import Dexie, { type Table } from "dexie";
+import Dexie, { type Table } from 'dexie';
 
 export interface OfflineQueueEntry {
   id?: number;
-  functionName: string;    // "matchEvents:addEvent"
+  functionName: string; // "matchEvents:addEvent"
   args: unknown;
-  createdAt: number;       // timestamp ms
+  createdAt: number; // timestamp ms
   retryCount: number;
-  status: "pending" | "retrying" | "failed";
+  status: 'pending' | 'retrying' | 'failed';
 }
 
 export interface LocalMatchState {
@@ -1228,10 +1255,10 @@ class OfflineDB extends Dexie {
   matchStates!: Table<LocalMatchState>;
 
   constructor() {
-    super("mister-footcoach-offline");
+    super('mister-footcoach-offline');
     this.version(1).stores({
-      queue: "++id, status, createdAt",
-      matchStates: "matchId, synced",
+      queue: '++id, status, createdAt',
+      matchStates: 'matchId, synced',
     });
   }
 }
@@ -1243,9 +1270,9 @@ export const db = new OfflineDB();
 
 ```typescript
 // src/hooks/useOfflineQueue.ts
-import { useMutation } from "convex/react";
-import { useOnlineStatus } from "./useOnlineStatus";
-import { db } from "@/offline/db";
+import { useMutation } from 'convex/react';
+import { useOnlineStatus } from './useOnlineStatus';
+import { db } from '@/offline/db';
 
 export function useOfflineQueue() {
   const isOnline = useOnlineStatus();
@@ -1253,7 +1280,7 @@ export function useOfflineQueue() {
   async function enqueue<T>(
     convexMutation: ReturnType<typeof useMutation>,
     args: T,
-    optimisticUpdate?: () => void,
+    optimisticUpdate?: () => void
   ) {
     // 1. Mise à jour optimiste immédiate
     optimisticUpdate?.();
@@ -1268,7 +1295,7 @@ export function useOfflineQueue() {
         args,
         createdAt: Date.now(),
         retryCount: 0,
-        status: "pending",
+        status: 'pending',
       });
     }
   }
@@ -1323,8 +1350,8 @@ Les rôles (`admin`, `coach`, `parent`) sont stockés dans les **publicMetadata*
 export default {
   providers: [
     {
-      domain: "https://clerk.mister-footcoach.com",
-      applicationID: "convex",
+      domain: 'https://clerk.mister-footcoach.com',
+      applicationID: 'convex',
     },
   ],
 };
@@ -1333,16 +1360,16 @@ export default {
 ```typescript
 // Dans une mutation Convex
 const identity = await ctx.auth.getUserIdentity();
-const roles = identity?.publicMetadata?.roles as string[] ?? [];
+const roles = (identity?.publicMetadata?.roles as string[]) ?? [];
 ```
 
 ### 8.4 Composant `ProtectedRoute`
 
 ```tsx
 // src/components/auth/ProtectedRoute.tsx
-import { useConvexAuth } from "convex/react";
-import { Navigate, Outlet } from "react-router-dom";
-import { Spinner } from "@/components/ui/Spinner";
+import { useConvexAuth } from 'convex/react';
+import { Navigate, Outlet } from 'react-router-dom';
+import { Spinner } from '@/components/ui/Spinner';
 
 export function ProtectedRoute() {
   const { isLoading, isAuthenticated } = useConvexAuth();
@@ -1358,16 +1385,16 @@ export function ProtectedRoute() {
 
 ### 9.1 Règles par couche
 
-| Couche | Mesure |
-|---|---|
-| Transport | HTTPS obligatoire (Convex Cloud + Clerk) |
-| Authentification | JWT Clerk vérifié par Convex à chaque requête |
-| Autorisation | Vérification dans chaque query/mutation Convex (pas de confiance côté client) |
-| Données mineurs | Cloisonnement par rôle — `requireCoachOfTeam` / `requireParentOfPlayer` |
-| XSS | React échappe nativement — pas de `dangerouslySetInnerHTML` |
-| CSRF | Sans objet — API non-cookie (Bearer JWT) |
-| Token iCal | Token aléatoire 32 octets (crypto.getRandomValues), stocké hashé |
-| Fichiers | Accès aux photos via signed URL Convex Storage (expiration 1h) |
+| Couche           | Mesure                                                                        |
+| ---------------- | ----------------------------------------------------------------------------- |
+| Transport        | HTTPS obligatoire (Convex Cloud + Clerk)                                      |
+| Authentification | JWT Clerk vérifié par Convex à chaque requête                                 |
+| Autorisation     | Vérification dans chaque query/mutation Convex (pas de confiance côté client) |
+| Données mineurs  | Cloisonnement par rôle — `requireCoachOfTeam` / `requireParentOfPlayer`       |
+| XSS              | React échappe nativement — pas de `dangerouslySetInnerHTML`                   |
+| CSRF             | Sans objet — API non-cookie (Bearer JWT)                                      |
+| Token iCal       | Token aléatoire 32 octets (crypto.getRandomValues), stocké hashé              |
+| Fichiers         | Accès aux photos via signed URL Convex Storage (expiration 1h)                |
 
 ### 9.2 Variables d'environnement
 
@@ -1409,39 +1436,39 @@ PUSH_VAPID_PRIVATE_KEY=...
 
 ```typescript
 // vitest.config.ts
-import { defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-import { resolve } from "path";
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   test: {
-    environment: "jsdom",
+    environment: 'jsdom',
     globals: true,
-    setupFiles: ["./src/test/setup.ts"],
+    setupFiles: ['./src/test/setup.ts'],
     coverage: {
-      provider: "v8",
-      reporter: ["text", "lcov"],
-      exclude: ["convex/_generated/**", "src/test/**"],
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      exclude: ['convex/_generated/**', 'src/test/**'],
     },
   },
   resolve: {
-    alias: { "@": resolve(__dirname, "./src") },
+    alias: { '@': resolve(__dirname, './src') },
   },
 });
 ```
 
 ```typescript
 // src/test/setup.ts
-import "@testing-library/jest-dom";
-import { cleanup } from "@testing-library/react";
-import { afterEach, vi } from "vitest";
+import '@testing-library/jest-dom';
+import { cleanup } from '@testing-library/react';
+import { afterEach, vi } from 'vitest';
 
 afterEach(() => cleanup());
 
 // Mock Convex en dehors des tests d'intégration
-vi.mock("convex/react", () => ({
+vi.mock('convex/react', () => ({
   useQuery: vi.fn(),
   useMutation: vi.fn(() => vi.fn()),
   useConvexAuth: vi.fn(() => ({ isAuthenticated: true, isLoading: false })),
@@ -1500,40 +1527,53 @@ describe("SurveyResponseForm", () => {
 
 ```typescript
 // convex/players.test.ts  (avec convex-test)
-import { convexTest } from "convex-test";
-import { expect, test } from "vitest";
-import schema from "./schema";
-import { api } from "./_generated/api";
+import { convexTest } from 'convex-test';
+import { expect, test } from 'vitest';
+import schema from './schema';
+import { api } from './_generated/api';
 
-test("listByTeam ne renvoie que les joueurs actifs", async () => {
+test('listByTeam ne renvoie que les joueurs actifs', async () => {
   const t = convexTest(schema);
 
-  await t.run(async (ctx) => {
-    const clubId = await ctx.db.insert("clubs", { name: "FC Test" });
-    const seasonId = await ctx.db.insert("seasons", {
-      clubId, name: "2025-2026",
-      startDate: "2025-08-01", endDate: "2026-06-30", active: true,
+  await t.run(async ctx => {
+    const clubId = await ctx.db.insert('clubs', { name: 'FC Test' });
+    const seasonId = await ctx.db.insert('seasons', {
+      clubId,
+      name: '2025-2026',
+      startDate: '2025-08-01',
+      endDate: '2026-06-30',
+      active: true,
     });
-    const teamId = await ctx.db.insert("teams", {
-      clubId, seasonId, name: "U13A",
-      category: "U13", coachId: "user1" as any, color: "#16a34a",
+    const teamId = await ctx.db.insert('teams', {
+      clubId,
+      seasonId,
+      name: 'U13A',
+      category: 'U13',
+      coachId: 'user1' as any,
+      color: '#16a34a',
     });
 
-    await ctx.db.insert("players", {
-      firstName: "Lucas", lastName: "D",
-      dateOfBirth: "2012-03-15", primaryTeamId: teamId,
-      preferredPosition: "AT", active: true,
+    await ctx.db.insert('players', {
+      firstName: 'Lucas',
+      lastName: 'D',
+      dateOfBirth: '2012-03-15',
+      primaryTeamId: teamId,
+      preferredPosition: 'AT',
+      active: true,
     });
-    await ctx.db.insert("players", {
-      firstName: "Emma", lastName: "R",
-      dateOfBirth: "2012-06-20", primaryTeamId: teamId,
-      preferredPosition: "GK", active: false,     // inactif
+    await ctx.db.insert('players', {
+      firstName: 'Emma',
+      lastName: 'R',
+      dateOfBirth: '2012-06-20',
+      primaryTeamId: teamId,
+      preferredPosition: 'GK',
+      active: false, // inactif
     });
   });
 
-  const players = await t.query(api.players.listByTeam, { teamId: "..." });
+  const players = await t.query(api.players.listByTeam, { teamId: '...' });
   expect(players).toHaveLength(1);
-  expect(players[0].firstName).toBe("Lucas");
+  expect(players[0].firstName).toBe('Lucas');
 });
 ```
 
@@ -1541,17 +1581,21 @@ test("listByTeam ne renvoie que les joueurs actifs", async () => {
 
 ```typescript
 // e2e/survey-response.spec.ts
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
-test("un parent peut répondre à un sondage et voir la divergence", async ({ page }) => {
-  await page.goto("/mister-footcoach");
+test('un parent peut répondre à un sondage et voir la divergence', async ({
+  page,
+}) => {
+  await page.goto('/mister-footcoach');
   // Login comme parent
-  await page.fill('[data-testid="email"]', "parent@test.com");
-  await page.fill('[data-testid="password"]', "test1234");
+  await page.fill('[data-testid="email"]', 'parent@test.com');
+  await page.fill('[data-testid="password"]', 'test1234');
   await page.click('[data-testid="login-btn"]');
 
   await page.click('[aria-label="Sondages"]');
-  await expect(page.locator('[data-testid="survey-card"]').first()).toBeVisible();
+  await expect(
+    page.locator('[data-testid="survey-card"]').first()
+  ).toBeVisible();
   await page.click('[data-testid="survey-card"]');
 
   // Sélectionner intention joueur = Présent
@@ -1560,7 +1604,9 @@ test("un parent peut répondre à un sondage et voir la divergence", async ({ pa
   await page.click('[data-testid="confirmation-absent"]');
 
   // Avertissement de divergence
-  await expect(page.locator('[data-testid="divergence-warning"]')).toBeVisible();
+  await expect(
+    page.locator('[data-testid="divergence-warning"]')
+  ).toBeVisible();
 
   await page.click('[data-testid="submit-response"]');
   await expect(page.locator('[data-testid="response-saved"]')).toBeVisible();
@@ -1599,12 +1645,12 @@ Toutes les pages sont chargées en `lazy()` avec `Suspense`. La page Dashboard e
 
 ### 11.3 Optimisations React 19
 
-| Technique | Où |
-|---|---|
-| `useDeferredValue` | Filtrage de la liste des joueurs / exercices |
-| `useTransition` | Navigation entre onglets, soumission de formulaires longs |
-| `useOptimistic` | Basculement présent/absent dans la feuille d'assiduité |
-| Mémoïsation | `useMemo` sur calculs de classement de tournoi, `memo()` sur les lignes de listes longues |
+| Technique          | Où                                                                                        |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| `useDeferredValue` | Filtrage de la liste des joueurs / exercices                                              |
+| `useTransition`    | Navigation entre onglets, soumission de formulaires longs                                 |
+| `useOptimistic`    | Basculement présent/absent dans la feuille d'assiduité                                    |
+| Mémoïsation        | `useMemo` sur calculs de classement de tournoi, `memo()` sur les lignes de listes longues |
 
 ### 11.4 Images
 
@@ -1614,12 +1660,12 @@ Toutes les pages sont chargées en `lazy()` avec `Suspense`. La page Dashboard e
 
 ### 11.5 Métriques cibles
 
-| Métrique | Cible |
-|---|---|
-| LCP (Largest Contentful Paint) | < 2.5s sur 4G |
-| FID / INP | < 100ms |
-| Bundle initial (gzippé) | < 150 Ko |
-| Time To Interactive offline | < 1s (service worker + IndexedDB) |
+| Métrique                       | Cible                             |
+| ------------------------------ | --------------------------------- |
+| LCP (Largest Contentful Paint) | < 2.5s sur 4G                     |
+| FID / INP                      | < 100ms                           |
+| Bundle initial (gzippé)        | < 150 Ko                          |
+| Time To Interactive offline    | < 1s (service worker + IndexedDB) |
 
 ---
 
@@ -1643,7 +1689,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "22", cache: "npm" }
+        with: { node-version: '22', cache: 'npm' }
       - run: npm ci
       - run: npm run type-check
       - run: npm run lint
@@ -1655,7 +1701,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "22", cache: "npm" }
+        with: { node-version: '22', cache: 'npm' }
       - run: npm ci
       - run: npm test -- --coverage
       - uses: actions/upload-artifact@v4
@@ -1669,7 +1715,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "22", cache: "npm" }
+        with: { node-version: '22', cache: 'npm' }
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run build
@@ -1685,7 +1731,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "22", cache: "npm" }
+        with: { node-version: '22', cache: 'npm' }
       - run: npm ci
       - run: npm run build
         env:
@@ -1704,11 +1750,11 @@ jobs:
 
 ### 12.2 Environnements
 
-| Environnement | Backend | Déclencheur |
-|---|---|---|
-| **development** | Convex local (`npx convex dev`) | `npm run dev` |
-| **preview** | Convex projet `staging` | PR ouverte |
-| **production** | Convex projet `prod` + Clerk prod | Merge sur `main` |
+| Environnement   | Backend                           | Déclencheur      |
+| --------------- | --------------------------------- | ---------------- |
+| **development** | Convex local (`npx convex dev`)   | `npm run dev`    |
+| **preview**     | Convex projet `staging`           | PR ouverte       |
+| **production**  | Convex projet `prod` + Clerk prod | Merge sur `main` |
 
 ---
 
@@ -1770,43 +1816,43 @@ jobs:
 
 ### 14.1 MVP — Phase 0 (données locales, pas de backend)
 
-| Tâche | Détail |
-|---|---|
-| Squelette Vite 6 + React 19 + Tailwind v4 | ✅ Existant |
-| Types TypeScript domaine | `src/types/index.ts` |
-| Adapter `localStorage` (sans authentification) | Remplace Convex en dev isolé |
-| Pages Dashboard, Équipes, Joueurs, Matchs | Données mockées |
-| Simulateur de composition | Terrain interactif, formations foot à 8 |
-| Mode match live (offline uniquement) | IndexedDB, pas de sync |
-| PWA installable | Manifest + SW Workbox |
+| Tâche                                          | Détail                                  |
+| ---------------------------------------------- | --------------------------------------- |
+| Squelette Vite 6 + React 19 + Tailwind v4      | ✅ Existant                             |
+| Types TypeScript domaine                       | `src/types/index.ts`                    |
+| Adapter `localStorage` (sans authentification) | Remplace Convex en dev isolé            |
+| Pages Dashboard, Équipes, Joueurs, Matchs      | Données mockées                         |
+| Simulateur de composition                      | Terrain interactif, formations foot à 8 |
+| Mode match live (offline uniquement)           | IndexedDB, pas de sync                  |
+| PWA installable                                | Manifest + SW Workbox                   |
 
 ### 14.2 V1 — Phase 1 (Convex + Clerk)
 
-| Tâche | Détail |
-|---|---|
-| Déploiement Convex + schéma complet | `convex/schema.ts` |
-| Authentification Clerk | Rôles Admin / Coach / Parent |
-| Adapter Convex branché | `src/adapters/convex/` |
-| Sync mode live → Convex | Remplace le stockage local |
-| Notifications in-app | Table `notifications` + query réactive |
-| Scheduled functions (rappels J-1) | `convex/scheduled.ts` + crons |
-| Sondages de présence | Module complet |
-| Logistique des déplacements | Point de RDV + covoiturage |
-| Flux iCal | Action HTTP Convex + génération RFC 5545 |
-| Tests Vitest 3 > 70% couverture | Composants critiques |
-| Pipeline CI/CD GitHub Actions | Complet |
+| Tâche                               | Détail                                   |
+| ----------------------------------- | ---------------------------------------- |
+| Déploiement Convex + schéma complet | `convex/schema.ts`                       |
+| Authentification Clerk              | Rôles Admin / Coach / Parent             |
+| Adapter Convex branché              | `src/adapters/convex/`                   |
+| Sync mode live → Convex             | Remplace le stockage local               |
+| Notifications in-app                | Table `notifications` + query réactive   |
+| Scheduled functions (rappels J-1)   | `convex/scheduled.ts` + crons            |
+| Sondages de présence                | Module complet                           |
+| Logistique des déplacements         | Point de RDV + covoiturage               |
+| Flux iCal                           | Action HTTP Convex + génération RFC 5545 |
+| Tests Vitest 3 > 70% couverture     | Composants critiques                     |
+| Pipeline CI/CD GitHub Actions       | Complet                                  |
 
 ### 14.3 V2 — Évolutions futures
 
-| Tâche | Détail |
-|---|---|
-| Notifications Push PWA | VAPID + Web Push API |
-| Intégration fédération | Action Convex → API externe |
-| Compte joueur | Saisie intention sondage en direct |
+| Tâche                   | Détail                                |
+| ----------------------- | ------------------------------------- |
+| Notifications Push PWA  | VAPID + Web Push API                  |
+| Intégration fédération  | Action Convex → API externe           |
+| Compte joueur           | Saisie intention sondage en direct    |
 | Adapter Supabase (opt.) | Pour les clients préférant PostgreSQL |
-| Export PDF | jsPDF côté client ou action Convex |
-| Analyse bundle | `rollup-plugin-visualizer` en CI |
+| Export PDF              | jsPDF côté client ou action Convex    |
+| Analyse bundle          | `rollup-plugin-visualizer` en CI      |
 
 ---
 
-*Document v1.0 — 05/05/2026 — à réviser après validation de la stack avec l'équipe.*
+_Document v1.0 — 05/05/2026 — à réviser après validation de la stack avec l'équipe._
