@@ -12,10 +12,11 @@ import {
   useTeam,
   usePlayers,
   useAttendances,
+  useTrainings,
   useAppContext,
 } from '../store/AppContext';
 import { ATTENDANCE_STATUS_LABELS, type AttendanceStatus } from '../types';
-import { formatDateFull } from '../utils/date';
+import { formatDateFull, isUpcoming } from '../utils/date';
 
 const attendanceVariant: Record<
   AttendanceStatus,
@@ -38,6 +39,7 @@ export default function TrainingDetailPage() {
   const team = useTeam(training?.teamId ?? '');
   const players = usePlayers(training?.teamId);
   const attendances = useAttendances('training', id!);
+  const allTrainings = useTrainings(training?.teamId);
   const { dispatch } = useAppContext();
   const [editOpen, setEditOpen] = useState(false);
 
@@ -47,6 +49,30 @@ export default function TrainingDetailPage() {
         <EmptyState title="Entraînement introuvable" />
       </div>
     );
+  }
+
+  const seriesUpcoming = training.seriesId
+    ? allTrainings.filter(
+        t =>
+          t.seriesId === training.seriesId && !t.cancelled && isUpcoming(t.date)
+      )
+    : [];
+
+  function cancelSeries() {
+    for (const t of seriesUpcoming) {
+      dispatch({
+        type: 'UPDATE_TRAINING',
+        training: { ...t, cancelled: true },
+      });
+    }
+    dispatch({
+      type: 'NOTIFY',
+      teamId: training!.teamId,
+      notifType: 'entrainement_annule',
+      message: `Série d'entraînements annulée (${seriesUpcoming.length} séances à venir).`,
+      relatedId: training!.id,
+      relatedType: 'training',
+    });
   }
 
   function toggleAttendance(playerId: string) {
@@ -86,6 +112,7 @@ export default function TrainingDetailPage() {
             {training.type === 'exceptionnel' && (
               <Badge variant="warning">Exceptionnel</Badge>
             )}
+            {training.seriesId && <Badge variant="primary">Série</Badge>}
           </div>
           <Button
             size="sm"
@@ -124,6 +151,24 @@ export default function TrainingDetailPage() {
           )}
         </div>
       </Card>
+
+      {/* Recurring series actions (specs §8.2) */}
+      {seriesUpcoming.length > 0 && (
+        <Card>
+          <p className="text-sm text-fg">
+            Cette séance fait partie d'une série de{' '}
+            <strong>{seriesUpcoming.length}</strong> occurrence
+            {seriesUpcoming.length > 1 ? 's' : ''} à venir.
+          </p>
+          <Button
+            variant="secondary"
+            onClick={cancelSeries}
+            className="mt-2 w-full"
+          >
+            Annuler les séances à venir de la série
+          </Button>
+        </Card>
+      )}
 
       {/* Session content (specs §8.5) */}
       <TrainingBlocksSection trainingId={id!} />

@@ -174,6 +174,72 @@ export default function TournamentDetailPage() {
         </div>
       </Card>
 
+      {/* Home tournament — invited teams & pitch schedule (specs §12.5) */}
+      {tournament.isOrganizedByClub && (
+        <Card>
+          <CardHeader title="Organisation (tournoi maison)" />
+          {tournament.invitedTeams && tournament.invitedTeams.length > 0 && (
+            <div className="mb-3">
+              <p className="mb-1 text-xs font-medium text-fg-muted">
+                Équipes invitées
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {tournament.invitedTeams.map(name => (
+                  <span
+                    key={name}
+                    className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs text-fg"
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <p className="mb-1 text-xs font-medium text-fg-muted">
+            Planning par terrain
+          </p>
+          {(() => {
+            const scheduled = matches.filter(m => m.field);
+            if (scheduled.length === 0) {
+              return (
+                <p className="text-sm text-fg-muted">
+                  Aucun match affecté à un terrain.
+                </p>
+              );
+            }
+            const fields = [...new Set(scheduled.map(m => m.field!))].sort();
+            return (
+              <div className="space-y-2">
+                {fields.map(field => (
+                  <div key={field}>
+                    <p className="text-xs font-semibold text-fg-heading">
+                      {field}
+                    </p>
+                    <div className="mt-1 space-y-1">
+                      {scheduled
+                        .filter(m => m.field === field)
+                        .sort((a, b) => a.time.localeCompare(b.time))
+                        .map(m => (
+                          <div
+                            key={m.id}
+                            className="flex items-center justify-between rounded-lg border border-border-ui px-2.5 py-1 text-xs"
+                          >
+                            <span className="text-fg-muted">{m.time}</span>
+                            <span className="text-fg">
+                              {teamName(m.teamId)} — {m.opponent}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </Card>
+      )}
+
       {/* Groups */}
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-fg-heading">

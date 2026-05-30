@@ -45,6 +45,15 @@ export function today(): string {
   return new Date().toISOString().split('T')[0];
 }
 
+/** Returns the date `days` days after `dateStr` (ISO YYYY-MM-DD). */
+export function addDays(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y!, m! - 1, d!));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+}
+
 export function isActiveUnavailability(
   start: string,
   end?: string,
