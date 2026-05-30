@@ -13,7 +13,7 @@ describe('useTheme outside provider', () => {
   it('throws', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => renderHook(() => useTheme())).toThrow(
-      'useTheme must be used inside ThemeProvider',
+      'useTheme must be used inside ThemeProvider'
     );
     spy.mockRestore();
   });
@@ -47,16 +47,18 @@ describe('ThemeProvider', () => {
   });
 
   it('resolvedTheme is "dark" when matchMedia returns true for dark', () => {
-    (window.matchMedia as ReturnType<typeof vi.fn>).mockImplementation((query: string) => ({
-      matches: query.includes('dark'),
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }));
+    (window.matchMedia as ReturnType<typeof vi.fn>).mockImplementation(
+      (query: string) => ({
+        matches: query.includes('dark'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })
+    );
     const { result } = renderHook(() => useTheme(), { wrapper });
     expect(result.current.resolvedTheme).toBe('dark');
   });
@@ -76,60 +78,78 @@ describe('ThemeProvider', () => {
   it('system theme registers matchMedia listener and removes it on cleanup', () => {
     const addListenerMock = vi.fn();
     const removeListenerMock = vi.fn();
-    (window.matchMedia as ReturnType<typeof vi.fn>).mockImplementation((query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: addListenerMock,
-      removeEventListener: removeListenerMock,
-      dispatchEvent: vi.fn(),
-    }));
+    (window.matchMedia as ReturnType<typeof vi.fn>).mockImplementation(
+      (query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: addListenerMock,
+        removeEventListener: removeListenerMock,
+        dispatchEvent: vi.fn(),
+      })
+    );
     const { unmount } = renderHook(() => useTheme(), { wrapper });
-    expect(addListenerMock).toHaveBeenCalledWith('change', expect.any(Function));
+    expect(addListenerMock).toHaveBeenCalledWith(
+      'change',
+      expect.any(Function)
+    );
     unmount();
-    expect(removeListenerMock).toHaveBeenCalledWith('change', expect.any(Function));
+    expect(removeListenerMock).toHaveBeenCalledWith(
+      'change',
+      expect.any(Function)
+    );
   });
 
   it('handler updates resolvedTheme when media query change fires', () => {
     let capturedHandler: (() => void) | null = null;
     let isDark = false;
-    (window.matchMedia as ReturnType<typeof vi.fn>).mockImplementation((query: string) => ({
-      get matches() { return isDark && query.includes('dark'); },
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn((event: string, fn: () => void) => {
-        if (event === 'change') capturedHandler = fn;
-      }),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }));
+    (window.matchMedia as ReturnType<typeof vi.fn>).mockImplementation(
+      (query: string) => ({
+        get matches() {
+          return isDark && query.includes('dark');
+        },
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn((event: string, fn: () => void) => {
+          if (event === 'change') capturedHandler = fn;
+        }),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })
+    );
     const { result } = renderHook(() => useTheme(), { wrapper });
     expect(result.current.resolvedTheme).toBe('light');
     isDark = true;
-    act(() => { if (capturedHandler) capturedHandler(); });
+    act(() => {
+      if (capturedHandler) capturedHandler();
+    });
     expect(result.current.resolvedTheme).toBe('dark');
     isDark = false;
-    act(() => { if (capturedHandler) capturedHandler(); });
+    act(() => {
+      if (capturedHandler) capturedHandler();
+    });
     expect(result.current.resolvedTheme).toBe('light');
   });
 
   it('non-system theme does not register matchMedia listener', () => {
     localStorage.setItem(STORAGE_KEY, 'dark');
     const addListenerMock = vi.fn();
-    (window.matchMedia as ReturnType<typeof vi.fn>).mockImplementation((query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: addListenerMock,
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }));
+    (window.matchMedia as ReturnType<typeof vi.fn>).mockImplementation(
+      (query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: addListenerMock,
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })
+    );
     renderHook(() => useTheme(), { wrapper });
     expect(addListenerMock).not.toHaveBeenCalled();
   });

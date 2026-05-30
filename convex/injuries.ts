@@ -2,7 +2,7 @@ import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 
 export const getAll = query({
-  handler: async (ctx) => ctx.db.query('injuries').collect(),
+  handler: async ctx => ctx.db.query('injuries').collect(),
 });
 
 export const add = mutation({

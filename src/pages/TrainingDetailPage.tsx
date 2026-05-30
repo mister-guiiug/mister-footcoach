@@ -13,7 +13,10 @@ import {
 import { ATTENDANCE_STATUS_LABELS, type AttendanceStatus } from '../types';
 import { formatDateFull } from '../utils/date';
 
-const attendanceVariant: Record<AttendanceStatus, 'present' | 'absent' | 'excuse'> = {
+const attendanceVariant: Record<
+  AttendanceStatus,
+  'present' | 'absent' | 'excuse'
+> = {
   present: 'present',
   absent: 'absent',
   excuse: 'excuse',
@@ -42,7 +45,7 @@ export default function TrainingDetailPage() {
   }
 
   function toggleAttendance(playerId: string) {
-    const existing = attendances.find((a) => a.playerId === playerId);
+    const existing = attendances.find(a => a.playerId === playerId);
     const currentStatus: AttendanceStatus = existing?.status ?? 'present';
     dispatch({
       type: 'SET_ATTENDANCE',
@@ -56,9 +59,9 @@ export default function TrainingDetailPage() {
     });
   }
 
-  const presentCount = attendances.filter((a) => a.status === 'present').length;
-  const absentCount = attendances.filter((a) => a.status === 'absent').length;
-  const excuseCount = attendances.filter((a) => a.status === 'excuse').length;
+  const presentCount = attendances.filter(a => a.status === 'present').length;
+  const absentCount = attendances.filter(a => a.status === 'absent').length;
+  const excuseCount = attendances.filter(a => a.status === 'excuse').length;
 
   return (
     <div className="px-4 py-4 space-y-4">
@@ -66,7 +69,9 @@ export default function TrainingDetailPage() {
       <div>
         <div className="flex items-center gap-2 mb-1">
           {training.cancelled && <Badge variant="danger">Annulé</Badge>}
-          {training.type === 'exceptionnel' && <Badge variant="warning">Exceptionnel</Badge>}
+          {training.type === 'exceptionnel' && (
+            <Badge variant="warning">Exceptionnel</Badge>
+          )}
         </div>
         <h1 className="text-xl font-bold text-fg-heading">
           {training.theme ?? 'Entraînement'}
@@ -79,10 +84,15 @@ export default function TrainingDetailPage() {
         <div className="space-y-2.5">
           <div className="flex items-center gap-2.5 text-sm">
             <Clock size={15} className="text-fg-muted flex-shrink-0" />
-            <span className="text-fg">{formatDateFull(training.date)} à {training.time}</span>
+            <span className="text-fg">
+              {formatDateFull(training.date)} à {training.time}
+            </span>
           </div>
           <div className="flex items-center gap-2.5 text-sm">
-            <Clock size={15} className="text-fg-muted flex-shrink-0 opacity-0" />
+            <Clock
+              size={15}
+              className="text-fg-muted flex-shrink-0 opacity-0"
+            />
             <span className="text-fg-muted">{training.duration} minutes</span>
           </div>
           {training.note && (
@@ -114,12 +124,16 @@ export default function TrainingDetailPage() {
       {/* Player attendance */}
       <Card padding={false}>
         <div className="px-4 py-3 border-b border-border-ui">
-          <h3 className="text-sm font-semibold text-fg-heading">Feuille de présence</h3>
-          <p className="text-xs text-fg-muted mt-0.5">Toucher pour changer le statut</p>
+          <h3 className="text-sm font-semibold text-fg-heading">
+            Feuille de présence
+          </h3>
+          <p className="text-xs text-fg-muted mt-0.5">
+            Toucher pour changer le statut
+          </p>
         </div>
         <ul className="divide-y divide-border-ui">
-          {players.map((player) => {
-            const att = attendances.find((a) => a.playerId === player.id);
+          {players.map(player => {
+            const att = attendances.find(a => a.playerId === player.id);
             const status: AttendanceStatus = att?.status ?? 'present';
             return (
               <li key={player.id}>
@@ -127,7 +141,9 @@ export default function TrainingDetailPage() {
                   onClick={() => toggleAttendance(player.id)}
                   className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-muted transition-colors"
                 >
-                  <span className="text-sm text-fg">{player.firstName} {player.lastName}</span>
+                  <span className="text-sm text-fg">
+                    {player.firstName} {player.lastName}
+                  </span>
                   <Badge variant={attendanceVariant[status]}>
                     {ATTENDANCE_STATUS_LABELS[status]}
                   </Badge>

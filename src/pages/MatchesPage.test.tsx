@@ -77,9 +77,14 @@ describe('MatchesPage', () => {
   });
 
   it('shows "Aucun match trouvé" when no matches exist', () => {
-    localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, matches: [], selectedTeamId: MOCK_DATA.teams[0]?.id ?? '',
-    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        matches: [],
+        selectedTeamId: MOCK_DATA.teams[0]?.id ?? '',
+      })
+    );
     renderWithProviders(<MatchesPage />);
     expect(screen.getByText('Aucun match trouvé')).toBeInTheDocument();
   });
