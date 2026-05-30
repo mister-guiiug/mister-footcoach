@@ -1,14 +1,18 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { AlertTriangle, Activity } from 'lucide-react';
+import { AlertTriangle, Activity, Pencil } from 'lucide-react';
 import { Card, CardHeader } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
+import { PlayerFormDialog } from '../components/features/players/PlayerFormDialog';
 import {
   usePlayer,
   useTeam,
   useUnavailabilities,
   useInjuries,
   usePositionHistory,
+  useAppContext,
 } from '../store/AppContext';
 import {
   POSITION_LABELS,
@@ -21,6 +25,7 @@ import {
   isActiveUnavailability,
   today,
 } from '../utils/date';
+import { computePlayerStats } from '../utils/stats';
 
 export default function PlayerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -30,8 +35,8 @@ export default function PlayerDetailPage() {
   const unavailabilities = useUnavailabilities(id);
   const injuries = useInjuries(id);
   const positionHistory = usePositionHistory(id!);
-
-  // Compute attendance rate
+  const { state } = useAppContext();
+  const [editOpen, setEditOpen] = useState(false);
 
   if (!player) {
     return (
@@ -50,8 +55,23 @@ export default function PlayerDetailPage() {
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5) as [string, number][];
 
+  const stats = computePlayerStats(
+    player.id,
+    state.matchEvents,
+    state.attendances,
+    state.positionHistory
+  );
+
   return (
     <div className="px-4 py-4 space-y-4">
+      {editOpen && (
+        <PlayerFormDialog
+          open
+          onClose={() => setEditOpen(false)}
+          player={player}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-4">
         <div className="h-16 w-16 rounded-full bg-primary-subtle flex items-center justify-center flex-shrink-0">
@@ -60,7 +80,7 @@ export default function PlayerDetailPage() {
             {player.lastName.charAt(0)}
           </span>
         </div>
-        <div>
+        <div className="flex-1">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-fg-heading">
               {player.firstName} {player.lastName}
@@ -76,6 +96,41 @@ export default function PlayerDetailPage() {
             {secondaryTeam && ` · Renfort ${secondaryTeam.name}`}
           </p>
         </div>
+        <Button size="sm" variant="secondary" onClick={() => setEditOpen(true)}>
+          <Pencil size={14} /> Modifier
+        </Button>
+      </div>
+
+      {/* Stats (specs §10.2) */}
+      <div className="grid grid-cols-4 gap-2">
+        <Card className="text-center" padding={false}>
+          <div className="py-2.5">
+            <p className="text-lg font-bold text-fg-heading">
+              {stats.matchesPlayed}
+            </p>
+            <p className="text-[10px] text-fg-muted">Matchs</p>
+          </div>
+        </Card>
+        <Card className="text-center" padding={false}>
+          <div className="py-2.5">
+            <p className="text-lg font-bold text-fg-heading">{stats.goals}</p>
+            <p className="text-[10px] text-fg-muted">Buts</p>
+          </div>
+        </Card>
+        <Card className="text-center" padding={false}>
+          <div className="py-2.5">
+            <p className="text-lg font-bold text-fg-heading">{stats.assists}</p>
+            <p className="text-[10px] text-fg-muted">Passes D.</p>
+          </div>
+        </Card>
+        <Card className="text-center" padding={false}>
+          <div className="py-2.5">
+            <p className="text-lg font-bold text-fg-heading">
+              {Math.round(stats.attendance.rate * 100)}%
+            </p>
+            <p className="text-[10px] text-fg-muted">Présence</p>
+          </div>
+        </Card>
       </div>
 
       {/* Unavailability alert */}

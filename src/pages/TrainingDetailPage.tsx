@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Clock } from 'lucide-react';
+import { Clock, Pencil } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
+import { TrainingFormDialog } from '../components/features/trainings/TrainingFormDialog';
+import { TrainingBlocksSection } from '../components/features/trainings/TrainingBlocksSection';
 import {
   useTraining,
   useTeam,
@@ -35,6 +39,7 @@ export default function TrainingDetailPage() {
   const players = usePlayers(training?.teamId);
   const attendances = useAttendances('training', id!);
   const { dispatch } = useAppContext();
+  const [editOpen, setEditOpen] = useState(false);
 
   if (!training) {
     return (
@@ -65,13 +70,30 @@ export default function TrainingDetailPage() {
 
   return (
     <div className="px-4 py-4 space-y-4">
+      {editOpen && (
+        <TrainingFormDialog
+          open
+          onClose={() => setEditOpen(false)}
+          training={training}
+        />
+      )}
+
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 mb-1">
-          {training.cancelled && <Badge variant="danger">Annulé</Badge>}
-          {training.type === 'exceptionnel' && (
-            <Badge variant="warning">Exceptionnel</Badge>
-          )}
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <div className="flex items-center gap-2">
+            {training.cancelled && <Badge variant="danger">Annulé</Badge>}
+            {training.type === 'exceptionnel' && (
+              <Badge variant="warning">Exceptionnel</Badge>
+            )}
+          </div>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setEditOpen(true)}
+          >
+            <Pencil size={14} /> Modifier
+          </Button>
         </div>
         <h1 className="text-xl font-bold text-fg-heading">
           {training.theme ?? 'Entraînement'}
@@ -102,6 +124,9 @@ export default function TrainingDetailPage() {
           )}
         </div>
       </Card>
+
+      {/* Session content (specs §8.5) */}
+      <TrainingBlocksSection trainingId={id!} />
 
       {/* Attendance summary */}
       {attendances.length > 0 && (

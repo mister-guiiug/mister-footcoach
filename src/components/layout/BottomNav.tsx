@@ -8,6 +8,8 @@ import {
   Trophy,
   ClipboardList,
   Layers,
+  BarChart3,
+  BookOpen,
   Settings,
   X,
 } from 'lucide-react';
@@ -24,6 +26,8 @@ const moreTabs = [
   { to: '/tournois', label: 'Tournois', icon: Trophy },
   { to: '/sondages', label: 'Sondages', icon: ClipboardList },
   { to: '/compositions', label: 'Compositions', icon: Layers },
+  { to: '/statistiques', label: 'Statistiques', icon: BarChart3 },
+  { to: '/exercices', label: 'Exercices', icon: BookOpen },
   { to: '/parametres', label: 'Paramètres', icon: Settings },
 ];
 

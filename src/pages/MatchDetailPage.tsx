@@ -1,8 +1,21 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Clock, Users, Radio, ChevronRight } from 'lucide-react';
+import {
+  MapPin,
+  Clock,
+  Users,
+  Radio,
+  ChevronRight,
+  Pencil,
+  Navigation,
+} from 'lucide-react';
 import { Card, CardHeader } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
+import { MatchFormDialog } from '../components/features/matches/MatchFormDialog';
+import { MeetingPointDialog } from '../components/features/logistics/MeetingPointDialog';
+import { CarpoolSection } from '../components/features/logistics/CarpoolSection';
 import {
   useMatch,
   useMatchEvents,
@@ -18,6 +31,7 @@ import {
   type AttendanceStatus,
 } from '../types';
 import { formatDateFull } from '../utils/date';
+import { googleMapsUrl, appleMapsUrl } from '../utils/maps';
 
 const statusVariant: Record<
   MatchStatus,
@@ -46,6 +60,8 @@ export default function MatchDetailPage() {
   const team = useTeam(match?.teamId ?? '');
   const players = usePlayers(match?.teamId);
   const attendances = useAttendances('match', id!);
+  const [editOpen, setEditOpen] = useState(false);
+  const [meetingOpen, setMeetingOpen] = useState(false);
 
   if (!match) {
     return (
@@ -60,17 +76,41 @@ export default function MatchDetailPage() {
 
   return (
     <div className="px-4 py-4 space-y-4">
+      {editOpen && (
+        <MatchFormDialog
+          open
+          onClose={() => setEditOpen(false)}
+          match={match}
+        />
+      )}
+      {meetingOpen && (
+        <MeetingPointDialog
+          open
+          onClose={() => setMeetingOpen(false)}
+          match={match}
+        />
+      )}
+
       {/* Header */}
       <div>
         <div className="flex items-center justify-between mb-1">
           <Badge variant={statusVariant[match.status]}>
             {MATCH_STATUS_LABELS[match.status]}
           </Badge>
-          {match.liveActive && (
-            <Badge variant="danger" className="animate-pulse">
-              <Radio size={10} className="mr-1" /> EN DIRECT
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {match.liveActive && (
+              <Badge variant="danger" className="animate-pulse">
+                <Radio size={10} className="mr-1" /> EN DIRECT
+              </Badge>
+            )}
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setEditOpen(true)}
+            >
+              <Pencil size={14} /> Modifier
+            </Button>
+          </div>
         </div>
         <h1 className="text-xl font-bold text-fg-heading mt-2">
           {match.isHome ? 'vs' : '@'} {match.opponent}
@@ -118,28 +158,71 @@ export default function MatchDetailPage() {
               )}
             </div>
           </div>
-          {match.meetingTime && (
-            <div className="flex items-start gap-2.5 text-sm border-t border-border-ui pt-2.5">
-              <Users size={15} className="text-fg-muted flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-fg font-medium">
-                  Point de RDV · {match.meetingTime}
-                </p>
-                {match.meetingAddress && (
-                  <p className="text-xs text-fg-muted">
-                    {match.meetingAddress}
-                  </p>
-                )}
-                {match.meetingNote && (
-                  <p className="text-xs text-fg-muted mt-0.5">
-                    {match.meetingNote}
-                  </p>
-                )}
-              </div>
+
+          {/* GPS navigation (specs §14.3) */}
+          {match.address && (
+            <div className="flex gap-2 pl-[26px]">
+              <a
+                href={googleMapsUrl(match.address)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border-ui bg-surface px-2.5 py-1 text-xs font-medium text-fg hover:bg-surface-muted"
+              >
+                <Navigation size={12} /> Google Maps
+              </a>
+              <a
+                href={appleMapsUrl(match.address)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border-ui bg-surface px-2.5 py-1 text-xs font-medium text-fg hover:bg-surface-muted"
+              >
+                <Navigation size={12} /> Plans
+              </a>
             </div>
           )}
+
+          {/* Meeting point (specs §14.2) */}
+          <div className="flex items-start gap-2.5 text-sm border-t border-border-ui pt-2.5">
+            <Users size={15} className="text-fg-muted flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              {match.meetingTime || match.meetingAddress ? (
+                <>
+                  <p className="text-fg font-medium">
+                    Point de RDV
+                    {match.meetingTime ? ` · ${match.meetingTime}` : ''}
+                  </p>
+                  {match.meetingAddress && (
+                    <p className="text-xs text-fg-muted">
+                      {match.meetingAddress}
+                    </p>
+                  )}
+                  {match.meetingNote && (
+                    <p className="text-xs text-fg-muted mt-0.5">
+                      {match.meetingNote}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-xs text-fg-muted">
+                  Aucun point de rendez-vous défini.
+                </p>
+              )}
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setMeetingOpen(true)}
+            >
+              {match.meetingTime || match.meetingAddress
+                ? 'Modifier'
+                : 'Définir'}
+            </Button>
+          </div>
         </div>
       </Card>
+
+      {/* Carpool — away matches only (specs §14.4) */}
+      {!match.isHome && <CarpoolSection match={match} />}
 
       {/* Live mode button */}
       {!hasScore && (
