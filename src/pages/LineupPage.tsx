@@ -15,13 +15,15 @@ import {
   POSITION_LABELS,
   type LineupSlot,
   type Formation,
+  type Position,
 } from '../types';
 import { isActiveUnavailability, today } from '../utils/date';
+import { rankPlayersForPosition, isSuggested } from '../utils/lineup';
 
 export default function LineupPage() {
   const [searchParams] = useSearchParams();
   const teams = useTeams();
-  const { dispatch } = useAppContext();
+  const { state, dispatch } = useAppContext();
 
   const [selectedTeamId, setSelectedTeamId] = useState(
     searchParams.get('teamId') ?? teams[0]!.id
@@ -250,14 +252,20 @@ export default function LineupPage() {
                 Retirer
               </button>
             )}
-            {players
-              .filter(
+            {rankPlayersForPosition(
+              players.filter(
                 p =>
                   !assignedPlayerIds.includes(p.id) ||
                   p.id ===
                     slots.find(s => s.position === selectedSlotPos)?.playerId
-              )
-              .map(p => (
+              ),
+              selectedSlotPos as Position,
+              state.positionHistory
+            ).map(p => {
+              const suggested =
+                isSuggested(p, selectedSlotPos as Position) &&
+                !unavailPlayerIds.includes(p.id);
+              return (
                 <button
                   key={p.id}
                   onClick={() => assignPlayer(p.id)}
@@ -265,13 +273,17 @@ export default function LineupPage() {
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
                     unavailPlayerIds.includes(p.id)
                       ? 'border-amber-300 bg-amber-50 text-amber-600 opacity-60'
-                      : 'border-border-ui text-fg hover:bg-surface-muted'
+                      : suggested
+                        ? 'border-primary bg-primary-subtle text-primary'
+                        : 'border-border-ui text-fg hover:bg-surface-muted'
                   }`}
                 >
+                  {suggested && '⭐ '}
                   {p.firstName} {p.lastName}
                   {unavailPlayerIds.includes(p.id) && ' ⚠️'}
                 </button>
-              ))}
+              );
+            })}
           </div>
         </Card>
       )}
