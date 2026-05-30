@@ -8,7 +8,20 @@ import {
   age,
   today,
   isActiveUnavailability,
+  addDays,
 } from './date';
+
+describe('addDays', () => {
+  it('adds days within a month', () => {
+    expect(addDays('2026-05-04', 7)).toBe('2026-05-11');
+  });
+  it('rolls over month boundaries', () => {
+    expect(addDays('2026-05-28', 7)).toBe('2026-06-04');
+  });
+  it('supports zero', () => {
+    expect(addDays('2026-05-04', 0)).toBe('2026-05-04');
+  });
+});
 
 describe('formatDate', () => {
   it('formats a date in long French format', () => {

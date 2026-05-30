@@ -231,6 +231,8 @@ export interface Match {
   seasonId: string;
   tournamentId?: string;
   tournamentGroupId?: string;
+  /** Assigned pitch for a home tournament (specs §12.5). */
+  field?: string;
   date: string;
   time: string;
   location: string;
@@ -347,6 +349,8 @@ export interface Tournament {
   organizer: string;
   isOrganizedByClub: boolean;
   teamIds: string[];
+  /** Invited opponent teams when the club organises (specs §12.5). */
+  invitedTeams?: string[];
   format: TournamentFormat;
   status: TournamentStatus;
 }
@@ -433,6 +437,8 @@ export interface NotificationPreferences {
 export interface ClubSettings {
   /** Auto-create a presence survey when a match is created (RG-SONDAGE-04). */
   autoSurveyOnMatch: boolean;
+  /** Timestamp of the last federation synchronisation (specs §17). */
+  federationLastSync?: string;
 }
 
 // ── App state ────────────────────────────────────────────────────────

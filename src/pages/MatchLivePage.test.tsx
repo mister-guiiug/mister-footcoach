@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderAtRoute } from '../test/helpers';
 import MatchLivePage from './MatchLivePage';
@@ -335,5 +335,45 @@ describe('MatchLivePage', () => {
       // scoreAway was 3 for m2, should decrease to 2
       expect(screen.getAllByText('2').length).toBeGreaterThan(0);
     }
+  });
+
+  it('renders the chronometer and toggles it (§7.5.4)', async () => {
+    renderAtRoute(<MatchLivePage />, {
+      initialPath: '/matchs/m1/live',
+      routePattern: '/matchs/:id/live',
+    });
+    expect(screen.getByLabelText('Chronomètre')).toHaveTextContent('00:00');
+    await userEvent.click(screen.getByRole('button', { name: /Lancer/ }));
+    expect(screen.getByRole('button', { name: /Pause/ })).toBeInTheDocument();
+    // reset stays available
+    expect(
+      screen.getByLabelText('Réinitialiser le chronomètre')
+    ).toBeInTheDocument();
+  });
+
+  it('offers the blessure event and a substitution out-player (§7.5.5)', async () => {
+    renderAtRoute(<MatchLivePage />, {
+      initialPath: '/matchs/m1/live',
+      routePattern: '/matchs/:id/live',
+    });
+    expect(screen.getByText('Blessure')).toBeInTheDocument();
+    await userEvent.click(screen.getByText('Rempl.'));
+    expect(screen.getByText('Joueur entrant')).toBeInTheDocument();
+    expect(screen.getByText('Joueur sortant')).toBeInTheDocument();
+  });
+
+  it('records a substitution into the position history', async () => {
+    renderAtRoute(<MatchLivePage />, {
+      initialPath: '/matchs/m1/live',
+      routePattern: '/matchs/:id/live',
+    });
+    await userEvent.click(screen.getByText('Rempl.'));
+    // pick an incoming and an outgoing player
+    const entrant = screen.getByText('Joueur entrant').parentElement!;
+    const sortant = screen.getByText('Joueur sortant').parentElement!;
+    await userEvent.click(within(entrant).getAllByRole('button')[0]!);
+    await userEvent.click(within(sortant).getAllByRole('button')[1]!);
+    await userEvent.click(screen.getByText(/Valider Remplacement/));
+    expect(screen.getByText('Remplacement')).toBeInTheDocument();
   });
 });
