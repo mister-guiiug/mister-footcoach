@@ -8,26 +8,26 @@
  * @module
  */
 
-import type * as attendances from "../attendances.js";
-import type * as exercises from "../exercises.js";
-import type * as injuries from "../injuries.js";
-import type * as lineups from "../lineups.js";
-import type * as matchEvents from "../matchEvents.js";
-import type * as matches from "../matches.js";
-import type * as players from "../players.js";
-import type * as positionHistory from "../positionHistory.js";
-import type * as seed from "../seed.js";
-import type * as surveys from "../surveys.js";
-import type * as teams from "../teams.js";
-import type * as tournaments from "../tournaments.js";
-import type * as trainings from "../trainings.js";
-import type * as unavailabilities from "../unavailabilities.js";
+import type * as attendances from '../attendances.js';
+import type * as exercises from '../exercises.js';
+import type * as injuries from '../injuries.js';
+import type * as lineups from '../lineups.js';
+import type * as matchEvents from '../matchEvents.js';
+import type * as matches from '../matches.js';
+import type * as players from '../players.js';
+import type * as positionHistory from '../positionHistory.js';
+import type * as seed from '../seed.js';
+import type * as surveys from '../surveys.js';
+import type * as teams from '../teams.js';
+import type * as tournaments from '../tournaments.js';
+import type * as trainings from '../trainings.js';
+import type * as unavailabilities from '../unavailabilities.js';
 
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
-} from "convex/server";
+} from 'convex/server';
 
 declare const fullApi: ApiFromModules<{
   attendances: typeof attendances;
@@ -56,7 +56,7 @@ declare const fullApi: ApiFromModules<{
  */
 export declare const api: FilterApi<
   typeof fullApi,
-  FunctionReference<any, "public">
+  FunctionReference<any, 'public'>
 >;
 
 /**
@@ -69,7 +69,7 @@ export declare const api: FilterApi<
  */
 export declare const internal: FilterApi<
   typeof fullApi,
-  FunctionReference<any, "internal">
+  FunctionReference<any, 'internal'>
 >;
 
 export declare const components: {};

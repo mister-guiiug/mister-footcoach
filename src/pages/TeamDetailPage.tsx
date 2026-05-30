@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronRight, AlertTriangle } from 'lucide-react';
+import { ChevronRight, AlertTriangle, Plus } from 'lucide-react';
 import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
+import { PlayerFormDialog } from '../components/features/players/PlayerFormDialog';
 import {
   useTeam,
   usePlayers,
@@ -24,6 +27,7 @@ export default function TeamDetailPage() {
   const matches = useMatches(id);
   const trainings = useTrainings(id);
   const unavailabilities = useUnavailabilities();
+  const [playerFormOpen, setPlayerFormOpen] = useState(false);
 
   if (!team) {
     return (
@@ -59,9 +63,26 @@ export default function TeamDetailPage() {
         </div>
       </div>
 
+      {playerFormOpen && (
+        <PlayerFormDialog
+          open
+          onClose={() => setPlayerFormOpen(false)}
+          teamId={id}
+        />
+      )}
+
       {/* Players */}
       <section>
-        <h2 className="text-sm font-semibold text-fg-heading mb-2">Effectif</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-semibold text-fg-heading">Effectif</h2>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setPlayerFormOpen(true)}
+          >
+            <Plus size={14} /> Joueur
+          </Button>
+        </div>
         <Card padding={false}>
           {
             /* istanbul ignore next */ players.length === 0 ? (
