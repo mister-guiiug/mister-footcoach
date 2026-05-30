@@ -17,6 +17,7 @@ import type {
   Survey,
   SurveyResponse,
   Tournament,
+  TournamentGroup,
   Exercise,
   CarpoolOffer,
   Unavailability,
@@ -60,6 +61,9 @@ type Action =
   | { type: 'UPDATE_SURVEY_RESPONSE'; response: SurveyResponse }
   | { type: 'ADD_TOURNAMENT'; tournament: Tournament }
   | { type: 'UPDATE_TOURNAMENT'; tournament: Tournament }
+  | { type: 'ADD_TOURNAMENT_GROUP'; group: TournamentGroup }
+  | { type: 'UPDATE_TOURNAMENT_GROUP'; group: TournamentGroup }
+  | { type: 'DELETE_TOURNAMENT_GROUP'; groupId: string }
   | { type: 'ADD_EXERCISE'; exercise: Exercise }
   | { type: 'UPDATE_EXERCISE'; exercise: Exercise }
   | { type: 'DELETE_EXERCISE'; exerciseId: string }
@@ -237,6 +241,28 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         tournaments: state.tournaments.map(t =>
           t.id === action.tournament.id ? action.tournament : t
+        ),
+      };
+
+    case 'ADD_TOURNAMENT_GROUP':
+      return {
+        ...state,
+        tournamentGroups: [...state.tournamentGroups, action.group],
+      };
+
+    case 'UPDATE_TOURNAMENT_GROUP':
+      return {
+        ...state,
+        tournamentGroups: state.tournamentGroups.map(g =>
+          g.id === action.group.id ? action.group : g
+        ),
+      };
+
+    case 'DELETE_TOURNAMENT_GROUP':
+      return {
+        ...state,
+        tournamentGroups: state.tournamentGroups.filter(
+          g => g.id !== action.groupId
         ),
       };
 
@@ -461,6 +487,23 @@ export function useSurveyResponses(surveyId: string) {
 export function useTournaments() {
   const { state } = useAppContext();
   return state.tournaments;
+}
+
+export function useTournament(tournamentId: string) {
+  const { state } = useAppContext();
+  return state.tournaments.find(t => t.id === tournamentId);
+}
+
+export function useTournamentGroups(tournamentId: string) {
+  const { state } = useAppContext();
+  return state.tournamentGroups
+    .filter(g => g.tournamentId === tournamentId)
+    .sort((a, b) => a.order - b.order);
+}
+
+export function useTournamentMatches(tournamentId: string) {
+  const { state } = useAppContext();
+  return state.matches.filter(m => m.tournamentId === tournamentId);
 }
 
 export function useUnavailabilities(playerId?: string) {

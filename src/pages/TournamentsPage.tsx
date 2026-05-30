@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { MapPin, Calendar, Plus, Pencil } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { MapPin, Calendar, Plus, Pencil, ChevronRight } from 'lucide-react';
 import type { Tournament } from '../types';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -70,9 +71,13 @@ export default function TournamentsPage() {
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h2 className="font-semibold text-fg-heading">
+                        <Link
+                          to={`/tournois/${tournament.id}`}
+                          className="flex items-center gap-1 font-semibold text-fg-heading hover:text-primary"
+                        >
                           {tournament.name}
-                        </h2>
+                          <ChevronRight size={15} className="text-fg-faint" />
+                        </Link>
                         {tournament.isOrganizedByClub && (
                           <Badge variant="primary">Organisateur</Badge>
                         )}

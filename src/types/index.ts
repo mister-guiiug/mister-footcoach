@@ -229,6 +229,7 @@ export interface Match {
   teamId: string;
   seasonId: string;
   tournamentId?: string;
+  tournamentGroupId?: string;
   date: string;
   time: string;
   location: string;
