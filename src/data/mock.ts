@@ -281,7 +281,9 @@ const contacts: Contact[] = [
     email: 'pierre.dupont@email.fr',
     type: 'père',
     playerIds: ['p1'],
+    userId: 'u4',
     consentDate: '2025-09-01',
+    consentVersion: '1.0',
   },
   {
     id: 'c2',
@@ -291,7 +293,9 @@ const contacts: Contact[] = [
     email: 'sophie.dupont@email.fr',
     type: 'mère',
     playerIds: ['p1'],
+    userId: 'u5',
     consentDate: '2025-09-01',
+    consentVersion: '1.0',
   },
   {
     id: 'c3',
@@ -331,6 +335,24 @@ const users: User[] = [
     lastName: 'Club',
     roles: ['admin'],
     teamIds: ['t1', 't2'],
+  },
+  {
+    id: 'u4',
+    email: 'pierre.dupont@email.fr',
+    firstName: 'Pierre',
+    lastName: 'Dupont',
+    roles: ['parent'],
+    teamIds: [],
+    contactId: 'c1',
+  },
+  {
+    id: 'u5',
+    email: 'sophie.dupont@email.fr',
+    firstName: 'Sophie',
+    lastName: 'Dupont',
+    roles: ['parent'],
+    teamIds: [],
+    contactId: 'c2',
   },
 ];
 
@@ -942,7 +964,11 @@ const surveyResponses: SurveyResponse[] = [
     dateIntentionJoueur: '2026-05-06',
     confirmationParent: 'present',
     dateConfirmationParent: '2026-05-06',
-    parentUserId: 'c1',
+    parentUserId: 'u4',
+    tutorResponses: [
+      { userId: 'u4', value: 'present', date: '2026-05-06' },
+      { userId: 'u5', value: 'absent', date: '2026-05-07' },
+    ],
   },
   {
     id: 'sr2',

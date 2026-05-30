@@ -24,6 +24,8 @@ import { formatDateShort } from '../utils/date';
 import {
   retainedStatus,
   matchesFilter,
+  tutorDivergence,
+  sortedTutorResponses,
   type RetainedStatus,
   type SurveyFilter,
 } from '../utils/surveyStatus';
@@ -55,9 +57,16 @@ function SurveyCard({ survey }: { survey: Survey }) {
   const players = usePlayers(survey.teamId);
   const match = useMatch(survey.sessionId ?? '');
   const training = useTraining(survey.sessionId ?? '');
-  const { dispatch } = useAppContext();
+  const { state, dispatch } = useAppContext();
   const [expanded, setExpanded] = useState(false);
   const [statusFilter, setStatusFilter] = useState<SurveyFilter>('all');
+
+  function tutorName(userId: string): string {
+    const contact = state.contacts.find(c => c.userId === userId);
+    if (contact) return `${contact.firstName} ${contact.lastName}`;
+    const user = state.users.find(u => u.id === userId);
+    return user ? `${user.firstName} ${user.lastName}` : 'Tuteur';
+  }
 
   const sessionLabel =
     survey.sessionType === 'match' && match
@@ -209,6 +218,41 @@ function SurveyCard({ survey }: { survey: Survey }) {
                       <RetainedBadge status={status} />
                     </div>
                   </div>
+
+                  {/* Divergence between legal tutors (specs §15.8) */}
+                  {tutorDivergence(resp?.tutorResponses) && (
+                    <div className="mb-2 rounded-xl bg-amber-50 dark:bg-amber-900/10 p-2.5">
+                      <p className="flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-400">
+                        <AlertTriangle size={12} />
+                        Réponses divergentes entre tuteurs
+                      </p>
+                      <div className="mt-1.5 space-y-1">
+                        {sortedTutorResponses(resp?.tutorResponses).map(tr => (
+                          <div
+                            key={tr.userId}
+                            className="flex items-center justify-between text-xs"
+                          >
+                            <span className="text-fg">
+                              {tutorName(tr.userId)} —{' '}
+                              {SURVEY_RESPONSE_LABELS[tr.value]}
+                            </span>
+                            <button
+                              onClick={() =>
+                                respondForPlayer(
+                                  player.id,
+                                  'confirmationParent',
+                                  tr.value
+                                )
+                              }
+                              className="rounded-md border border-border-ui px-2 py-0.5 font-medium text-fg-muted hover:bg-surface-muted"
+                            >
+                              Retenir
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Intention joueur */}
                   <div className="mb-2">
