@@ -18,6 +18,7 @@ const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage'));
 const SurveysPage = lazy(() => import('./pages/SurveysPage'));
 const StatsPage = lazy(() => import('./pages/StatsPage'));
 const ExercisesPage = lazy(() => import('./pages/ExercisesPage'));
+const ContactsPage = lazy(() => import('./pages/ContactsPage'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="sondages" element={<SurveysPage />} />
             <Route path="statistiques" element={<StatsPage />} />
             <Route path="exercices" element={<ExercisesPage />} />
+            <Route path="contacts" element={<ContactsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="parametres" element={<SettingsPage />} />
           </Route>

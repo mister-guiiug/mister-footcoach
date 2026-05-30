@@ -185,6 +185,7 @@ export interface Contact {
   playerIds: string[];
   userId?: string;
   consentDate?: string;
+  consentVersion?: string;
 }
 
 export interface User {
@@ -383,6 +384,13 @@ export interface Survey {
   createdBy: string;
 }
 
+/** A single legal tutor's answer, kept to detect divergences (specs §15.8). */
+export interface TutorResponse {
+  userId: string;
+  value: SurveyResponseValue;
+  date: string;
+}
+
 export interface SurveyResponse {
   id: string;
   surveyId: string;
@@ -392,6 +400,8 @@ export interface SurveyResponse {
   confirmationParent?: SurveyResponseValue;
   dateConfirmationParent?: string;
   parentUserId?: string;
+  /** Per-tutor answers when several legal tutors hold an account. */
+  tutorResponses?: TutorResponse[];
   note?: string;
 }
 

@@ -17,6 +17,7 @@ import {
   useTournamentGroups,
   useNotificationPreferences,
   useClubSettings,
+  useContactsForPlayer,
 } from './AppContext';
 import type {
   Match,
@@ -28,6 +29,7 @@ import type {
   Survey,
   Injury,
   Unavailability,
+  Contact,
 } from '../types';
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -213,6 +215,40 @@ describe('carpool actions', () => {
       })
     );
     expect(result.current.offers.length).toBe(0);
+  });
+});
+
+describe('contact actions', () => {
+  it('adds, updates and deletes a contact', () => {
+    const { result } = renderHook(
+      () => ({ ctx: useAppContext(), contacts: useContactsForPlayer('p2') }),
+      { wrapper }
+    );
+    const before = result.current.contacts.length;
+    const contact: Contact = {
+      id: 'cx',
+      firstName: 'Marie',
+      lastName: 'Martin',
+      phone: '06',
+      email: 'marie@x.fr',
+      type: 'mère',
+      playerIds: ['p2'],
+    };
+    act(() => result.current.ctx.dispatch({ type: 'ADD_CONTACT', contact }));
+    expect(result.current.contacts.length).toBe(before + 1);
+
+    act(() =>
+      result.current.ctx.dispatch({
+        type: 'UPDATE_CONTACT',
+        contact: { ...contact, phone: '07' },
+      })
+    );
+    expect(result.current.contacts.find(c => c.id === 'cx')?.phone).toBe('07');
+
+    act(() =>
+      result.current.ctx.dispatch({ type: 'DELETE_CONTACT', contactId: 'cx' })
+    );
+    expect(result.current.contacts.find(c => c.id === 'cx')).toBeUndefined();
   });
 });
 
