@@ -21,6 +21,34 @@ import {
   type Survey,
 } from '../types';
 import { formatDateShort } from '../utils/date';
+import {
+  retainedStatus,
+  matchesFilter,
+  type RetainedStatus,
+  type SurveyFilter,
+} from '../utils/surveyStatus';
+
+const STATUS_FILTERS: { key: SurveyFilter; label: string }[] = [
+  { key: 'all', label: 'Tous' },
+  { key: 'confirmed_present', label: 'Présents' },
+  { key: 'confirmed_absent', label: 'Absents' },
+  { key: 'unanswered', label: 'Non répondus' },
+];
+
+function RetainedBadge({ status }: { status: RetainedStatus }) {
+  if (!status.answered) return <Badge variant="muted">Non répondu</Badge>;
+  const label = SURVEY_RESPONSE_LABELS[status.value!];
+  if (!status.confirmed) {
+    return <Badge variant="muted">{label} · non confirmé</Badge>;
+  }
+  const variant =
+    status.value === 'present'
+      ? 'present'
+      : status.value === 'absent'
+        ? 'absent'
+        : 'excuse';
+  return <Badge variant={variant}>{label}</Badge>;
+}
 
 function SurveyCard({ survey }: { survey: Survey }) {
   const responses = useSurveyResponses(survey.id);
@@ -29,6 +57,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
   const training = useTraining(survey.sessionId ?? '');
   const { dispatch } = useAppContext();
   const [expanded, setExpanded] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<SurveyFilter>('all');
 
   const sessionLabel =
     survey.sessionType === 'match' && match
@@ -133,100 +162,124 @@ function SurveyCard({ survey }: { survey: Survey }) {
 
       {expanded && (
         <div className="mt-3 space-y-3">
-          {players.map(player => {
-            const resp = responses.find(r => r.playerId === player.id);
-            const hasDivergence =
-              resp?.intentionJoueur !== undefined &&
-              resp?.confirmationParent !== undefined &&
-              resp.intentionJoueur !== resp.confirmationParent;
-
-            return (
-              <div
-                key={player.id}
-                className="border border-border-ui rounded-xl p-3"
+          {/* Synthesis filters (specs §15.5) */}
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
+            {STATUS_FILTERS.map(f => (
+              <button
+                key={f.key}
+                onClick={() => setStatusFilter(f.key)}
+                className={`flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                  statusFilter === f.key
+                    ? 'bg-primary text-primary-fg'
+                    : 'bg-surface border border-border-ui text-fg-muted hover:bg-surface-muted'
+                }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-fg">
-                    {player.firstName} {player.lastName}
-                  </p>
-                  {hasDivergence && (
-                    <div className="flex items-center gap-1 text-amber-600 text-xs">
-                      <AlertTriangle size={12} />
-                      <span>Divergence</span>
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {players
+            .filter(player =>
+              matchesFilter(
+                retainedStatus(responses.find(r => r.playerId === player.id)),
+                statusFilter
+              )
+            )
+            .map(player => {
+              const resp = responses.find(r => r.playerId === player.id);
+              const status = retainedStatus(resp);
+
+              return (
+                <div
+                  key={player.id}
+                  className="border border-border-ui rounded-xl p-3"
+                >
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <p className="text-sm font-medium text-fg">
+                      {player.firstName} {player.lastName}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {status.divergence && (
+                        <div className="flex items-center gap-1 text-amber-600 text-xs">
+                          <AlertTriangle size={12} />
+                          <span>Divergence</span>
+                        </div>
+                      )}
+                      <RetainedBadge status={status} />
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                {/* Intention joueur */}
-                <div className="mb-2">
-                  <p className="text-xs text-fg-muted mb-1">
-                    Ce que dit {player.firstName} (indicatif)
-                  </p>
-                  <div className="flex gap-1.5">
-                    {(
-                      [
-                        'present',
-                        'absent',
-                        'incertain',
-                      ] as SurveyResponseValue[]
-                    ).map(v => (
-                      <button
-                        key={v}
-                        onClick={() =>
-                          respondForPlayer(player.id, 'intentionJoueur', v)
-                        }
-                        className={`flex-1 py-1 rounded-lg text-xs border transition-colors ${
-                          resp?.intentionJoueur === v
-                            ? v === 'present'
-                              ? 'border-green-500 bg-green-50 text-green-700'
-                              : v === 'absent'
-                                ? 'border-red-500 bg-red-50 text-red-700'
-                                : 'border-amber-500 bg-amber-50 text-amber-700'
-                            : 'border-border-ui text-fg-muted hover:bg-surface-muted'
-                        }`}
-                      >
-                        {SURVEY_RESPONSE_LABELS[v]}
-                      </button>
-                    ))}
+                  {/* Intention joueur */}
+                  <div className="mb-2">
+                    <p className="text-xs text-fg-muted mb-1">
+                      Ce que dit {player.firstName} (indicatif)
+                    </p>
+                    <div className="flex gap-1.5">
+                      {(
+                        [
+                          'present',
+                          'absent',
+                          'incertain',
+                        ] as SurveyResponseValue[]
+                      ).map(v => (
+                        <button
+                          key={v}
+                          onClick={() =>
+                            respondForPlayer(player.id, 'intentionJoueur', v)
+                          }
+                          className={`flex-1 py-1 rounded-lg text-xs border transition-colors ${
+                            resp?.intentionJoueur === v
+                              ? v === 'present'
+                                ? 'border-green-500 bg-green-50 text-green-700'
+                                : v === 'absent'
+                                  ? 'border-red-500 bg-red-50 text-red-700'
+                                  : 'border-amber-500 bg-amber-50 text-amber-700'
+                              : 'border-border-ui text-fg-muted hover:bg-surface-muted'
+                          }`}
+                        >
+                          {SURVEY_RESPONSE_LABELS[v]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Confirmation parent */}
+                  <div>
+                    <p className="text-xs font-medium text-fg-muted mb-1">
+                      Confirmation officielle du parent ★
+                    </p>
+                    <div className="flex gap-1.5">
+                      {(
+                        [
+                          'present',
+                          'absent',
+                          'incertain',
+                        ] as SurveyResponseValue[]
+                      ).map(v => (
+                        <button
+                          key={v}
+                          onClick={() =>
+                            respondForPlayer(player.id, 'confirmationParent', v)
+                          }
+                          className={`flex-1 py-1 rounded-lg text-xs border transition-colors ${
+                            resp?.confirmationParent === v
+                              ? v === 'present'
+                                ? 'border-green-500 bg-green-100 text-green-700 font-semibold'
+                                : v === 'absent'
+                                  ? 'border-red-500 bg-red-100 text-red-700 font-semibold'
+                                  : 'border-amber-500 bg-amber-100 text-amber-700 font-semibold'
+                              : 'border-border-ui text-fg-muted hover:bg-surface-muted'
+                          }`}
+                        >
+                          {SURVEY_RESPONSE_LABELS[v]}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-
-                {/* Confirmation parent */}
-                <div>
-                  <p className="text-xs font-medium text-fg-muted mb-1">
-                    Confirmation officielle du parent ★
-                  </p>
-                  <div className="flex gap-1.5">
-                    {(
-                      [
-                        'present',
-                        'absent',
-                        'incertain',
-                      ] as SurveyResponseValue[]
-                    ).map(v => (
-                      <button
-                        key={v}
-                        onClick={() =>
-                          respondForPlayer(player.id, 'confirmationParent', v)
-                        }
-                        className={`flex-1 py-1 rounded-lg text-xs border transition-colors ${
-                          resp?.confirmationParent === v
-                            ? v === 'present'
-                              ? 'border-green-500 bg-green-100 text-green-700 font-semibold'
-                              : v === 'absent'
-                                ? 'border-red-500 bg-red-100 text-red-700 font-semibold'
-                                : 'border-amber-500 bg-amber-100 text-amber-700 font-semibold'
-                            : 'border-border-ui text-fg-muted hover:bg-surface-muted'
-                        }`}
-                      >
-                        {SURVEY_RESPONSE_LABELS[v]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       )}
     </Card>

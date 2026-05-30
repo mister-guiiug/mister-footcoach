@@ -15,6 +15,8 @@ import {
   useInjuries,
   useUnavailabilities,
   useTournamentGroups,
+  useNotificationPreferences,
+  useClubSettings,
 } from './AppContext';
 import type {
   Match,
@@ -314,6 +316,80 @@ describe('injury / unavailability actions', () => {
     expect(result.current.unavail.find(u => u.id === 'uvx')?.endDate).toBe(
       '2026-05-20'
     );
+  });
+});
+
+describe('preferences & club settings', () => {
+  it('updates club settings', () => {
+    const { result } = renderHook(
+      () => ({ ctx: useAppContext(), settings: useClubSettings() }),
+      { wrapper }
+    );
+    act(() =>
+      result.current.ctx.dispatch({
+        type: 'SET_CLUB_SETTINGS',
+        settings: { autoSurveyOnMatch: false },
+      })
+    );
+    expect(result.current.settings.autoSurveyOnMatch).toBe(false);
+  });
+
+  it('stores notification preferences per user', () => {
+    const { result } = renderHook(
+      () => ({ ctx: useAppContext(), prefs: useNotificationPreferences('u1') }),
+      { wrapper }
+    );
+    expect(result.current.prefs.enabled).toBe(true); // default
+    act(() =>
+      result.current.ctx.dispatch({
+        type: 'SET_NOTIFICATION_PREFERENCES',
+        userId: 'u1',
+        preferences: {
+          enabled: true,
+          mutedCategories: ['match'],
+          reminderDelay: 'J-2',
+        },
+      })
+    );
+    expect(result.current.prefs.mutedCategories).toEqual(['match']);
+    expect(result.current.prefs.reminderDelay).toBe('J-2');
+  });
+
+  it('NOTIFY skips users who muted the category', () => {
+    const { result } = renderHook(
+      () => ({
+        ctx: useAppContext(),
+        u1: useNotifications('u1'),
+        u3: useNotifications('u3'),
+      }),
+      { wrapper }
+    );
+    act(() =>
+      result.current.ctx.dispatch({
+        type: 'SET_NOTIFICATION_PREFERENCES',
+        userId: 'u1',
+        preferences: {
+          enabled: true,
+          mutedCategories: ['match'],
+          reminderDelay: 'J-1',
+        },
+      })
+    );
+    const u1Before = result.current.u1.length;
+    const u3Before = result.current.u3.length;
+
+    act(() =>
+      result.current.ctx.dispatch({
+        type: 'NOTIFY',
+        teamId: 't1',
+        notifType: 'match_nouveau',
+        message: 'New match',
+      })
+    );
+
+    // u1 muted "match" → no delivery; u3 (admin, default prefs) still receives.
+    expect(result.current.u1.length).toBe(u1Before);
+    expect(result.current.u3.length).toBe(u3Before + 1);
   });
 });
 

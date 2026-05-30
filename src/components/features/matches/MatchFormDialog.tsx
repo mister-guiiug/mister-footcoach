@@ -2,14 +2,20 @@ import { useState } from 'react';
 import { Dialog } from '../../ui/Dialog';
 import { Input, Select, Textarea } from '../../ui/Input';
 import { Button } from '../../ui/Button';
-import { useTeams, useAppContext } from '../../../store/AppContext';
+import {
+  useTeams,
+  useClubSettings,
+  useAppContext,
+} from '../../../store/AppContext';
 import {
   MATCH_STATUS_LABELS,
   type Match,
   type MatchStatus,
+  type Survey,
 } from '../../../types';
 import { genId } from '../../../utils/id';
-import { today } from '../../../utils/date';
+import { today, formatDateShort } from '../../../utils/date';
+import { CURRENT_USER_ID } from '../../../constants/session';
 
 interface MatchFormDialogProps {
   open: boolean;
@@ -37,8 +43,12 @@ export function MatchFormDialog({
   onSaved,
 }: MatchFormDialogProps) {
   const teams = useTeams();
+  const clubSettings = useClubSettings();
   const { state, dispatch } = useAppContext();
   const isEdit = Boolean(match);
+  const [createSurvey, setCreateSurvey] = useState(
+    clubSettings.autoSurveyOnMatch
+  );
 
   const [form, setForm] = useState(() => ({
     teamId: match?.teamId ?? teamId ?? teams[0]?.id ?? '',
@@ -101,6 +111,31 @@ export function MatchFormDialog({
       relatedId: id,
       relatedType: 'match',
     });
+
+    // Auto-create a presence survey for the match (RG-SONDAGE-04).
+    if (!isEdit && createSurvey) {
+      const survey: Survey = {
+        id: genId('survey'),
+        teamId: saved.teamId,
+        sessionType: 'match',
+        sessionId: id,
+        question: `Présent au match ${form.isHome ? 'vs' : '@'} ${saved.opponent} le ${formatDateShort(saved.date)} ?`,
+        deadline: saved.date,
+        status: 'ouvert',
+        sendNotification: true,
+        createdBy: CURRENT_USER_ID,
+      };
+      dispatch({ type: 'ADD_SURVEY', survey });
+      dispatch({
+        type: 'NOTIFY',
+        teamId: saved.teamId,
+        notifType: 'sondage_nouveau',
+        message: `Nouveau sondage : ${survey.question}`,
+        relatedId: survey.id,
+        relatedType: 'survey',
+      });
+    }
+
     onSaved?.(id);
     onClose();
   }
@@ -206,6 +241,18 @@ export function MatchFormDialog({
             placeholder="Ex. Poule A"
           />
         </div>
+
+        {!isEdit && (
+          <label className="flex items-center gap-2 text-sm text-fg">
+            <input
+              type="checkbox"
+              checked={createSurvey}
+              onChange={e => setCreateSurvey(e.target.checked)}
+              className="h-4 w-4 rounded border-border-ui text-primary"
+            />
+            Créer un sondage de présence
+          </label>
+        )}
 
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
