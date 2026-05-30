@@ -6,7 +6,7 @@ import { TopBar } from './TopBar';
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
-vi.mock('react-router-dom', async (importOriginal) => {
+vi.mock('react-router-dom', async importOriginal => {
   const actual = await importOriginal<typeof import('react-router-dom')>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
@@ -17,7 +17,7 @@ function renderTopBar(path: string, props = {}) {
       <Routes>
         <Route path="*" element={<TopBar {...props} />} />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 }
 

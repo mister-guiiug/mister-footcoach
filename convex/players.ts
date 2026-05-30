@@ -2,7 +2,7 @@ import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 
 export const getAll = query({
-  handler: async (ctx) => ctx.db.query('players').collect(),
+  handler: async ctx => ctx.db.query('players').collect(),
 });
 
 export const create = mutation({
@@ -37,7 +37,7 @@ export const update = mutation({
   handler: async (ctx, { id, ...fields }) => {
     const doc = await ctx.db
       .query('players')
-      .withIndex('by_string_id', (q) => q.eq('id', id))
+      .withIndex('by_string_id', q => q.eq('id', id))
       .first();
     if (doc) await ctx.db.patch(doc._id, fields);
   },

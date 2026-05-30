@@ -20,7 +20,9 @@ describe('TrainingDetailPage', () => {
       initialPath: '/entrainements/tr1',
       routePattern: '/entrainements/:id',
     });
-    expect(screen.getByText('Pressing et récupération haute')).toBeInTheDocument();
+    expect(
+      screen.getByText('Pressing et récupération haute')
+    ).toBeInTheDocument();
   });
 
   it('shows Annulé badge for cancelled training', () => {
@@ -56,7 +58,9 @@ describe('TrainingDetailPage', () => {
       routePattern: '/entrainements/:id',
     });
     expect(screen.getByText('Feuille de présence')).toBeInTheDocument();
-    expect(screen.getByText('Toucher pour changer le statut')).toBeInTheDocument();
+    expect(
+      screen.getByText('Toucher pour changer le statut')
+    ).toBeInTheDocument();
   });
 
   it('cycles attendance status on player click', async () => {
@@ -103,6 +107,8 @@ describe('TrainingDetailPage', () => {
       routePattern: '/entrainements/:id',
     });
     // tr5 has no theme — shows generic "Entraînement"
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Entraînement');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Entraînement'
+    );
   });
 });

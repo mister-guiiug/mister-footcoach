@@ -119,19 +119,27 @@ describe('today', () => {
 
 describe('isActiveUnavailability', () => {
   it('is active when start <= checkDate and no end', () => {
-    expect(isActiveUnavailability('2026-05-01', undefined, '2026-05-05')).toBe(true);
+    expect(isActiveUnavailability('2026-05-01', undefined, '2026-05-05')).toBe(
+      true
+    );
   });
 
   it('is active when start <= checkDate and end >= checkDate', () => {
-    expect(isActiveUnavailability('2026-05-01', '2026-05-10', '2026-05-05')).toBe(true);
+    expect(
+      isActiveUnavailability('2026-05-01', '2026-05-10', '2026-05-05')
+    ).toBe(true);
   });
 
   it('is inactive when start > checkDate', () => {
-    expect(isActiveUnavailability('2026-05-10', undefined, '2026-05-05')).toBe(false);
+    expect(isActiveUnavailability('2026-05-10', undefined, '2026-05-05')).toBe(
+      false
+    );
   });
 
   it('is inactive when end < checkDate', () => {
-    expect(isActiveUnavailability('2026-04-01', '2026-04-20', '2026-05-05')).toBe(false);
+    expect(
+      isActiveUnavailability('2026-04-01', '2026-04-20', '2026-05-05')
+    ).toBe(false);
   });
 
   it('uses today when no date arg provided', () => {

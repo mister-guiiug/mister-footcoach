@@ -10,7 +10,12 @@ import {
   useUnavailabilities,
 } from '../store/AppContext';
 import { POSITION_LABELS } from '../types';
-import { formatDateShort, isUpcoming, isActiveUnavailability, today } from '../utils/date';
+import {
+  formatDateShort,
+  isUpcoming,
+  isActiveUnavailability,
+  today,
+} from '../utils/date';
 
 export default function TeamDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -28,8 +33,10 @@ export default function TeamDetailPage() {
     );
   }
 
-  const upcomingMatches = matches.filter((m) => isUpcoming(m.date)).slice(0, 3);
-  const upcomingTrainings = trainings.filter((t) => !t.cancelled && isUpcoming(t.date)).slice(0, 2);
+  const upcomingMatches = matches.filter(m => isUpcoming(m.date)).slice(0, 3);
+  const upcomingTrainings = trainings
+    .filter(t => !t.cancelled && isUpcoming(t.date))
+    .slice(0, 2);
   const todayStr = today();
 
   return (
@@ -46,7 +53,9 @@ export default function TeamDetailPage() {
         </div>
         <div>
           <h1 className="text-xl font-bold text-fg-heading">{team.name}</h1>
-          <p className="text-sm text-fg-muted">{team.category} · {players.length} joueurs</p>
+          <p className="text-sm text-fg-muted">
+            {team.category} · {players.length} joueurs
+          </p>
         </div>
       </div>
 
@@ -54,50 +63,62 @@ export default function TeamDetailPage() {
       <section>
         <h2 className="text-sm font-semibold text-fg-heading mb-2">Effectif</h2>
         <Card padding={false}>
-          {/* istanbul ignore next */players.length === 0 ? (
-            <EmptyState title="Aucun joueur" />
-          ) : (
-            <ul className="divide-y divide-border-ui">
-              {players.map((player) => {
-                const unavail = unavailabilities.find(
-                  (u) =>
-                    u.playerId === player.id &&
-                    isActiveUnavailability(u.startDate, u.endDate, todayStr),
-                );
-                const isSecondary = player.secondaryTeamId === id || player.primaryTeamId !== id;
+          {
+            /* istanbul ignore next */ players.length === 0 ? (
+              <EmptyState title="Aucun joueur" />
+            ) : (
+              <ul className="divide-y divide-border-ui">
+                {players.map(player => {
+                  const unavail = unavailabilities.find(
+                    u =>
+                      u.playerId === player.id &&
+                      isActiveUnavailability(u.startDate, u.endDate, todayStr)
+                  );
+                  const isSecondary =
+                    player.secondaryTeamId === id ||
+                    player.primaryTeamId !== id;
 
-                return (
-                  <li key={player.id}>
-                    <Link
-                      to={`/joueurs/${player.id}`}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-surface-muted transition-colors"
-                    >
-                      <div className="h-9 w-9 rounded-full bg-primary-subtle flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-semibold text-primary">
-                          {player.number ?? (player.firstName.charAt(0) + player.lastName.charAt(0))}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-medium text-fg truncate">
-                            {player.firstName} {player.lastName}
-                          </p>
-                          {unavail && (
-                            <AlertTriangle size={13} className="text-amber-500 flex-shrink-0" />
-                          )}
+                  return (
+                    <li key={player.id}>
+                      <Link
+                        to={`/joueurs/${player.id}`}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-surface-muted transition-colors"
+                      >
+                        <div className="h-9 w-9 rounded-full bg-primary-subtle flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-semibold text-primary">
+                            {player.number ??
+                              player.firstName.charAt(0) +
+                                player.lastName.charAt(0)}
+                          </span>
                         </div>
-                        <p className="text-xs text-fg-muted">
-                          {POSITION_LABELS[player.preferredPosition]}
-                          {isSecondary && ' · Renfort'}
-                        </p>
-                      </div>
-                      <ChevronRight size={16} className="text-fg-faint flex-shrink-0" />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-sm font-medium text-fg truncate">
+                              {player.firstName} {player.lastName}
+                            </p>
+                            {unavail && (
+                              <AlertTriangle
+                                size={13}
+                                className="text-amber-500 flex-shrink-0"
+                              />
+                            )}
+                          </div>
+                          <p className="text-xs text-fg-muted">
+                            {POSITION_LABELS[player.preferredPosition]}
+                            {isSecondary && ' · Renfort'}
+                          </p>
+                        </div>
+                        <ChevronRight
+                          size={16}
+                          className="text-fg-faint flex-shrink-0"
+                        />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )
+          }
         </Card>
       </section>
 
@@ -105,13 +126,20 @@ export default function TeamDetailPage() {
       {upcomingMatches.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-semibold text-fg-heading">Prochains matchs</h2>
-            <Link to="/matchs" className="text-xs text-primary">Voir tout</Link>
+            <h2 className="text-sm font-semibold text-fg-heading">
+              Prochains matchs
+            </h2>
+            <Link to="/matchs" className="text-xs text-primary">
+              Voir tout
+            </Link>
           </div>
           <div className="space-y-2">
-            {upcomingMatches.map((m) => (
+            {upcomingMatches.map(m => (
               <Link key={m.id} to={`/matchs/${m.id}`}>
-                <Card padding={false} className="p-3 hover:bg-surface-muted transition-colors">
+                <Card
+                  padding={false}
+                  className="p-3 hover:bg-surface-muted transition-colors"
+                >
                   <p className="text-sm font-medium text-fg">
                     {m.isHome ? 'vs' : '@'} {m.opponent}
                   </p>
@@ -129,14 +157,23 @@ export default function TeamDetailPage() {
       {upcomingTrainings.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-semibold text-fg-heading">Prochains entraînements</h2>
-            <Link to="/entrainements" className="text-xs text-primary">Voir tout</Link>
+            <h2 className="text-sm font-semibold text-fg-heading">
+              Prochains entraînements
+            </h2>
+            <Link to="/entrainements" className="text-xs text-primary">
+              Voir tout
+            </Link>
           </div>
           <div className="space-y-2">
-            {upcomingTrainings.map((t) => (
+            {upcomingTrainings.map(t => (
               <Link key={t.id} to={`/entrainements/${t.id}`}>
-                <Card padding={false} className="p-3 hover:bg-surface-muted transition-colors">
-                  <p className="text-sm font-medium text-fg">{t.theme ?? 'Entraînement'}</p>
+                <Card
+                  padding={false}
+                  className="p-3 hover:bg-surface-muted transition-colors"
+                >
+                  <p className="text-sm font-medium text-fg">
+                    {t.theme ?? 'Entraînement'}
+                  </p>
                   <p className="text-xs text-fg-muted mt-0.5">
                     {formatDateShort(t.date)} à {t.time} · {t.duration} min
                   </p>
@@ -152,12 +189,18 @@ export default function TeamDetailPage() {
         <h2 className="text-sm font-semibold text-fg-heading mb-2">Actions</h2>
         <div className="grid grid-cols-2 gap-2">
           <Link to={`/compositions?teamId=${id}`}>
-            <Card padding={false} className="p-3 hover:bg-surface-muted transition-colors text-center">
+            <Card
+              padding={false}
+              className="p-3 hover:bg-surface-muted transition-colors text-center"
+            >
               <p className="text-sm font-medium text-primary">Compositions</p>
             </Card>
           </Link>
           <Link to={`/sondages?teamId=${id}`}>
-            <Card padding={false} className="p-3 hover:bg-surface-muted transition-colors text-center">
+            <Card
+              padding={false}
+              className="p-3 hover:bg-surface-muted transition-colors text-center"
+            >
               <p className="text-sm font-medium text-primary">Sondages</p>
             </Card>
           </Link>

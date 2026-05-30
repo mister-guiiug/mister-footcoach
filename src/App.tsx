@@ -3,19 +3,19 @@ import { Suspense, lazy } from 'react';
 import { AppShell } from './components/layout/AppShell';
 import { Spinner } from './components/ui/Spinner';
 
-const DashboardPage     = lazy(() => import('./pages/DashboardPage'));
-const TeamsPage         = lazy(() => import('./pages/TeamsPage'));
-const TeamDetailPage    = lazy(() => import('./pages/TeamDetailPage'));
-const PlayerDetailPage  = lazy(() => import('./pages/PlayerDetailPage'));
-const MatchesPage       = lazy(() => import('./pages/MatchesPage'));
-const MatchDetailPage   = lazy(() => import('./pages/MatchDetailPage'));
-const MatchLivePage     = lazy(() => import('./pages/MatchLivePage'));
-const TrainingsPage     = lazy(() => import('./pages/TrainingsPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const TeamsPage = lazy(() => import('./pages/TeamsPage'));
+const TeamDetailPage = lazy(() => import('./pages/TeamDetailPage'));
+const PlayerDetailPage = lazy(() => import('./pages/PlayerDetailPage'));
+const MatchesPage = lazy(() => import('./pages/MatchesPage'));
+const MatchDetailPage = lazy(() => import('./pages/MatchDetailPage'));
+const MatchLivePage = lazy(() => import('./pages/MatchLivePage'));
+const TrainingsPage = lazy(() => import('./pages/TrainingsPage'));
 const TrainingDetailPage = lazy(() => import('./pages/TrainingDetailPage'));
-const LineupPage        = lazy(() => import('./pages/LineupPage'));
-const TournamentsPage   = lazy(() => import('./pages/TournamentsPage'));
-const SurveysPage       = lazy(() => import('./pages/SurveysPage'));
-const SettingsPage      = lazy(() => import('./pages/SettingsPage'));
+const LineupPage = lazy(() => import('./pages/LineupPage'));
+const TournamentsPage = lazy(() => import('./pages/TournamentsPage'));
+const SurveysPage = lazy(() => import('./pages/SurveysPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 export default function App() {
   return (

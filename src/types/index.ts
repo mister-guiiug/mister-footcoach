@@ -74,14 +74,15 @@ export type UnavailabilityMotif =
   | 'personnel'
   | 'autre';
 
-export const UNAVAILABILITY_MOTIF_LABELS: Record<UnavailabilityMotif, string> = {
-  blessure: 'Blessure',
-  maladie: 'Maladie',
-  vacances: 'Vacances',
-  suspension: 'Suspension',
-  personnel: 'Personnel',
-  autre: 'Autre',
-};
+export const UNAVAILABILITY_MOTIF_LABELS: Record<UnavailabilityMotif, string> =
+  {
+    blessure: 'Blessure',
+    maladie: 'Maladie',
+    vacances: 'Vacances',
+    suspension: 'Suspension',
+    personnel: 'Personnel',
+    autre: 'Autre',
+  };
 
 export type SurveyResponseValue = 'present' | 'absent' | 'incertain';
 
@@ -445,12 +446,12 @@ export const FORMATIONS: Formation[] = [
     id: '2-3-2',
     label: '2-3-2',
     slots: [
-      { position: 'GK',  x: 50, y: 92 },
-      { position: 'DD',  x: 75, y: 78 },
-      { position: 'DG',  x: 25, y: 78 },
-      { position: 'MD',  x: 50, y: 65 },
-      { position: 'MC',  x: 25, y: 50 },
-      { position: 'MO',  x: 75, y: 50 },
+      { position: 'GK', x: 50, y: 92 },
+      { position: 'DD', x: 75, y: 78 },
+      { position: 'DG', x: 25, y: 78 },
+      { position: 'MD', x: 50, y: 65 },
+      { position: 'MC', x: 25, y: 50 },
+      { position: 'MO', x: 75, y: 50 },
       { position: 'ATD', x: 70, y: 22 },
       { position: 'ATG', x: 30, y: 22 },
     ],
@@ -459,12 +460,12 @@ export const FORMATIONS: Formation[] = [
     id: '3-2-2',
     label: '3-2-2',
     slots: [
-      { position: 'GK',  x: 50, y: 92 },
-      { position: 'DD',  x: 80, y: 75 },
-      { position: 'DC',  x: 50, y: 75 },
-      { position: 'DG',  x: 20, y: 75 },
-      { position: 'MC',  x: 30, y: 52 },
-      { position: 'MO',  x: 70, y: 52 },
+      { position: 'GK', x: 50, y: 92 },
+      { position: 'DD', x: 80, y: 75 },
+      { position: 'DC', x: 50, y: 75 },
+      { position: 'DG', x: 20, y: 75 },
+      { position: 'MC', x: 30, y: 52 },
+      { position: 'MO', x: 70, y: 52 },
       { position: 'ATD', x: 70, y: 22 },
       { position: 'ATG', x: 30, y: 22 },
     ],
@@ -473,28 +474,28 @@ export const FORMATIONS: Formation[] = [
     id: '3-3-1',
     label: '3-3-1',
     slots: [
-      { position: 'GK',  x: 50, y: 92 },
-      { position: 'DD',  x: 80, y: 75 },
-      { position: 'DC',  x: 50, y: 75 },
-      { position: 'DG',  x: 20, y: 75 },
-      { position: 'MD',  x: 20, y: 52 },
-      { position: 'MC',  x: 50, y: 52 },
-      { position: 'MO',  x: 80, y: 52 },
-      { position: 'AT',  x: 50, y: 18 },
+      { position: 'GK', x: 50, y: 92 },
+      { position: 'DD', x: 80, y: 75 },
+      { position: 'DC', x: 50, y: 75 },
+      { position: 'DG', x: 20, y: 75 },
+      { position: 'MD', x: 20, y: 52 },
+      { position: 'MC', x: 50, y: 52 },
+      { position: 'MO', x: 80, y: 52 },
+      { position: 'AT', x: 50, y: 18 },
     ],
   },
   {
     id: '2-4-1',
     label: '2-4-1',
     slots: [
-      { position: 'GK',  x: 50, y: 92 },
-      { position: 'DD',  x: 75, y: 78 },
-      { position: 'DG',  x: 25, y: 78 },
+      { position: 'GK', x: 50, y: 92 },
+      { position: 'DD', x: 75, y: 78 },
+      { position: 'DG', x: 25, y: 78 },
       { position: 'ATD', x: 80, y: 50 },
-      { position: 'MC',  x: 60, y: 50 },
-      { position: 'MD',  x: 40, y: 50 },
+      { position: 'MC', x: 60, y: 50 },
+      { position: 'MD', x: 40, y: 50 },
       { position: 'ATG', x: 20, y: 50 },
-      { position: 'AT',  x: 50, y: 18 },
+      { position: 'AT', x: 50, y: 18 },
     ],
   },
 ];
