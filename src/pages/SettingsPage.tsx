@@ -1,17 +1,49 @@
-import { Moon, Sun, Monitor, RefreshCw, Info } from 'lucide-react';
+import { Moon, Sun, Monitor, RefreshCw, Info, Check } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useTheme } from '../theme/ThemeContext';
-import { useAppContext } from '../store/AppContext';
+import {
+  useAppContext,
+  useCurrentUser,
+  useNotificationPreferences,
+  useClubSettings,
+} from '../store/AppContext';
+import type { NotificationPreferences, ReminderDelay } from '../types';
+import { NOTIFICATION_CATEGORIES } from '../utils/notifications';
+
+const REMINDER_DELAYS: { value: ReminderDelay; label: string }[] = [
+  { value: 'J-1', label: 'J-1' },
+  { value: 'J-2', label: 'J-2' },
+  { value: 'H-2', label: 'H-2' },
+];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { state, dispatch } = useAppContext();
+  const currentUser = useCurrentUser();
+  const prefs = useNotificationPreferences();
+  const clubSettings = useClubSettings();
 
   function resetData() {
     if (window.confirm('Réinitialiser toutes les données de démonstration ?')) {
       dispatch({ type: 'RESET_TO_MOCK' });
     }
+  }
+
+  function updatePrefs(patch: Partial<NotificationPreferences>) {
+    if (!currentUser) return;
+    dispatch({
+      type: 'SET_NOTIFICATION_PREFERENCES',
+      userId: currentUser.id,
+      preferences: { ...prefs, ...patch },
+    });
+  }
+
+  function toggleCategory(key: string) {
+    const muted = prefs.mutedCategories.includes(key)
+      ? prefs.mutedCategories.filter(c => c !== key)
+      : [...prefs.mutedCategories, key];
+    updatePrefs({ mutedCategories: muted });
   }
 
   const themeOptions = [
@@ -43,6 +75,118 @@ export default function SettingsPage() {
             </button>
           ))}
         </div>
+      </Card>
+
+      {/* Notification preferences (specs §16.3) */}
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold text-fg-heading">Notifications</p>
+          <button
+            onClick={() => updatePrefs({ enabled: !prefs.enabled })}
+            role="switch"
+            aria-checked={prefs.enabled}
+            aria-label="Activer les notifications"
+            className={`relative h-6 w-11 rounded-full transition-colors ${
+              prefs.enabled ? 'bg-primary' : 'bg-border-ui-strong'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                prefs.enabled ? 'translate-x-5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
+
+        {prefs.enabled ? (
+          <>
+            <div className="space-y-1.5">
+              {NOTIFICATION_CATEGORIES.map(cat => {
+                const active = !prefs.mutedCategories.includes(cat.key);
+                return (
+                  <button
+                    key={cat.key}
+                    onClick={() => toggleCategory(cat.key)}
+                    className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm hover:bg-surface-muted"
+                  >
+                    <span className="text-fg">{cat.label}</span>
+                    <span
+                      className={`flex h-5 w-5 items-center justify-center rounded-md border ${
+                        active
+                          ? 'border-primary bg-primary text-primary-fg'
+                          : 'border-border-ui text-transparent'
+                      }`}
+                    >
+                      <Check size={12} />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-3 border-t border-border-ui pt-3">
+              <p className="mb-1.5 text-xs font-medium text-fg-muted">
+                Rappel de séance
+              </p>
+              <div className="flex gap-2">
+                {REMINDER_DELAYS.map(d => (
+                  <button
+                    key={d.value}
+                    onClick={() => updatePrefs({ reminderDelay: d.value })}
+                    className={`flex-1 rounded-xl border py-1.5 text-xs font-medium transition-colors ${
+                      prefs.reminderDelay === d.value
+                        ? 'border-primary bg-primary-subtle text-primary'
+                        : 'border-border-ui text-fg-muted hover:bg-surface-muted'
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <p className="text-xs text-fg-muted">
+            Toutes les notifications sont désactivées.
+          </p>
+        )}
+      </Card>
+
+      {/* Club settings */}
+      <Card>
+        <p className="text-sm font-semibold text-fg-heading mb-3">Club</p>
+        <button
+          onClick={() =>
+            dispatch({
+              type: 'SET_CLUB_SETTINGS',
+              settings: {
+                ...clubSettings,
+                autoSurveyOnMatch: !clubSettings.autoSurveyOnMatch,
+              },
+            })
+          }
+          className="flex w-full items-center justify-between text-sm"
+        >
+          <span className="text-fg">Sondage auto à la création d'un match</span>
+          <span
+            role="switch"
+            aria-checked={clubSettings.autoSurveyOnMatch}
+            aria-label="Sondage auto à la création d'un match"
+            className={`relative h-6 w-11 rounded-full transition-colors ${
+              clubSettings.autoSurveyOnMatch
+                ? 'bg-primary'
+                : 'bg-border-ui-strong'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                clubSettings.autoSurveyOnMatch
+                  ? 'translate-x-5'
+                  : 'translate-x-0.5'
+              }`}
+            />
+          </span>
+        </button>
       </Card>
 
       {/* Season info */}
