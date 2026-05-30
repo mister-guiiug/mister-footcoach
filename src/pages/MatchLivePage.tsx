@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Radio, Plus, Minus, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Radio, Plus, Minus, X, Play, Pause, RotateCcw } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -11,7 +11,12 @@ import {
   usePlayers,
   useAppContext,
 } from '../store/AppContext';
-import { MATCH_EVENT_LABELS, type MatchEventType } from '../types';
+import {
+  MATCH_EVENT_LABELS,
+  type MatchEventType,
+  type PositionHistory,
+} from '../types';
+import { genId } from '../utils/id';
 
 const EVENT_BUTTONS: { type: MatchEventType; emoji: string; label: string }[] =
   [
@@ -20,6 +25,7 @@ const EVENT_BUTTONS: { type: MatchEventType; emoji: string; label: string }[] =
     { type: 'carton_jaune', emoji: '🟨', label: 'Jaune' },
     { type: 'carton_rouge', emoji: '🟥', label: 'Rouge' },
     { type: 'remplacement', emoji: '🔄', label: 'Rempl.' },
+    { type: 'blessure_live', emoji: '🩹', label: 'Blessure' },
     { type: 'arret_mi_temps', emoji: '📌', label: 'Mi-temps' },
   ];
 
@@ -30,15 +36,33 @@ export default function MatchLivePage() {
   const team = useTeam(match?.teamId ?? '');
   const players = usePlayers(match?.teamId);
   const { dispatch } = useAppContext();
+  const navigate = useNavigate();
 
   const [minute, setMinute] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState<MatchEventType | null>(
     null
   );
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+  const [playerOut, setPlayerOut] = useState<string | null>(null);
   const [scoreHome, setScoreHome] = useState(match?.scoreHome ?? 0);
   const [scoreAway, setScoreAway] = useState(match?.scoreAway ?? 0);
   const [isLive, setIsLive] = useState(match?.liveActive ?? false);
+
+  // Chronometer (specs §7.5.4) — drives the event minute automatically.
+  const [chronoRunning, setChronoRunning] = useState(false);
+  const [chronoSec, setChronoSec] = useState(0);
+
+  useEffect(() => {
+    if (!chronoRunning) return;
+    const interval = setInterval(() => {
+      setChronoSec(s => {
+        const next = s + 1;
+        setMinute(Math.floor(next / 60));
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [chronoRunning]);
 
   if (!match) {
     return (
@@ -64,8 +88,50 @@ export default function MatchLivePage() {
         type: selectedEvent,
         minute,
         playerId: selectedPlayer ?? undefined,
+        player2Id: playerOut ?? undefined,
       },
     });
+
+    // Substitution → feed the position history for both players (§7.5.5).
+    if (selectedEvent === 'remplacement') {
+      const entries: PositionHistory[] = [];
+      const inP = players.find(p => p.id === selectedPlayer);
+      const outP = players.find(p => p.id === playerOut);
+      if (inP)
+        entries.push({
+          id: genId('ph'),
+          playerId: inP.id,
+          matchId: id!,
+          matchDate: match!.date,
+          opponent: match!.opponent,
+          period: 'remplaçant entrant',
+          position: inP.preferredPosition,
+        });
+      if (outP)
+        entries.push({
+          id: genId('ph'),
+          playerId: outP.id,
+          matchId: id!,
+          matchDate: match!.date,
+          opponent: match!.opponent,
+          period: 'remplaçant sortant',
+          position: outP.preferredPosition,
+        });
+      if (entries.length > 0)
+        dispatch({ type: 'ADD_POSITION_HISTORY', entries });
+    }
+
+    // Live injury → offer to open the player's file to log it (§7.5.5).
+    if (selectedEvent === 'blessure_live' && selectedPlayer) {
+      const pid = selectedPlayer;
+      if (
+        window.confirm(
+          'Créer un suivi de blessure pour ce joueur ? (ouvre sa fiche)'
+        )
+      ) {
+        navigate(`/joueurs/${pid}`);
+      }
+    }
 
     if (selectedEvent === 'but') {
       const newHome = match!.isHome ? scoreHome + 1 : scoreHome;
@@ -93,6 +159,7 @@ export default function MatchLivePage() {
 
     setSelectedEvent(null);
     setSelectedPlayer(null);
+    setPlayerOut(null);
   }
 
   const usHome = match.isHome
@@ -119,6 +186,41 @@ export default function MatchLivePage() {
           {isLive ? 'Arrêter' : 'Démarrer'}
         </Button>
       </div>
+
+      {/* Chronometer (specs §7.5.4) */}
+      <Card>
+        <div className="flex items-center justify-between">
+          <span
+            className="font-mono text-2xl font-bold text-fg-heading"
+            aria-label="Chronomètre"
+          >
+            {String(Math.floor(chronoSec / 60)).padStart(2, '0')}:
+            {String(chronoSec % 60).padStart(2, '0')}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant={chronoRunning ? 'secondary' : 'primary'}
+              onClick={() => setChronoRunning(r => !r)}
+            >
+              {chronoRunning ? <Pause size={14} /> : <Play size={14} />}
+              {chronoRunning ? 'Pause' : 'Lancer'}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label="Réinitialiser le chronomètre"
+              onClick={() => {
+                setChronoRunning(false);
+                setChronoSec(0);
+                setMinute(0);
+              }}
+            >
+              <RotateCcw size={14} />
+            </Button>
+          </div>
+        </div>
+      </Card>
 
       {/* Score */}
       <Card className="text-center">
@@ -230,7 +332,9 @@ export default function MatchLivePage() {
         {selectedEvent && selectedEvent !== 'arret_mi_temps' && (
           <div className="mt-3">
             <p className="text-xs font-medium text-fg-muted mb-2">
-              Joueur concerné
+              {selectedEvent === 'remplacement'
+                ? 'Joueur entrant'
+                : 'Joueur concerné'}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {players.map(p => (
@@ -242,6 +346,30 @@ export default function MatchLivePage() {
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
                     selectedPlayer === p.id
                       ? 'border-primary bg-primary text-primary-fg'
+                      : 'border-border-ui text-fg hover:bg-surface-muted'
+                  }`}
+                >
+                  {p.firstName}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Outgoing player for a substitution (specs §7.5.5) */}
+        {selectedEvent === 'remplacement' && (
+          <div className="mt-3">
+            <p className="text-xs font-medium text-fg-muted mb-2">
+              Joueur sortant
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {players.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => setPlayerOut(playerOut === p.id ? null : p.id)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                    playerOut === p.id
+                      ? 'border-red-500 bg-red-500 text-white'
                       : 'border-border-ui text-fg hover:bg-surface-muted'
                   }`}
                 >
@@ -308,6 +436,21 @@ export default function MatchLivePage() {
           </div>
         </Card>
       )}
+
+      {/* Close & record attendance (specs §7.5.5) */}
+      <Button
+        variant="secondary"
+        className="w-full"
+        onClick={() => {
+          if (isLive) {
+            dispatch({ type: 'SET_MATCH_LIVE', matchId: id!, active: false });
+            setIsLive(false);
+          }
+          navigate(`/matchs/${id}`);
+        }}
+      >
+        Clôturer et saisir l'assiduité
+      </Button>
     </div>
   );
 }

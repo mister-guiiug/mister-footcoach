@@ -39,6 +39,7 @@ export function TournamentFormDialog({
     organizer: tournament?.organizer ?? '',
     isOrganizedByClub: tournament?.isOrganizedByClub ?? false,
     teamIds: tournament?.teamIds ?? (teams[0] ? [teams[0].id] : []),
+    invitedTeams: (tournament?.invitedTeams ?? []).join(', '),
     format: tournament?.format ?? ('poules_finale' as TournamentFormat),
     status: tournament?.status ?? 'planifie',
   }));
@@ -79,6 +80,12 @@ export function TournamentFormDialog({
       organizer: form.organizer.trim() || 'FC Exemple',
       isOrganizedByClub: form.isOrganizedByClub,
       teamIds: form.teamIds,
+      invitedTeams: form.isOrganizedByClub
+        ? form.invitedTeams
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean)
+        : undefined,
       format: form.format,
       status: form.status,
     };
@@ -167,6 +174,15 @@ export function TournamentFormDialog({
           />
           Organisé par le club
         </label>
+
+        {form.isOrganizedByClub && (
+          <Input
+            label="Équipes invitées (séparées par des virgules)"
+            value={form.invitedTeams}
+            onChange={e => set('invitedTeams', e.target.value)}
+            placeholder="FC Lyon, AS Martin, US Ouest"
+          />
+        )}
 
         <div>
           <p className="mb-1 text-xs font-medium text-fg-muted">

@@ -11,6 +11,7 @@ import type {
   Contact,
   Match,
   MatchEvent,
+  PositionHistory,
   Training,
   TrainingBlock,
   Attendance,
@@ -54,6 +55,7 @@ type Action =
   | { type: 'ADD_MATCH'; match: Match }
   | { type: 'UPDATE_MATCH'; match: Match }
   | { type: 'ADD_MATCH_EVENT'; event: MatchEvent }
+  | { type: 'ADD_POSITION_HISTORY'; entries: PositionHistory[] }
   | { type: 'SET_MATCH_LIVE'; matchId: string; active: boolean }
   | {
       type: 'UPDATE_MATCH_SCORE';
@@ -149,6 +151,12 @@ function reducer(state: AppState, action: Action): AppState {
 
     case 'ADD_MATCH_EVENT':
       return { ...state, matchEvents: [...state.matchEvents, action.event] };
+
+    case 'ADD_POSITION_HISTORY':
+      return {
+        ...state,
+        positionHistory: [...state.positionHistory, ...action.entries],
+      };
 
     case 'SET_MATCH_LIVE':
       return {

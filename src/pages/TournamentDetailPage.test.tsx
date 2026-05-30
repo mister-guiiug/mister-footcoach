@@ -29,7 +29,8 @@ describe('TournamentDetailPage', () => {
 
   it('renders group matches with scores', () => {
     render();
-    expect(screen.getByText(/U13 A — FC Lyon/)).toBeInTheDocument();
+    // The match appears in the group list and the by-pitch schedule.
+    expect(screen.getAllByText(/U13 A — FC Lyon/).length).toBeGreaterThan(0);
     expect(screen.getByText('3 - 1')).toBeInTheDocument();
     // the unscored match shows "à jouer"
     expect(screen.getByText('à jouer')).toBeInTheDocument();
@@ -42,6 +43,15 @@ describe('TournamentDetailPage', () => {
     const u13aRow = rows.find(r => within(r).queryByText('U13 A'));
     expect(u13aRow).toBeTruthy();
     expect(within(u13aRow!).getByText('4')).toBeInTheDocument();
+  });
+
+  it('shows the home-tournament pitch schedule and invited teams (§12.5)', () => {
+    render();
+    expect(screen.getByText('Planning par terrain')).toBeInTheDocument();
+    expect(screen.getByText('Terrain 1')).toBeInTheDocument();
+    expect(screen.getByText('Terrain 2')).toBeInTheDocument();
+    expect(screen.getByText('Équipes invitées')).toBeInTheDocument();
+    expect(screen.getByText('US Ouest')).toBeInTheDocument();
   });
 
   it('shows a not-found state for an unknown tournament', () => {
