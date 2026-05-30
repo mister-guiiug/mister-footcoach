@@ -5,7 +5,13 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
-export function Input({ label, error, className = '', id, ...props }: InputProps) {
+export function Input({
+  label,
+  error,
+  className = '',
+  id,
+  ...props
+}: InputProps) {
   const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
   return (
     <div className="flex flex-col gap-1">
@@ -37,7 +43,14 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   children: React.ReactNode;
 }
 
-export function Select({ label, error, className = '', id, children, ...props }: SelectProps) {
+export function Select({
+  label,
+  error,
+  className = '',
+  id,
+  children,
+  ...props
+}: SelectProps) {
   const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
   return (
     <div className="flex flex-col gap-1">

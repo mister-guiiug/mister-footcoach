@@ -8,7 +8,7 @@ describe('Spinner', () => {
     expect(container.querySelector('svg')).toBeInTheDocument();
   });
 
-  (['sm', 'md', 'lg'] as const).forEach((size) => {
+  (['sm', 'md', 'lg'] as const).forEach(size => {
     it(`renders size "${size}"`, () => {
       const { container } = render(<Spinner size={size} />);
       expect(container.querySelector('svg')).toBeInTheDocument();

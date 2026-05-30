@@ -157,13 +157,22 @@ describe('MatchDetailPage', () => {
   it('shows "Nous" when team is not found for home match with score', () => {
     const orphanMatch = {
       ...MOCK_DATA.matches[0],
-      id: 'm-orphan', teamId: 'unknown-team',
-      isHome: true, scoreHome: 2, scoreAway: 1,
+      id: 'm-orphan',
+      teamId: 'unknown-team',
+      isHome: true,
+      scoreHome: 2,
+      scoreAway: 1,
     };
-    localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, matches: [orphanMatch], matchEvents: [],
-      attendances: [], selectedTeamId: MOCK_DATA.teams[0]!.id,
-    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        matches: [orphanMatch],
+        matchEvents: [],
+        attendances: [],
+        selectedTeamId: MOCK_DATA.teams[0]!.id,
+      })
+    );
     renderAtRoute(<MatchDetailPage />, {
       initialPath: '/matchs/m-orphan',
       routePattern: '/matchs/:id',
@@ -174,13 +183,22 @@ describe('MatchDetailPage', () => {
   it('shows "Nous" when team is not found for away match with score', () => {
     const orphanMatchAway = {
       ...MOCK_DATA.matches[0],
-      id: 'm-orphan-away', teamId: 'unknown-team',
-      isHome: false, scoreHome: 1, scoreAway: 3,
+      id: 'm-orphan-away',
+      teamId: 'unknown-team',
+      isHome: false,
+      scoreHome: 1,
+      scoreAway: 3,
     };
-    localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, matches: [orphanMatchAway], matchEvents: [],
-      attendances: [], selectedTeamId: MOCK_DATA.teams[0]!.id,
-    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        matches: [orphanMatchAway],
+        matchEvents: [],
+        attendances: [],
+        selectedTeamId: MOCK_DATA.teams[0]!.id,
+      })
+    );
     renderAtRoute(<MatchDetailPage />, {
       initialPath: '/matchs/m-orphan-away',
       routePattern: '/matchs/:id',
@@ -191,12 +209,20 @@ describe('MatchDetailPage', () => {
   it('skips attendance entry with unknown player (covers if !player return null)', () => {
     // m2 has attendances in mock; add one with an unknown playerId
     const unknownAttendance = {
-      id: 'a-unknown', sessionType: 'match', sessionId: 'm2', playerId: 'p-unknown', status: 'present',
+      id: 'a-unknown',
+      sessionType: 'match',
+      sessionId: 'm2',
+      playerId: 'p-unknown',
+      status: 'present',
     };
-    localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, attendances: [...MOCK_DATA.attendances, unknownAttendance],
-      selectedTeamId: MOCK_DATA.teams[0]!.id,
-    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        attendances: [...MOCK_DATA.attendances, unknownAttendance],
+        selectedTeamId: MOCK_DATA.teams[0]!.id,
+      })
+    );
     renderAtRoute(<MatchDetailPage />, {
       initialPath: '/matchs/m2',
       routePattern: '/matchs/:id',

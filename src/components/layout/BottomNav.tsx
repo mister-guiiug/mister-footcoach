@@ -76,9 +76,7 @@ export function BottomNav() {
             end={exact}
             className={({ isActive }) =>
               `flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors ${
-                isActive
-                  ? 'text-primary'
-                  : 'text-fg-muted hover:text-fg'
+                isActive ? 'text-primary' : 'text-fg-muted hover:text-fg'
               }`
             }
           >
@@ -92,7 +90,7 @@ export function BottomNav() {
         ))}
 
         <button
-          onClick={() => setShowMore((v) => !v)}
+          onClick={() => setShowMore(v => !v)}
           className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors ${
             showMore ? 'text-primary' : 'text-fg-muted hover:text-fg'
           }`}

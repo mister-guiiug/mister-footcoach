@@ -20,7 +20,9 @@ describe('TeamsPage', () => {
   it('shows player count for each team', () => {
     renderWithProviders(<TeamsPage />);
     // U13 A has 9 primary players in mock data
-    expect(screen.getAllByText(/joueurs principaux/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/joueurs principaux/i).length).toBeGreaterThan(
+      0
+    );
   });
 
   it('shows secondary (renfort) count when applicable', () => {

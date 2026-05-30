@@ -117,7 +117,9 @@ describe('LineupPage', () => {
   it('toggles substitute status for unassigned player', async () => {
     renderWithProviders(<LineupPage />);
     // Players not in pitch are in the substitutes section
-    const subsSection = screen.getByText('Remplaçants / non assignés').closest('div')!;
+    const subsSection = screen
+      .getByText('Remplaçants / non assignés')
+      .closest('div')!;
     const playerBtns = subsSection.querySelectorAll('button');
     if (playerBtns.length > 0) {
       await userEvent.click(playerBtns[0]);
@@ -173,7 +175,9 @@ describe('LineupPage', () => {
     await userEvent.click(screen.getByText('Compo type 2-3-2'));
     // p9 (Enzo Faure) is in ATG slot. Open ATD slot and click p9 to move them there.
     const atdBtns = screen.queryAllByText('ATD');
-    const atdSlotBtn = atdBtns.map((el) => el.closest('button')).find(Boolean) as HTMLElement | null;
+    const atdSlotBtn = atdBtns
+      .map(el => el.closest('button'))
+      .find(Boolean) as HTMLElement | null;
     if (atdSlotBtn) {
       await userEvent.click(atdSlotBtn);
       const p9Btns = screen.queryAllByText(/Enzo/);
@@ -186,15 +190,22 @@ describe('LineupPage', () => {
 
   it('loads lineup with unknown formation and falls back to FORMATIONS[0]', async () => {
     const unknownFormationLineup = {
-      id: 'l-unknown', teamId: 't1', name: 'Compo formation inconnue',
+      id: 'l-unknown',
+      teamId: 't1',
+      name: 'Compo formation inconnue',
       formation: 'unknown-formation',
       slots: [{ position: 'GK', x: 50, y: 92 }],
-      substituteIds: [], createdAt: '2026-04-20T10:00:00.000Z',
+      substituteIds: [],
+      createdAt: '2026-04-20T10:00:00.000Z',
     };
-    localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, lineups: [...MOCK_DATA.lineups, unknownFormationLineup],
-      selectedTeamId: 't1',
-    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        lineups: [...MOCK_DATA.lineups, unknownFormationLineup],
+        selectedTeamId: 't1',
+      })
+    );
     renderWithProviders(<LineupPage />);
     await userEvent.click(screen.getByText('Compo formation inconnue'));
     // Should load with FORMATIONS[0] fallback without throwing
@@ -204,7 +215,9 @@ describe('LineupPage', () => {
   it('shows raw slot position key when position not in POSITION_LABELS', async () => {
     // Lineup with an unknown position to cover the ?? fallback in the player panel label
     const unknownPosLineup = {
-      id: 'l-unknownpos', teamId: 't1', name: 'Compo poste inconnu',
+      id: 'l-unknownpos',
+      teamId: 't1',
+      name: 'Compo poste inconnu',
       formation: '2-3-2',
       slots: [
         { position: 'XPOS', x: 50, y: 92 },
@@ -216,11 +229,17 @@ describe('LineupPage', () => {
         { position: 'ATD', x: 70, y: 22 },
         { position: 'ATG', x: 30, y: 22 },
       ],
-      substituteIds: [], createdAt: '2026-04-20T10:00:00.000Z',
+      substituteIds: [],
+      createdAt: '2026-04-20T10:00:00.000Z',
     };
-    localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, lineups: [unknownPosLineup], selectedTeamId: 't1',
-    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        lineups: [unknownPosLineup],
+        selectedTeamId: 't1',
+      })
+    );
     renderWithProviders(<LineupPage />);
     await userEvent.click(screen.getByText('Compo poste inconnu'));
     // Click the XPOS slot to open player panel
@@ -235,7 +254,9 @@ describe('LineupPage', () => {
   it('shows player initials when player has no number', async () => {
     // Lineup with p19 (no number) in GK slot
     const noNumberLineup = {
-      id: 'l-nonumber', teamId: 't1', name: 'Compo sans numéro',
+      id: 'l-nonumber',
+      teamId: 't1',
+      name: 'Compo sans numéro',
       formation: '2-3-2',
       slots: [
         { position: 'GK', x: 50, y: 92, playerId: 'p19' },
@@ -247,11 +268,17 @@ describe('LineupPage', () => {
         { position: 'ATD', x: 70, y: 22 },
         { position: 'ATG', x: 30, y: 22 },
       ],
-      substituteIds: [], createdAt: '2026-04-20T10:00:00.000Z',
+      substituteIds: [],
+      createdAt: '2026-04-20T10:00:00.000Z',
     };
-    localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, lineups: [noNumberLineup], selectedTeamId: 't1',
-    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        lineups: [noNumberLineup],
+        selectedTeamId: 't1',
+      })
+    );
     renderWithProviders(<LineupPage />);
     await userEvent.click(screen.getByText('Compo sans numéro'));
     // p19 = Théo Marchand (no number) → initials 'TM'

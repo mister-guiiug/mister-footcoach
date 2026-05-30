@@ -59,8 +59,8 @@ describe('MatchLivePage', () => {
     // Find minus buttons and click - on home score (starts at 0)
     const buttons = document.querySelectorAll('button');
     // First minus button (Minus icon) decrements home score
-    const minusButtons = Array.from(buttons).filter((b) =>
-      b.classList.contains('rounded-full') && b.querySelector('svg'),
+    const minusButtons = Array.from(buttons).filter(
+      b => b.classList.contains('rounded-full') && b.querySelector('svg')
     );
     if (minusButtons[0]) {
       await userEvent.click(minusButtons[0]);
@@ -150,8 +150,9 @@ describe('MatchLivePage', () => {
     expect(screen.getByText(/Valider But/)).toBeInTheDocument();
     // The validate+cancel buttons are siblings in a flex div; cancel is the 2nd button
     const validerBtn = screen.getByText(/Valider But/).closest('button')!;
-    const cancelBtn = (validerBtn.parentElement as HTMLElement)
-      .querySelectorAll('button')[1] as HTMLElement;
+    const cancelBtn = (
+      validerBtn.parentElement as HTMLElement
+    ).querySelectorAll('button')[1] as HTMLElement;
     await userEvent.click(cancelBtn);
     expect(screen.queryByText(/Valider But/)).not.toBeInTheDocument();
   });
@@ -172,7 +173,9 @@ describe('MatchLivePage', () => {
       initialPath: '/matchs/m1/live',
       routePattern: '/matchs/:id/live',
     });
-    const slider = document.querySelector('input[type="range"]') as HTMLInputElement;
+    const slider = document.querySelector(
+      'input[type="range"]'
+    ) as HTMLInputElement;
     expect(slider).toBeInTheDocument();
     fireEvent.change(slider, { target: { value: '30' } });
     expect(screen.getAllByText("30'").length).toBeGreaterThan(0);
@@ -226,7 +229,9 @@ describe('MatchLivePage', () => {
       routePattern: '/matchs/:id/live',
     });
     // Find plus buttons by looking for rounded-full buttons containing svg
-    const roundedBtns = Array.from(document.querySelectorAll('button.rounded-full'));
+    const roundedBtns = Array.from(
+      document.querySelectorAll('button.rounded-full')
+    );
     // First two are home score: [minus, plus], next two are away score: [minus, plus]
     if (roundedBtns[1]) {
       await userEvent.click(roundedBtns[1] as HTMLElement);
@@ -239,7 +244,9 @@ describe('MatchLivePage', () => {
       initialPath: '/matchs/m1/live',
       routePattern: '/matchs/:id/live',
     });
-    const roundedBtns = Array.from(document.querySelectorAll('button.rounded-full'));
+    const roundedBtns = Array.from(
+      document.querySelectorAll('button.rounded-full')
+    );
     if (roundedBtns[3]) {
       await userEvent.click(roundedBtns[3] as HTMLElement);
       expect(screen.getByText('1')).toBeInTheDocument();
@@ -271,12 +278,20 @@ describe('MatchLivePage', () => {
 
   it('shows "Nous" as home label when team not found (isHome=true)', () => {
     const orphanMatchHome = {
-      ...MOCK_DATA.matches[0], id: 'm-live-orphan-home', teamId: 'unknown-team', isHome: true,
+      ...MOCK_DATA.matches[0],
+      id: 'm-live-orphan-home',
+      teamId: 'unknown-team',
+      isHome: true,
     };
-    localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, matches: [orphanMatchHome], matchEvents: [],
-      selectedTeamId: MOCK_DATA.teams[0]!.id,
-    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        matches: [orphanMatchHome],
+        matchEvents: [],
+        selectedTeamId: MOCK_DATA.teams[0]!.id,
+      })
+    );
     renderAtRoute(<MatchLivePage />, {
       initialPath: '/matchs/m-live-orphan-home/live',
       routePattern: '/matchs/:id/live',
@@ -286,12 +301,20 @@ describe('MatchLivePage', () => {
 
   it('shows "Nous" as away label when team not found (isHome=false)', () => {
     const orphanMatchAway = {
-      ...MOCK_DATA.matches[0], id: 'm-live-orphan-away', teamId: 'unknown-team', isHome: false,
+      ...MOCK_DATA.matches[0],
+      id: 'm-live-orphan-away',
+      teamId: 'unknown-team',
+      isHome: false,
     };
-    localStorage.setItem('mister-footcoach-data', JSON.stringify({
-      ...MOCK_DATA, matches: [orphanMatchAway], matchEvents: [],
-      selectedTeamId: MOCK_DATA.teams[0]!.id,
-    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        matches: [orphanMatchAway],
+        matchEvents: [],
+        selectedTeamId: MOCK_DATA.teams[0]!.id,
+      })
+    );
     renderAtRoute(<MatchLivePage />, {
       initialPath: '/matchs/m-live-orphan-away/live',
       routePattern: '/matchs/:id/live',
@@ -304,7 +327,9 @@ describe('MatchLivePage', () => {
       initialPath: '/matchs/m2/live',
       routePattern: '/matchs/:id/live',
     });
-    const roundedBtns = Array.from(document.querySelectorAll('button.rounded-full'));
+    const roundedBtns = Array.from(
+      document.querySelectorAll('button.rounded-full')
+    );
     if (roundedBtns[2]) {
       await userEvent.click(roundedBtns[2] as HTMLElement);
       // scoreAway was 3 for m2, should decrease to 2

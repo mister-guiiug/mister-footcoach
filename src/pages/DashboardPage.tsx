@@ -14,7 +14,10 @@ import { formatDateShort, isUpcoming } from '../utils/date';
 import type { MatchStatus } from '../types';
 import { MATCH_STATUS_LABELS } from '../types';
 
-const statusVariant: Record<MatchStatus, 'primary' | 'success' | 'warning' | 'muted' | 'danger'> = {
+const statusVariant: Record<
+  MatchStatus,
+  'primary' | 'success' | 'warning' | 'muted' | 'danger'
+> = {
   previsionnel: 'muted',
   engage: 'warning',
   saison: 'primary',
@@ -29,16 +32,22 @@ export default function DashboardPage() {
   const allTrainings = useTrainings();
   const allSurveys = useSurveys();
 
-  const upcomingMatches = allMatches.filter((m) => isUpcoming(m.date)).slice(0, 3);
-  const upcomingTrainings = allTrainings.filter((t) => !t.cancelled && isUpcoming(t.date)).slice(0, 2);
-  const openSurveys = allSurveys.filter((s) => s.status === 'ouvert').length;
+  const upcomingMatches = allMatches
+    .filter(m => isUpcoming(m.date))
+    .slice(0, 3);
+  const upcomingTrainings = allTrainings
+    .filter(t => !t.cancelled && isUpcoming(t.date))
+    .slice(0, 2);
+  const openSurveys = allSurveys.filter(s => s.status === 'ouvert').length;
 
   return (
     <div className="px-4 py-4 space-y-5">
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-fg-heading">Bonjour 👋</h1>
-        <p className="text-sm text-fg-muted mt-0.5">Saison {state.season.name}</p>
+        <p className="text-sm text-fg-muted mt-0.5">
+          Saison {state.season.name}
+        </p>
       </div>
 
       {/* Quick stats */}
@@ -48,11 +57,15 @@ export default function DashboardPage() {
           <p className="text-xs text-fg-muted">Équipes</p>
         </Card>
         <Card className="flex flex-col gap-1">
-          <p className="text-2xl font-bold text-primary">{state.players.filter((p) => p.active).length}</p>
+          <p className="text-2xl font-bold text-primary">
+            {state.players.filter(p => p.active).length}
+          </p>
           <p className="text-xs text-fg-muted">Joueurs actifs</p>
         </Card>
         <Card className="flex flex-col gap-1">
-          <p className="text-2xl font-bold text-primary">{upcomingMatches.length}</p>
+          <p className="text-2xl font-bold text-primary">
+            {upcomingMatches.length}
+          </p>
           <p className="text-xs text-fg-muted">Matchs à venir</p>
         </Card>
         <Card className="flex flex-col gap-1">
@@ -74,18 +87,22 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="space-y-2">
-            {upcomingMatches.map((match) => {
-              const team = teams.find((t) => t.id === match.teamId);
+            {upcomingMatches.map(match => {
+              const team = teams.find(t => t.id === match.teamId);
               return (
                 <Link key={match.id} to={`/matchs/${match.id}`}>
-                  <Card padding={false} className="p-3 hover:bg-surface-muted transition-colors">
+                  <Card
+                    padding={false}
+                    className="p-3 hover:bg-surface-muted transition-colors"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-fg truncate">
                           {match.isHome ? 'vs' : '@'} {match.opponent}
                         </p>
                         <p className="text-xs text-fg-muted mt-0.5">
-                          {team?.name} · {formatDateShort(match.date)} à {match.time}
+                          {team?.name} · {formatDateShort(match.date)} à{' '}
+                          {match.time}
                         </p>
                       </div>
                       <Badge variant={statusVariant[match.status]}>
@@ -108,23 +125,30 @@ export default function DashboardPage() {
               <Dumbbell size={15} className="text-primary" />
               Prochains entraînements
             </h2>
-            <Link to="/entrainements" className="text-xs text-primary font-medium">
+            <Link
+              to="/entrainements"
+              className="text-xs text-primary font-medium"
+            >
               Voir tout
             </Link>
           </div>
           <div className="space-y-2">
-            {upcomingTrainings.map((t) => {
-              const team = teams.find((te) => te.id === t.teamId);
+            {upcomingTrainings.map(t => {
+              const team = teams.find(te => te.id === t.teamId);
               return (
                 <Link key={t.id} to={`/entrainements/${t.id}`}>
-                  <Card padding={false} className="p-3 hover:bg-surface-muted transition-colors">
+                  <Card
+                    padding={false}
+                    className="p-3 hover:bg-surface-muted transition-colors"
+                  >
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-fg">
                           {t.theme ?? 'Entraînement'}
                         </p>
                         <p className="text-xs text-fg-muted mt-0.5">
-                          {team?.name} · {formatDateShort(t.date)} à {t.time} · {t.duration} min
+                          {team?.name} · {formatDateShort(t.date)} à {t.time} ·{' '}
+                          {t.duration} min
                         </p>
                       </div>
                       {t.type === 'exceptionnel' && (
@@ -151,19 +175,24 @@ export default function DashboardPage() {
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          {teams.map((team) => {
+          {teams.map(team => {
             const playerCount = state.players.filter(
-              (p) => p.active && p.primaryTeamId === team.id,
+              p => p.active && p.primaryTeamId === team.id
             ).length;
             return (
               <Link key={team.id} to={`/equipes/${team.id}`}>
-                <Card padding={false} className="p-3 hover:bg-surface-muted transition-colors">
+                <Card
+                  padding={false}
+                  className="p-3 hover:bg-surface-muted transition-colors"
+                >
                   <div className="flex items-center gap-2 mb-1">
                     <span
                       className="h-3 w-3 rounded-full flex-shrink-0"
                       style={{ backgroundColor: team.color }}
                     />
-                    <p className="text-sm font-semibold text-fg-heading">{team.name}</p>
+                    <p className="text-sm font-semibold text-fg-heading">
+                      {team.name}
+                    </p>
                   </div>
                   <p className="text-xs text-fg-muted">{playerCount} joueurs</p>
                 </Card>
@@ -193,7 +222,7 @@ export default function DashboardPage() {
       )}
 
       {/* Tournaments */}
-      {state.tournaments.some((t) => t.status !== 'termine') && (
+      {state.tournaments.some(t => t.status !== 'termine') && (
         <section>
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-semibold text-fg-heading flex items-center gap-2">
@@ -205,16 +234,24 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="space-y-2">
-            {state.tournaments.filter((t) => t.status !== 'termine').map((tournament) => (
-              <Link key={tournament.id} to="/tournois">
-                <Card padding={false} className="p-3 hover:bg-surface-muted transition-colors">
-                  <p className="text-sm font-medium text-fg">{tournament.name}</p>
-                  <p className="text-xs text-fg-muted mt-0.5">
-                    {formatDateShort(tournament.dateStart)} · {tournament.location}
-                  </p>
-                </Card>
-              </Link>
-            ))}
+            {state.tournaments
+              .filter(t => t.status !== 'termine')
+              .map(tournament => (
+                <Link key={tournament.id} to="/tournois">
+                  <Card
+                    padding={false}
+                    className="p-3 hover:bg-surface-muted transition-colors"
+                  >
+                    <p className="text-sm font-medium text-fg">
+                      {tournament.name}
+                    </p>
+                    <p className="text-xs text-fg-muted mt-0.5">
+                      {formatDateShort(tournament.dateStart)} ·{' '}
+                      {tournament.location}
+                    </p>
+                  </Card>
+                </Link>
+              ))}
           </div>
         </section>
       )}
