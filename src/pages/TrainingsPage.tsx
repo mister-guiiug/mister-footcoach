@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Users } from 'lucide-react';
+import { Clock, Users, Plus } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { TrainingFormDialog } from '../components/features/trainings/TrainingFormDialog';
 import { useTrainings, useTeams } from '../store/AppContext';
 import { formatDateFull, isUpcoming } from '../utils/date';
 
@@ -11,6 +13,7 @@ export default function TrainingsPage() {
   const teams = useTeams();
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all');
+  const [formOpen, setFormOpen] = useState(false);
 
   const filtered = allTrainings.filter(t => {
     if (teamFilter !== 'all' && t.teamId !== teamFilter) return false;
@@ -21,7 +24,20 @@ export default function TrainingsPage() {
 
   return (
     <div className="px-4 py-4 space-y-4">
-      <h1 className="text-xl font-bold text-fg-heading">Entraînements</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-fg-heading">Entraînements</h1>
+        <Button size="sm" onClick={() => setFormOpen(true)}>
+          <Plus size={16} /> Nouveau
+        </Button>
+      </div>
+
+      {formOpen && (
+        <TrainingFormDialog
+          open
+          onClose={() => setFormOpen(false)}
+          teamId={teamFilter !== 'all' ? teamFilter : undefined}
+        />
+      )}
 
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">

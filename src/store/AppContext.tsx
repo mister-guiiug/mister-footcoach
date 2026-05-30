@@ -8,15 +8,23 @@ import {
 import type {
   AppData,
   Player,
+  Match,
   MatchEvent,
   Training,
+  TrainingBlock,
   Attendance,
   Lineup,
+  Survey,
   SurveyResponse,
+  Tournament,
+  Exercise,
+  CarpoolOffer,
   Unavailability,
   Injury,
 } from '../types';
 import { MOCK_DATA } from '../data/mock';
+import { genId, nowIso } from '../utils/id';
+import { CURRENT_USER_ID } from '../constants/session';
 
 const STORAGE_KEY = 'mister-footcoach-data';
 
@@ -32,6 +40,8 @@ type Action =
   | { type: 'SET_SELECTED_TEAM'; teamId: string }
   | { type: 'ADD_PLAYER'; player: Player }
   | { type: 'UPDATE_PLAYER'; player: Player }
+  | { type: 'ADD_MATCH'; match: Match }
+  | { type: 'UPDATE_MATCH'; match: Match }
   | { type: 'ADD_MATCH_EVENT'; event: MatchEvent }
   | { type: 'SET_MATCH_LIVE'; matchId: string; active: boolean }
   | {
@@ -42,12 +52,31 @@ type Action =
     }
   | { type: 'ADD_TRAINING'; training: Training }
   | { type: 'UPDATE_TRAINING'; training: Training }
+  | { type: 'SET_TRAINING_BLOCKS'; trainingId: string; blocks: TrainingBlock[] }
   | { type: 'SET_ATTENDANCE'; attendance: Attendance }
   | { type: 'SAVE_LINEUP'; lineup: Lineup }
+  | { type: 'ADD_SURVEY'; survey: Survey }
   | { type: 'ADD_SURVEY_RESPONSE'; response: SurveyResponse }
   | { type: 'UPDATE_SURVEY_RESPONSE'; response: SurveyResponse }
+  | { type: 'ADD_TOURNAMENT'; tournament: Tournament }
+  | { type: 'UPDATE_TOURNAMENT'; tournament: Tournament }
+  | { type: 'ADD_EXERCISE'; exercise: Exercise }
+  | { type: 'UPDATE_EXERCISE'; exercise: Exercise }
+  | { type: 'DELETE_EXERCISE'; exerciseId: string }
+  | { type: 'ADD_CARPOOL_OFFER'; offer: CarpoolOffer }
+  | { type: 'DELETE_CARPOOL_OFFER'; offerId: string }
   | { type: 'ADD_UNAVAILABILITY'; unavailability: Unavailability }
   | { type: 'ADD_INJURY'; injury: Injury }
+  | {
+      type: 'NOTIFY';
+      teamId: string;
+      notifType: string;
+      message: string;
+      relatedId?: string;
+      relatedType?: string;
+    }
+  | { type: 'MARK_NOTIFICATION_READ'; notificationId: string }
+  | { type: 'MARK_ALL_NOTIFICATIONS_READ'; userId: string }
   | { type: 'RESET_TO_MOCK' };
 
 // ── Reducer ───────────────────────────────────────────────────────────
@@ -65,6 +94,17 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         players: state.players.map(p =>
           p.id === action.player.id ? action.player : p
+        ),
+      };
+
+    case 'ADD_MATCH':
+      return { ...state, matches: [...state.matches, action.match] };
+
+    case 'UPDATE_MATCH':
+      return {
+        ...state,
+        matches: state.matches.map(m =>
+          m.id === action.match.id ? action.match : m
         ),
       };
 
@@ -100,6 +140,17 @@ function reducer(state: AppState, action: Action): AppState {
         ),
       };
 
+    case 'SET_TRAINING_BLOCKS':
+      return {
+        ...state,
+        trainingBlocks: [
+          ...state.trainingBlocks.filter(
+            b => b.trainingId !== action.trainingId
+          ),
+          ...action.blocks,
+        ],
+      };
+
     case 'SET_ATTENDANCE': {
       const existing = state.attendances.findIndex(
         a =>
@@ -128,6 +179,9 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, lineups: [...state.lineups, action.lineup] };
     }
 
+    case 'ADD_SURVEY':
+      return { ...state, surveys: [...state.surveys, action.survey] };
+
     case 'ADD_SURVEY_RESPONSE':
       return {
         ...state,
@@ -152,6 +206,84 @@ function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         injuries: [...state.injuries, action.injury],
+      };
+
+    case 'ADD_TOURNAMENT':
+      return {
+        ...state,
+        tournaments: [...state.tournaments, action.tournament],
+      };
+
+    case 'UPDATE_TOURNAMENT':
+      return {
+        ...state,
+        tournaments: state.tournaments.map(t =>
+          t.id === action.tournament.id ? action.tournament : t
+        ),
+      };
+
+    case 'ADD_EXERCISE':
+      return { ...state, exercises: [...state.exercises, action.exercise] };
+
+    case 'UPDATE_EXERCISE':
+      return {
+        ...state,
+        exercises: state.exercises.map(e =>
+          e.id === action.exercise.id ? action.exercise : e
+        ),
+      };
+
+    case 'DELETE_EXERCISE':
+      return {
+        ...state,
+        exercises: state.exercises.filter(e => e.id !== action.exerciseId),
+      };
+
+    case 'ADD_CARPOOL_OFFER':
+      return {
+        ...state,
+        carpoolOffers: [...state.carpoolOffers, action.offer],
+      };
+
+    case 'DELETE_CARPOOL_OFFER':
+      return {
+        ...state,
+        carpoolOffers: state.carpoolOffers.filter(o => o.id !== action.offerId),
+      };
+
+    case 'NOTIFY': {
+      // Recipients: coaches and admins attached to the team (specs §16.1).
+      const recipients = state.users.filter(u =>
+        u.teamIds.includes(action.teamId)
+      );
+      const ts = nowIso();
+      const created = recipients.map(u => ({
+        id: genId('notif'),
+        userId: u.id,
+        type: action.notifType,
+        message: action.message,
+        read: false,
+        relatedId: action.relatedId,
+        relatedType: action.relatedType,
+        createdAt: ts,
+      }));
+      return { ...state, notifications: [...created, ...state.notifications] };
+    }
+
+    case 'MARK_NOTIFICATION_READ':
+      return {
+        ...state,
+        notifications: state.notifications.map(n =>
+          n.id === action.notificationId ? { ...n, read: true } : n
+        ),
+      };
+
+    case 'MARK_ALL_NOTIFICATIONS_READ':
+      return {
+        ...state,
+        notifications: state.notifications.map(n =>
+          n.userId === action.userId ? { ...n, read: true } : n
+        ),
       };
 
     case 'RESET_TO_MOCK':
@@ -333,4 +465,40 @@ export function usePositionHistory(playerId: string) {
 export function useExercises() {
   const { state } = useAppContext();
   return state.exercises;
+}
+
+export function useTrainingBlocks(trainingId: string) {
+  const { state } = useAppContext();
+  return state.trainingBlocks
+    .filter(b => b.trainingId === trainingId)
+    .sort((a, b) => a.order - b.order);
+}
+
+export function useCarpoolOffers(matchId: string) {
+  const { state } = useAppContext();
+  return state.carpoolOffers.filter(o => o.matchId === matchId);
+}
+
+export function useContacts() {
+  const { state } = useAppContext();
+  return state.contacts;
+}
+
+export function useCurrentUser() {
+  const { state } = useAppContext();
+  return state.users.find(u => u.id === CURRENT_USER_ID) ?? state.users[0];
+}
+
+export function useNotifications(userId?: string) {
+  const { state } = useAppContext();
+  const target = userId ?? CURRENT_USER_ID;
+  return [...state.notifications]
+    .filter(n => n.userId === target)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+export function useUnreadNotificationCount(userId?: string) {
+  const { state } = useAppContext();
+  const target = userId ?? CURRENT_USER_ID;
+  return state.notifications.filter(n => n.userId === target && !n.read).length;
 }

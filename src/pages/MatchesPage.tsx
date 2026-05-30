@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { MatchFormDialog } from '../components/features/matches/MatchFormDialog';
 import { useMatches, useTeams } from '../store/AppContext';
 import { MATCH_STATUS_LABELS, type MatchStatus } from '../types';
 import { formatDateFull, isUpcoming } from '../utils/date';
@@ -22,6 +25,7 @@ export default function MatchesPage() {
   const teams = useTeams();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all');
   const [teamFilter, setTeamFilter] = useState<string>('all');
+  const [formOpen, setFormOpen] = useState(false);
 
   const filtered = allMatches.filter(m => {
     if (teamFilter !== 'all' && m.teamId !== teamFilter) return false;
@@ -32,7 +36,20 @@ export default function MatchesPage() {
 
   return (
     <div className="px-4 py-4 space-y-4">
-      <h1 className="text-xl font-bold text-fg-heading">Matchs</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-fg-heading">Matchs</h1>
+        <Button size="sm" onClick={() => setFormOpen(true)}>
+          <Plus size={16} /> Nouveau
+        </Button>
+      </div>
+
+      {formOpen && (
+        <MatchFormDialog
+          open
+          onClose={() => setFormOpen(false)}
+          teamId={teamFilter !== 'all' ? teamFilter : undefined}
+        />
+      )}
 
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">

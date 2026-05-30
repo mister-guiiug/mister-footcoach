@@ -1,7 +1,11 @@
-import { MapPin, Calendar } from 'lucide-react';
+import { useState } from 'react';
+import { MapPin, Calendar, Plus, Pencil } from 'lucide-react';
+import type { Tournament } from '../types';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
+import { TournamentFormDialog } from '../components/features/tournaments/TournamentFormDialog';
 import { useTournaments, useTeams } from '../store/AppContext';
 import { TOURNAMENT_STATUS_LABELS, type TournamentStatus } from '../types';
 import { formatDateShort } from '../utils/date';
@@ -22,10 +26,30 @@ const formatLabels: Record<string, string> = {
 export default function TournamentsPage() {
   const tournaments = useTournaments();
   const teams = useTeams();
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<Tournament | undefined>();
+
+  function openNew() {
+    setEditing(undefined);
+    setFormOpen(true);
+  }
 
   return (
     <div className="px-4 py-4 space-y-4">
-      <h1 className="text-xl font-bold text-fg-heading">Tournois</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-fg-heading">Tournois</h1>
+        <Button size="sm" onClick={openNew}>
+          <Plus size={16} /> Nouveau
+        </Button>
+      </div>
+
+      {formOpen && (
+        <TournamentFormDialog
+          open
+          onClose={() => setFormOpen(false)}
+          tournament={editing}
+        />
+      )}
 
       {
         /* istanbul ignore next */ tournaments.length === 0 ? (
@@ -57,6 +81,16 @@ export default function TournamentsPage() {
                         {TOURNAMENT_STATUS_LABELS[tournament.status]}
                       </Badge>
                     </div>
+                    <button
+                      onClick={() => {
+                        setEditing(tournament);
+                        setFormOpen(true);
+                      }}
+                      aria-label="Modifier le tournoi"
+                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-primary"
+                    >
+                      <Pencil size={14} />
+                    </button>
                   </div>
 
                   <div className="space-y-1.5 text-sm">
