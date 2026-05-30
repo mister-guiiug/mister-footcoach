@@ -66,7 +66,9 @@ type Action =
   | { type: 'ADD_CARPOOL_OFFER'; offer: CarpoolOffer }
   | { type: 'DELETE_CARPOOL_OFFER'; offerId: string }
   | { type: 'ADD_UNAVAILABILITY'; unavailability: Unavailability }
+  | { type: 'UPDATE_UNAVAILABILITY'; unavailability: Unavailability }
   | { type: 'ADD_INJURY'; injury: Injury }
+  | { type: 'UPDATE_INJURY'; injury: Injury }
   | {
       type: 'NOTIFY';
       teamId: string;
@@ -202,10 +204,26 @@ function reducer(state: AppState, action: Action): AppState {
         unavailabilities: [...state.unavailabilities, action.unavailability],
       };
 
+    case 'UPDATE_UNAVAILABILITY':
+      return {
+        ...state,
+        unavailabilities: state.unavailabilities.map(u =>
+          u.id === action.unavailability.id ? action.unavailability : u
+        ),
+      };
+
     case 'ADD_INJURY':
       return {
         ...state,
         injuries: [...state.injuries, action.injury],
+      };
+
+    case 'UPDATE_INJURY':
+      return {
+        ...state,
+        injuries: state.injuries.map(i =>
+          i.id === action.injury.id ? action.injury : i
+        ),
       };
 
     case 'ADD_TOURNAMENT':

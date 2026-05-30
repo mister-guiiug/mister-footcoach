@@ -56,7 +56,7 @@ describe('PlayerDetailPage', () => {
       routePattern: '/joueurs/:id',
     });
     expect(screen.getByText(/Indisponible/)).toBeInTheDocument();
-    expect(screen.getByText(/Blessure/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Blessure/).length).toBeGreaterThan(0);
   });
 
   it('shows injury card for player p4', () => {
