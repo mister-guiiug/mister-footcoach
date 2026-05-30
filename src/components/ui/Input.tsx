@@ -37,6 +37,45 @@ export function Input({
   );
 }
 
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string;
+  error?: string;
+}
+
+export function Textarea({
+  label,
+  error,
+  className = '',
+  id,
+  rows = 3,
+  ...props
+}: TextareaProps) {
+  const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
+  return (
+    <div className="flex flex-col gap-1">
+      {label && (
+        <label htmlFor={inputId} className="text-xs font-medium text-fg-muted">
+          {label}
+        </label>
+      )}
+      <textarea
+        id={inputId}
+        rows={rows}
+        className={`
+          w-full rounded-xl border border-border-ui bg-surface px-3 py-2 text-sm text-fg
+          placeholder:text-fg-faint
+          focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary
+          disabled:opacity-50 disabled:cursor-not-allowed
+          ${error ? 'border-red-500 focus:ring-red-500' : ''}
+          ${className}
+        `}
+        {...props}
+      />
+      {error && <p className="text-xs text-red-600">{error}</p>}
+    </div>
+  );
+}
+
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;

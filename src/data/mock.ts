@@ -17,6 +17,7 @@ import type {
   Unavailability,
   Injury,
   Exercise,
+  Notification,
 } from '../types';
 
 // ── Season ───────────────────────────────────────────────────────────
@@ -921,6 +922,41 @@ const injuries: Injury[] = [
   },
 ];
 
+// ── Notifications ─────────────────────────────────────────────────────
+
+const notifications: Notification[] = [
+  {
+    id: 'n1',
+    userId: 'u1',
+    type: 'sondage_reponse_tardive',
+    message: 'Réponse tardive de la famille Dupont au sondage du 10 mai.',
+    read: false,
+    relatedId: 'sv1',
+    relatedType: 'survey',
+    createdAt: '2026-05-09T18:30:00.000Z',
+  },
+  {
+    id: 'n2',
+    userId: 'u1',
+    type: 'indispo_declaree',
+    message: 'Indisponibilité déclarée pour Hugo Bernard (blessure).',
+    read: false,
+    relatedId: 'p4',
+    relatedType: 'player',
+    createdAt: '2026-04-20T08:00:00.000Z',
+  },
+  {
+    id: 'n3',
+    userId: 'u1',
+    type: 'covoiturage_nouvelle_offre',
+    message: 'Nouvelle offre de covoiturage pour le match du 11 mai.',
+    read: true,
+    relatedId: 'm4',
+    relatedType: 'match',
+    createdAt: '2026-05-04T12:00:00.000Z',
+  },
+];
+
 // ── AppData ──────────────────────────────────────────────────────────
 
 export const MOCK_DATA: AppData = {
@@ -942,7 +978,7 @@ export const MOCK_DATA: AppData = {
   carpoolOffers: [],
   surveys,
   surveyResponses,
-  notifications: [],
+  notifications,
   unavailabilities,
   injuries,
 };

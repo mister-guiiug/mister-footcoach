@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Bell } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useUnreadNotificationCount } from '../../store/AppContext';
 
 interface TopBarProps {
   title?: string;
@@ -11,6 +12,7 @@ interface TopBarProps {
 export function TopBar({ title, showBack, actions }: TopBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const unreadCount = useUnreadNotificationCount();
 
   const isRoot = location.pathname === '/';
 
@@ -41,14 +43,18 @@ export function TopBar({ title, showBack, actions }: TopBarProps) {
 
       <div className="ml-auto flex items-center gap-1">
         {actions}
-        {isRoot && (
-          <button
-            className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-surface-muted text-fg-muted"
-            aria-label="Notifications"
-          >
-            <Bell size={20} />
-          </button>
-        )}
+        <button
+          onClick={() => navigate('/notifications')}
+          className="relative flex h-9 w-9 items-center justify-center rounded-xl hover:bg-surface-muted text-fg-muted"
+          aria-label="Notifications"
+        >
+          <Bell size={20} />
+          {unreadCount > 0 && (
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </button>
       </div>
     </header>
   );

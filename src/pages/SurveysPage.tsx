@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Plus } from 'lucide-react';
 import { Card, CardHeader } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
+import { SurveyFormDialog } from '../components/features/surveys/SurveyFormDialog';
 import {
   useSurveys,
   useSurveyResponses,
@@ -238,14 +239,28 @@ export default function SurveysPage() {
   const [teamFilter, setTeamFilter] = useState(
     searchParams.get('teamId') ?? 'all'
   );
+  const [formOpen, setFormOpen] = useState(false);
 
   const surveys = useSurveys(teamFilter === 'all' ? undefined : teamFilter);
 
   return (
     <div className="px-4 py-4 space-y-4">
-      <h1 className="text-xl font-bold text-fg-heading">
-        Sondages de présence
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-fg-heading">
+          Sondages de présence
+        </h1>
+        <Button size="sm" onClick={() => setFormOpen(true)}>
+          <Plus size={16} /> Nouveau
+        </Button>
+      </div>
+
+      {formOpen && (
+        <SurveyFormDialog
+          open
+          onClose={() => setFormOpen(false)}
+          teamId={teamFilter !== 'all' ? teamFilter : undefined}
+        />
+      )}
 
       {/* Team filter */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">

@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { TopBar } from './TopBar';
+import { AppProvider } from '../../store/AppContext';
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -14,15 +15,20 @@ vi.mock('react-router-dom', async importOriginal => {
 function renderTopBar(path: string, props = {}) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route path="*" element={<TopBar {...props} />} />
-      </Routes>
+      <AppProvider>
+        <Routes>
+          <Route path="*" element={<TopBar {...props} />} />
+        </Routes>
+      </AppProvider>
     </MemoryRouter>
   );
 }
 
 describe('TopBar', () => {
-  beforeEach(() => mockNavigate.mockReset());
+  beforeEach(() => {
+    mockNavigate.mockReset();
+    localStorage.clear();
+  });
 
   it('shows logo and bell icon on root path', () => {
     renderTopBar('/');
