@@ -9,16 +9,18 @@ import {
   useUnavailabilities,
   useInjuries,
   usePositionHistory,
-  useAttendances,
-  useTrainings,
-  useMatches,
 } from '../store/AppContext';
 import {
   POSITION_LABELS,
   INJURY_STATUS_LABELS,
   UNAVAILABILITY_MOTIF_LABELS,
 } from '../types';
-import { formatDateShort, age, isActiveUnavailability, today } from '../utils/date';
+import {
+  formatDateShort,
+  age,
+  isActiveUnavailability,
+  today,
+} from '../utils/date';
 
 export default function PlayerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -40,8 +42,8 @@ export default function PlayerDetailPage() {
   }
 
   const todayStr = today();
-  const activeUnavail = unavailabilities.find((u) =>
-    isActiveUnavailability(u.startDate, u.endDate, todayStr),
+  const activeUnavail = unavailabilities.find(u =>
+    isActiveUnavailability(u.startDate, u.endDate, todayStr)
   );
 
   const appetenceEntries = Object.entries(player.appetences)
@@ -54,7 +56,8 @@ export default function PlayerDetailPage() {
       <div className="flex items-center gap-4">
         <div className="h-16 w-16 rounded-full bg-primary-subtle flex items-center justify-center flex-shrink-0">
           <span className="text-xl font-bold text-primary">
-            {player.firstName.charAt(0)}{player.lastName.charAt(0)}
+            {player.firstName.charAt(0)}
+            {player.lastName.charAt(0)}
           </span>
         </div>
         <div>
@@ -62,12 +65,11 @@ export default function PlayerDetailPage() {
             <h1 className="text-xl font-bold text-fg-heading">
               {player.firstName} {player.lastName}
             </h1>
-            {player.number && (
-              <Badge variant="primary">#{player.number}</Badge>
-            )}
+            {player.number && <Badge variant="primary">#{player.number}</Badge>}
           </div>
           <p className="text-sm text-fg-muted mt-0.5">
-            {POSITION_LABELS[player.preferredPosition]} · {age(player.dateOfBirth)} ans
+            {POSITION_LABELS[player.preferredPosition]} ·{' '}
+            {age(player.dateOfBirth)} ans
           </p>
           <p className="text-xs text-fg-faint mt-0.5">
             {primaryTeam?.name}
@@ -80,17 +82,24 @@ export default function PlayerDetailPage() {
       {activeUnavail && (
         <Card className="border-amber-300 bg-amber-50 dark:bg-amber-900/10">
           <div className="flex items-start gap-3">
-            <AlertTriangle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+            <AlertTriangle
+              size={18}
+              className="text-amber-600 flex-shrink-0 mt-0.5"
+            />
             <div>
               <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
-                Indisponible — {UNAVAILABILITY_MOTIF_LABELS[activeUnavail.motif]}
+                Indisponible —{' '}
+                {UNAVAILABILITY_MOTIF_LABELS[activeUnavail.motif]}
               </p>
               <p className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
                 Depuis le {formatDateShort(activeUnavail.startDate)}
-                {activeUnavail.endDate && ` jusqu'au ${formatDateShort(activeUnavail.endDate)}`}
+                {activeUnavail.endDate &&
+                  ` jusqu'au ${formatDateShort(activeUnavail.endDate)}`}
               </p>
               {activeUnavail.note && (
-                <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">{activeUnavail.note}</p>
+                <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+                  {activeUnavail.note}
+                </p>
               )}
             </div>
           </div>
@@ -98,26 +107,36 @@ export default function PlayerDetailPage() {
       )}
 
       {/* Active injury */}
-      {injuries.filter((i) => i.status !== 'apte').map((injury) => (
-        <Card key={injury.id} className="border-red-200 bg-red-50 dark:bg-red-900/10">
-          <div className="flex items-start gap-3">
-            <Activity size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-red-700 dark:text-red-400">
-                {injury.nature} — {injury.zone}
-              </p>
-              <p className="text-xs text-red-600 mt-0.5">
-                {INJURY_STATUS_LABELS[injury.status]}
-                {injury.estimatedReturnDate &&
-                  ` · Retour estimé ${formatDateShort(injury.estimatedReturnDate)}`}
-              </p>
-              {injury.noteCoach && (
-                <p className="text-xs text-red-500 mt-1">{injury.noteCoach}</p>
-              )}
+      {injuries
+        .filter(i => i.status !== 'apte')
+        .map(injury => (
+          <Card
+            key={injury.id}
+            className="border-red-200 bg-red-50 dark:bg-red-900/10"
+          >
+            <div className="flex items-start gap-3">
+              <Activity
+                size={18}
+                className="text-red-600 flex-shrink-0 mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                  {injury.nature} — {injury.zone}
+                </p>
+                <p className="text-xs text-red-600 mt-0.5">
+                  {INJURY_STATUS_LABELS[injury.status]}
+                  {injury.estimatedReturnDate &&
+                    ` · Retour estimé ${formatDateShort(injury.estimatedReturnDate)}`}
+                </p>
+                {injury.noteCoach && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {injury.noteCoach}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        </Card>
-      ))}
+          </Card>
+        ))}
 
       {/* Info */}
       <Card>
@@ -125,15 +144,21 @@ export default function PlayerDetailPage() {
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <div>
             <dt className="text-xs text-fg-muted">Date de naissance</dt>
-            <dd className="font-medium text-fg">{formatDateShort(player.dateOfBirth)}</dd>
+            <dd className="font-medium text-fg">
+              {formatDateShort(player.dateOfBirth)}
+            </dd>
           </div>
           <div>
             <dt className="text-xs text-fg-muted">Âge</dt>
-            <dd className="font-medium text-fg">{age(player.dateOfBirth)} ans</dd>
+            <dd className="font-medium text-fg">
+              {age(player.dateOfBirth)} ans
+            </dd>
           </div>
           <div>
             <dt className="text-xs text-fg-muted">Poste préféré</dt>
-            <dd className="font-medium text-fg">{POSITION_LABELS[player.preferredPosition]}</dd>
+            <dd className="font-medium text-fg">
+              {POSITION_LABELS[player.preferredPosition]}
+            </dd>
           </div>
           <div>
             <dt className="text-xs text-fg-muted">Numéro</dt>
@@ -150,7 +175,11 @@ export default function PlayerDetailPage() {
             {appetenceEntries.map(([pos, score]) => (
               <div key={pos} className="flex items-center gap-3">
                 <span className="text-xs text-fg-muted w-24 shrink-0">
-                  {/* istanbul ignore next */POSITION_LABELS[pos as keyof typeof POSITION_LABELS] ?? pos}
+                  {
+                    /* istanbul ignore next */ POSITION_LABELS[
+                      pos as keyof typeof POSITION_LABELS
+                    ] ?? pos
+                  }
                 </span>
                 <div className="flex-1 h-2 bg-surface-muted rounded-full overflow-hidden">
                   <div
@@ -158,7 +187,9 @@ export default function PlayerDetailPage() {
                     style={{ width: `${(score / 5) * 100}%` }}
                   />
                 </div>
-                <span className="text-xs font-medium text-fg w-4 text-right">{score}</span>
+                <span className="text-xs font-medium text-fg w-4 text-right">
+                  {score}
+                </span>
               </div>
             ))}
           </div>
@@ -170,10 +201,15 @@ export default function PlayerDetailPage() {
         <Card>
           <CardHeader title="Historique des postes" />
           <div className="space-y-2">
-            {positionHistory.slice(0, 6).map((h) => (
-              <div key={h.id} className="flex items-center justify-between text-sm">
+            {positionHistory.slice(0, 6).map(h => (
+              <div
+                key={h.id}
+                className="flex items-center justify-between text-sm"
+              >
                 <div>
-                  <span className="text-fg font-medium">{POSITION_LABELS[h.position]}</span>
+                  <span className="text-fg font-medium">
+                    {POSITION_LABELS[h.position]}
+                  </span>
                   <span className="text-fg-muted text-xs ml-2">{h.period}</span>
                 </div>
                 <span className="text-xs text-fg-muted">

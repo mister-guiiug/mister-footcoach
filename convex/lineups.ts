@@ -9,7 +9,7 @@ const slotSchema = v.object({
 });
 
 export const getAll = query({
-  handler: async (ctx) => ctx.db.query('lineups').collect(),
+  handler: async ctx => ctx.db.query('lineups').collect(),
 });
 
 export const save = mutation({
@@ -26,9 +26,11 @@ export const save = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query('lineups')
-      .withIndex('by_string_id', (q) => q.eq('id', args.id))
+      .withIndex('by_string_id', q => q.eq('id', args.id))
       .first();
     if (existing) {
+      // On retire `id` (clé applicative) du patch ; `_id` est intentionnellement inutilisé.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id: _id, ...fields } = args;
       await ctx.db.patch(existing._id, fields);
     } else {
