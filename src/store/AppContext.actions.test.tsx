@@ -12,6 +12,8 @@ import {
   useUnreadNotificationCount,
   useSurveys,
   useMatch,
+  useInjuries,
+  useUnavailabilities,
 } from './AppContext';
 import type {
   Match,
@@ -20,6 +22,8 @@ import type {
   TrainingBlock,
   CarpoolOffer,
   Survey,
+  Injury,
+  Unavailability,
 } from '../types';
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -205,6 +209,70 @@ describe('carpool actions', () => {
       })
     );
     expect(result.current.offers.length).toBe(0);
+  });
+});
+
+describe('injury / unavailability actions', () => {
+  it('adds and updates an injury', () => {
+    const { result } = renderHook(
+      () => ({ ctx: useAppContext(), injuries: useInjuries('p1') }),
+      { wrapper }
+    );
+    const injury: Injury = {
+      id: 'injx',
+      playerId: 'p1',
+      zone: 'cheville',
+      nature: 'entorse',
+      startDate: '2026-05-01',
+      status: 'en_reeduc',
+    };
+    act(() => result.current.ctx.dispatch({ type: 'ADD_INJURY', injury }));
+    expect(result.current.injuries.find(i => i.id === 'injx')?.status).toBe(
+      'en_reeduc'
+    );
+
+    act(() =>
+      result.current.ctx.dispatch({
+        type: 'UPDATE_INJURY',
+        injury: { ...injury, status: 'apte', actualReturnDate: '2026-05-20' },
+      })
+    );
+    expect(result.current.injuries.find(i => i.id === 'injx')?.status).toBe(
+      'apte'
+    );
+  });
+
+  it('adds and closes an unavailability', () => {
+    const { result } = renderHook(
+      () => ({ ctx: useAppContext(), unavail: useUnavailabilities('p1') }),
+      { wrapper }
+    );
+    const unavailability: Unavailability = {
+      id: 'uvx',
+      playerId: 'p1',
+      startDate: '2026-05-01',
+      motif: 'blessure',
+      declaredBy: 'u1',
+    };
+    act(() =>
+      result.current.ctx.dispatch({
+        type: 'ADD_UNAVAILABILITY',
+        unavailability,
+      })
+    );
+    expect(
+      result.current.unavail.find(u => u.id === 'uvx')?.endDate
+    ).toBeUndefined();
+
+    act(() =>
+      result.current.ctx.dispatch({
+        type: 'UPDATE_UNAVAILABILITY',
+        unavailability: { ...unavailability, endDate: '2026-05-20' },
+      })
+    );
+    expect(result.current.unavail.find(u => u.id === 'uvx')?.endDate).toBe(
+      '2026-05-20'
+    );
   });
 });
 
