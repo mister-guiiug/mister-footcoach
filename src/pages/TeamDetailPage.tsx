@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronRight, AlertTriangle, Plus } from 'lucide-react';
+import { ChevronRight, AlertTriangle, Plus, Download } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -11,6 +11,7 @@ import {
   useMatches,
   useTrainings,
   useUnavailabilities,
+  useTournaments,
 } from '../store/AppContext';
 import { POSITION_LABELS } from '../types';
 import {
@@ -19,6 +20,8 @@ import {
   isActiveUnavailability,
   today,
 } from '../utils/date';
+import { matchEvent, trainingEvent, buildICal } from '../utils/ical';
+import { downloadFile } from '../utils/download';
 
 export default function TeamDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +30,22 @@ export default function TeamDetailPage() {
   const matches = useMatches(id);
   const trainings = useTrainings(id);
   const unavailabilities = useUnavailabilities();
+  const tournaments = useTournaments();
   const [playerFormOpen, setPlayerFormOpen] = useState(false);
+
+  function exportICal() {
+    const tournamentName = (tid?: string) =>
+      tid ? tournaments.find(t => t.id === tid)?.name : undefined;
+    const events = [
+      ...matches.map(m => matchEvent(m, tournamentName(m.tournamentId))),
+      ...trainings.map(trainingEvent),
+    ];
+    downloadFile(
+      `${team?.name ?? 'equipe'}.ics`,
+      buildICal(events, `${team?.name ?? 'Équipe'} — Mister Footcoach`),
+      'text/calendar'
+    );
+  }
 
   if (!team) {
     return (
@@ -226,6 +244,13 @@ export default function TeamDetailPage() {
             </Card>
           </Link>
         </div>
+        <Button
+          variant="secondary"
+          onClick={exportICal}
+          className="mt-2 w-full"
+        >
+          <Download size={15} /> Exporter le calendrier (iCal)
+        </Button>
       </section>
     </div>
   );

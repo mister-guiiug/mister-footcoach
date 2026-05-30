@@ -33,4 +33,17 @@ describe('SurveysPage — synthesis view', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Présents' }));
     expect(screen.getByText(/Lucas Dupont/)).toBeInTheDocument();
   });
+
+  it('flags divergence between legal tutors (§15.8)', async () => {
+    renderWithProviders(<SurveysPage />);
+    await userEvent.click(screen.getAllByText('Voir les réponses')[0]!);
+    // sv1 / p1 has two tutors who answered differently (present vs absent).
+    expect(
+      screen.getByText('Réponses divergentes entre tuteurs')
+    ).toBeInTheDocument();
+    // Both tutors are listed with a "Retenir" action.
+    expect(
+      screen.getAllByRole('button', { name: 'Retenir' }).length
+    ).toBeGreaterThanOrEqual(2);
+  });
 });

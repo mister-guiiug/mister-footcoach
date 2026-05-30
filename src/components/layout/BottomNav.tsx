@@ -10,6 +10,7 @@ import {
   Layers,
   BarChart3,
   BookOpen,
+  Contact,
   Settings,
   X,
 } from 'lucide-react';
@@ -28,6 +29,7 @@ const moreTabs = [
   { to: '/compositions', label: 'Compositions', icon: Layers },
   { to: '/statistiques', label: 'Statistiques', icon: BarChart3 },
   { to: '/exercices', label: 'Exercices', icon: BookOpen },
+  { to: '/contacts', label: 'Contacts', icon: Contact },
   { to: '/parametres', label: 'Paramètres', icon: Settings },
 ];
 

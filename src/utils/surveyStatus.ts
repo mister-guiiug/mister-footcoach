@@ -1,4 +1,8 @@
-import type { SurveyResponse, SurveyResponseValue } from '../types';
+import type {
+  SurveyResponse,
+  SurveyResponseValue,
+  TutorResponse,
+} from '../types';
 
 /**
  * Retained presence status for a survey response (specs §15.5).
@@ -37,6 +41,19 @@ export function retainedStatus(resp?: SurveyResponse): RetainedStatus {
     };
   }
   return { value: null, confirmed: false, answered: false, divergence: false };
+}
+
+/** True when several tutors answered with different values (specs §15.8). */
+export function tutorDivergence(tutorResponses?: TutorResponse[]): boolean {
+  if (!tutorResponses || tutorResponses.length < 2) return false;
+  return new Set(tutorResponses.map(t => t.value)).size > 1;
+}
+
+/** Tutor answers ordered with the most recent first (specs §15.8). */
+export function sortedTutorResponses(
+  tutorResponses?: TutorResponse[]
+): TutorResponse[] {
+  return [...(tutorResponses ?? [])].sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 export type SurveyFilter =
