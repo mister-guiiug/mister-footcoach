@@ -34,12 +34,14 @@ import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   isNotificationAllowed,
 } from '../utils/notifications';
+import { BACKEND } from '../backend/config';
+import { SupabaseAppProvider } from './SupabaseAppProvider';
 
 const STORAGE_KEY = 'mister-footcoach-data';
 
 // ── State ────────────────────────────────────────────────────────────
 
-interface AppState extends AppData {
+export interface AppState extends AppData {
   selectedTeamId: string;
 }
 
@@ -101,11 +103,12 @@ type Action =
       preferences: NotificationPreferences;
     }
   | { type: 'SET_CLUB_SETTINGS'; settings: ClubSettings }
+  | { type: 'HYDRATE'; state: AppState }
   | { type: 'RESET_TO_MOCK' };
 
 // ── Reducer ───────────────────────────────────────────────────────────
 
-function reducer(state: AppState, action: Action): AppState {
+export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_SELECTED_TEAM':
       return { ...state, selectedTeamId: action.teamId };
@@ -389,6 +392,10 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_CLUB_SETTINGS':
       return { ...state, clubSettings: action.settings };
 
+    case 'HYDRATE':
+      /* istanbul ignore next */
+      return action.state;
+
     case 'RESET_TO_MOCK':
       /* istanbul ignore next */
       return { ...MOCK_DATA, selectedTeamId: MOCK_DATA.teams[0]!.id };
@@ -424,14 +431,45 @@ function saveState(state: AppState): void {
 
 // ── Context ───────────────────────────────────────────────────────────
 
-interface AppContextValue {
+export interface AppContextValue {
   state: AppState;
   dispatch: React.Dispatch<Action>;
 }
 
-const AppContext = createContext<AppContextValue | null>(null);
+export type AppAction = Action;
 
-export function AppProvider({ children }: { children: ReactNode }) {
+export const AppContext = createContext<AppContextValue | null>(null);
+
+/** Empty state used before the Supabase backend hydrates. */
+export const EMPTY_APP_STATE: AppState = {
+  season: { id: '', name: '', startDate: '', endDate: '', active: false },
+  teams: [],
+  players: [],
+  contacts: [],
+  users: [],
+  matches: [],
+  matchEvents: [],
+  trainings: [],
+  trainingBlocks: [],
+  exercises: [],
+  attendances: [],
+  lineups: [],
+  positionHistory: [],
+  tournaments: [],
+  tournamentGroups: [],
+  carpoolOffers: [],
+  surveys: [],
+  surveyResponses: [],
+  notifications: [],
+  notificationPreferences: {},
+  clubSettings: { autoSurveyOnMatch: true },
+  unavailabilities: [],
+  injuries: [],
+  selectedTeamId: '',
+};
+
+/** Local-storage backed provider (default; used in tests and offline MVP). */
+export function LocalAppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, loadState);
 
   useEffect(() => {
@@ -443,6 +481,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       {children}
     </AppContext.Provider>
   );
+}
+
+/** Selects the data backend (specs §5 adapter layer). */
+export function AppProvider({ children }: { children: ReactNode }) {
+  if (BACKEND === 'supabase') {
+    return <SupabaseAppProvider>{children}</SupabaseAppProvider>;
+  }
+  return <LocalAppProvider>{children}</LocalAppProvider>;
 }
 
 export function useAppContext() {
