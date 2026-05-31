@@ -29,6 +29,10 @@ dev-dist
 .env.*
 !.env.example
 
+# Supabase CLI (local state — never contains migrations)
+/supabase/.temp/
+/supabase/.branches/
+
 # Playwright
 /test-results/
 /playwright-report/

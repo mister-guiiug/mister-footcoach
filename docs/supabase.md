@@ -66,6 +66,57 @@ npm run dev
 L'écran de connexion apparaît (mode `supabase`). Connecte-toi avec le compte
 créé à l'étape 3.
 
+## Automatisé via la CLI (alternative aux étapes 1–2)
+
+Au lieu de cliquer dans le dashboard, tu peux créer le projet **et** appliquer
+les migrations en une commande. **Ton token reste dans ton terminal**, jamais
+dans le repo ni dans un chat.
+
+### Prérequis : installer la CLI Supabase
+
+Le wrapper npm de la CLI est cassé sur Windows (bug npm de binaires optionnels).
+Utilise donc :
+
+- **Windows** : `scoop install supabase`
+- **macOS** : `brew install supabase/tap/supabase`
+- Sinon : binaire standalone — https://supabase.com/docs/guides/cli
+
+### Créer un token (et révoquer les anciens exposés)
+
+Dashboard → **Account → Access Tokens** → _Generate new token_. Puis, **dans le
+terminal où tu lanceras la commande** :
+
+```powershell
+# PowerShell
+$env:SUPABASE_ACCESS_TOKEN = "sbp_xxx"
+```
+
+```bash
+# bash / zsh
+export SUPABASE_ACCESS_TOKEN=sbp_xxx
+```
+
+### Lancer
+
+**Créer un nouveau projet** (région Frankfurt) — org id via
+`supabase orgs list` :
+
+```bash
+SUPABASE_ORG_ID=<org> npm run supabase:setup
+```
+
+La commande crée le projet puis affiche son **project ref**. Relance ensuite
+pour lier et pousser les migrations :
+
+```bash
+SUPABASE_PROJECT_REF=<ref> npm run supabase:setup
+```
+
+(Si le projet existe déjà, va directement à la 2ᵉ commande.) La CLI demande le
+**mot de passe de la base** au moment voulu — jamais passé en argument. Le
+script applique les 3 migrations via `supabase db push`. Il reste à lier ton
+compte auth (étape 3) et à remplir `.env.local` (étape 4).
+
 ## Notes techniques
 
 - **Colonnes en camelCase quotées** : le schéma reflète 1:1 les types
