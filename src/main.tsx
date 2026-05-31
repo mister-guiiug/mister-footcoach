@@ -12,13 +12,19 @@ onLCP(console.log);
 onTTFB(console.log);
 
 import { AppProvider } from './store/AppContext.tsx';
+import { AuthProvider } from './auth/AuthContext.tsx';
+import { AuthGate } from './auth/AuthGate.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <AppProvider>
-        <App />
-      </AppProvider>
+      <AuthProvider>
+        <AuthGate>
+          <AppProvider>
+            <App />
+          </AppProvider>
+        </AuthGate>
+      </AuthProvider>
     </ThemeProvider>
   </StrictMode>
 );
