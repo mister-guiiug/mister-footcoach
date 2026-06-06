@@ -2,33 +2,38 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 type Call = [string, ...unknown[]];
 
-const { calls, fromImpl } = vi.hoisted(() => {
+const { calls, fromImpl, setError } = vi.hoisted(() => {
   const calls: Call[] = [];
+  let error: { message: string } | null = null;
+  const result = () => Promise.resolve({ error });
   function fromImpl(table: string) {
     return {
       upsert: (row: unknown) => {
         calls.push(['upsert', table, row]);
-        return Promise.resolve({ error: null });
+        return result();
       },
       insert: (rows: unknown) => {
         calls.push(['insert', table, rows]);
-        return Promise.resolve({ error: null });
+        return result();
       },
       delete: () => ({
         eq: (col: string, val: unknown) => {
           calls.push(['delete', table, col, val]);
-          return Promise.resolve({ error: null });
+          return result();
         },
       }),
       update: (changes: unknown) => ({
         eq: (col: string, val: unknown) => {
           calls.push(['update', table, changes, col, val]);
-          return Promise.resolve({ error: null });
+          return result();
         },
       }),
     };
   }
-  return { calls, fromImpl };
+  function setError(e: { message: string } | null) {
+    error = e;
+  }
+  return { calls, fromImpl, setError };
 });
 
 vi.mock('../lib/supabase', () => ({
@@ -49,6 +54,7 @@ const state = {
 describe('persistAction routing', () => {
   beforeEach(() => {
     calls.length = 0;
+    setError(null);
   });
 
   it('upserts a match on ADD_MATCH', async () => {
@@ -106,5 +112,12 @@ describe('persistAction routing', () => {
     await persistAction({ type: 'SET_SELECTED_TEAM', teamId: 't1' }, state);
     await persistAction({ type: 'RESET_TO_MOCK' }, state);
     expect(calls).toHaveLength(0);
+  });
+
+  it('rejects when Supabase returns an error (e.g. RLS denial)', async () => {
+    setError({ message: 'new row violates row-level security policy' });
+    await expect(
+      persistAction({ type: 'ADD_MATCH', match: { id: 'm1' } as never }, state)
+    ).rejects.toThrow(/row-level security/);
   });
 });

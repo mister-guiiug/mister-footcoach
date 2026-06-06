@@ -14,17 +14,20 @@ onTTFB(console.log);
 import { AppProvider } from './store/AppContext.tsx';
 import { AuthProvider } from './auth/AuthContext.tsx';
 import { AuthGate } from './auth/AuthGate.tsx';
+import { ToastProvider } from './components/ui/Toast.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <AuthProvider>
-        <AuthGate>
-          <AppProvider>
-            <App />
-          </AppProvider>
-        </AuthGate>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <AuthGate>
+            <AppProvider>
+              <App />
+            </AppProvider>
+          </AuthGate>
+        </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   </StrictMode>
 );
