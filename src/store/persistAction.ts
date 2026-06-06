@@ -5,23 +5,40 @@ import { genId, nowIso } from '../utils/id';
 
 type Row = Record<string, unknown>;
 
+/**
+ * Awaits a Supabase query and throws on error. supabase-js resolves (does not
+ * reject) on RLS denials and constraint violations, returning `{ error }` — so
+ * without this check, failed writes would be swallowed silently.
+ */
+async function run(query: PromiseLike<{ error: unknown }>): Promise<void> {
+  const { error } = await query;
+  if (error) {
+    const message =
+      typeof error === 'object' && error !== null && 'message' in error
+        ? String((error as { message: unknown }).message)
+        : 'Échec de la requête Supabase';
+    throw new Error(message);
+  }
+}
+
 function upsert(table: string, row: Row) {
-  return getSupabase().from(table).upsert(row);
+  return run(getSupabase().from(table).upsert(row));
 }
 function insert(table: string, rows: Row | Row[]) {
-  return getSupabase().from(table).insert(rows);
+  return run(getSupabase().from(table).insert(rows));
 }
 function del(table: string, id: string) {
-  return getSupabase().from(table).delete().eq('id', id);
+  return run(getSupabase().from(table).delete().eq('id', id));
 }
 function patch(table: string, id: string, changes: Row) {
-  return getSupabase().from(table).update(changes).eq('id', id);
+  return run(getSupabase().from(table).update(changes).eq('id', id));
 }
 
 /**
  * Translates a dispatched action into the equivalent Supabase write. Reads are
  * kept in sync by realtime (the provider re-hydrates on any change), so this
- * only persists; failures are surfaced via the returned promise.
+ * only persists; failures (including RLS denials) reject the returned promise
+ * so the caller can roll back and notify the user.
  */
 export async function persistAction(
   action: AppAction,
@@ -63,10 +80,12 @@ export async function persistAction(
       await upsert('trainings', action.training as unknown as Row);
       return;
     case 'SET_TRAINING_BLOCKS':
-      await getSupabase()
-        .from('training_blocks')
-        .delete()
-        .eq('trainingId', action.trainingId);
+      await run(
+        getSupabase()
+          .from('training_blocks')
+          .delete()
+          .eq('trainingId', action.trainingId)
+      );
       if (action.blocks.length > 0)
         await insert('training_blocks', action.blocks as unknown as Row[]);
       return;
@@ -143,10 +162,12 @@ export async function persistAction(
       await patch('notifications', action.notificationId, { read: true });
       return;
     case 'MARK_ALL_NOTIFICATIONS_READ':
-      await getSupabase()
-        .from('notifications')
-        .update({ read: true })
-        .eq('userId', action.userId);
+      await run(
+        getSupabase()
+          .from('notifications')
+          .update({ read: true })
+          .eq('userId', action.userId)
+      );
       return;
     case 'SET_NOTIFICATION_PREFERENCES':
       await upsert('notification_preferences', {

@@ -65,3 +65,18 @@ export async function loadAllFromSupabase(): Promise<AppState> {
   state.selectedTeamId = state.teams[0]?.id ?? '';
   return state;
 }
+
+/**
+ * Keeps the previously selected team across a re-hydration when it still
+ * exists, so a realtime refresh (or an error rollback) doesn't yank the coach
+ * back to the first team. Falls back to the freshly loaded default otherwise.
+ */
+export function reconcileSelectedTeam(
+  next: AppState,
+  previousSelectedId: string
+): AppState {
+  if (previousSelectedId && next.teams.some(t => t.id === previousSelectedId)) {
+    return { ...next, selectedTeamId: previousSelectedId };
+  }
+  return next;
+}

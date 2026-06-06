@@ -14,9 +14,14 @@ import {
   type AppState,
 } from './AppContext';
 import { getSupabase } from '../lib/supabase';
-import { loadAllFromSupabase, ALL_TABLES } from '../backend/tables';
+import {
+  loadAllFromSupabase,
+  reconcileSelectedTeam,
+  ALL_TABLES,
+} from '../backend/tables';
 import { persistAction } from './persistAction';
 import { Spinner } from '../components/ui/Spinner';
+import { useToast } from '../components/ui/Toast';
 
 /**
  * Supabase-backed provider. Hydrates the full AppState from Postgres, keeps it
@@ -27,6 +32,7 @@ import { Spinner } from '../components/ui/Spinner';
 export function SupabaseAppProvider({ children }: { children: ReactNode }) {
   const [state, localDispatch] = useReducer(reducer, EMPTY_APP_STATE);
   const [ready, setReady] = useState(false);
+  const toast = useToast();
 
   // Keep the latest state available to the persist layer (e.g. NOTIFY).
   const stateRef = useRef<AppState>(state);
@@ -36,7 +42,11 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const reload = useCallback(async () => {
     const next = await loadAllFromSupabase();
-    localDispatch({ type: 'HYDRATE', state: next });
+    // Preserve the coach's current team selection across the refresh.
+    localDispatch({
+      type: 'HYDRATE',
+      state: reconcileSelectedTeam(next, stateRef.current.selectedTeamId),
+    });
   }, []);
 
   useEffect(() => {
@@ -73,13 +83,23 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
     };
   }, [reload]);
 
-  // Optimistic local update + persistence to Supabase.
-  const dispatch = useCallback((action: AppAction) => {
-    localDispatch(action);
-    void persistAction(action, stateRef.current).catch((e: unknown) =>
-      console.error('Supabase persist failed', action.type, e)
-    );
-  }, []);
+  // Optimistic local update + persistence to Supabase. On failure (e.g. an RLS
+  // denial), reconcile back to the server truth and tell the user, instead of
+  // leaving a phantom change that silently disappears on the next refresh.
+  const dispatch = useCallback(
+    (action: AppAction) => {
+      localDispatch(action);
+      void persistAction(action, stateRef.current).catch((e: unknown) => {
+        console.error('Supabase persist failed', action.type, e);
+        toast.show(
+          "Échec de l'enregistrement. La modification a été annulée.",
+          'error'
+        );
+        void reload();
+      });
+    },
+    [reload, toast]
+  );
 
   if (!ready) return <Spinner fullscreen />;
 
