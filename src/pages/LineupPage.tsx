@@ -20,6 +20,10 @@ import {
 import { isActiveUnavailability, today } from '../utils/date';
 import { rankPlayersForPosition, isSuggested } from '../utils/lineup';
 
+// FORMATIONS est une constante non vide : la première sert de défaut
+// (noUncheckedIndexedAccess rend l'accès [0] `Formation | undefined`).
+const DEFAULT_FORMATION = FORMATIONS[0]!;
+
 export default function LineupPage() {
   const [searchParams] = useSearchParams();
   const teams = useTeams();
@@ -28,11 +32,10 @@ export default function LineupPage() {
   const [selectedTeamId, setSelectedTeamId] = useState(
     searchParams.get('teamId') ?? teams[0]!.id
   );
-  const [selectedFormation, setSelectedFormation] = useState<Formation>(
-    FORMATIONS[0]
-  );
+  const [selectedFormation, setSelectedFormation] =
+    useState<Formation>(DEFAULT_FORMATION);
   const [slots, setSlots] = useState<LineupSlot[]>(
-    FORMATIONS[0].slots.map(s => ({ ...s }))
+    DEFAULT_FORMATION.slots.map(s => ({ ...s }))
   );
   const [selectedSlotPos, setSelectedSlotPos] = useState<string | null>(null);
   const [substituteIds, setSubstituteIds] = useState<string[]>([]);
@@ -122,7 +125,7 @@ export default function LineupPage() {
     /* c8 ignore next */
     if (!lineup) return;
     const formation =
-      FORMATIONS.find(f => f.id === lineup.formation) ?? FORMATIONS[0];
+      FORMATIONS.find(f => f.id === lineup.formation) ?? DEFAULT_FORMATION;
     setSelectedFormation(formation);
     setSlots(lineup.slots);
     setSubstituteIds(lineup.substituteIds);

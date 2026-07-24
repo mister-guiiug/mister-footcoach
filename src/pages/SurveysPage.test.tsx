@@ -46,9 +46,17 @@ describe('SurveysPage', () => {
     expect(screen.getByText(/La confirmation du parent/)).toBeInTheDocument();
   });
 
+  /** Premier élément requis d'une liste de fixtures — échec clair s'il manque
+   *  (noUncheckedIndexedAccess : l'accès [0] seul serait `T | undefined`). */
+  function first<T>(items: T[]): T {
+    const item = items[0];
+    if (item === undefined) throw new Error('fixture : liste vide');
+    return item;
+  }
+
   it('expands survey details on click', async () => {
     renderWithProviders(<SurveysPage />);
-    const btn = screen.getAllByText('Voir les réponses')[0];
+    const btn = first(screen.getAllByText('Voir les réponses'));
     await userEvent.click(btn);
     expect(screen.getByText('Masquer les détails')).toBeInTheDocument();
     // Player names should appear
@@ -57,7 +65,7 @@ describe('SurveysPage', () => {
 
   it('collapses survey details on second click', async () => {
     renderWithProviders(<SurveysPage />);
-    const btn = screen.getAllByText('Voir les réponses')[0];
+    const btn = first(screen.getAllByText('Voir les réponses'));
     await userEvent.click(btn);
     await userEvent.click(screen.getByText('Masquer les détails'));
     expect(screen.getAllByText('Voir les réponses').length).toBeGreaterThan(0);
@@ -65,36 +73,36 @@ describe('SurveysPage', () => {
 
   it('shows divergence warning when intention != confirmation', async () => {
     renderWithProviders(<SurveysPage />);
-    await userEvent.click(screen.getAllByText('Voir les réponses')[0]);
+    await userEvent.click(first(screen.getAllByText('Voir les réponses')));
     // sr2: intentionJoueur=present, confirmationParent=absent → divergence for p2
     expect(screen.getByText('Divergence')).toBeInTheDocument();
   });
 
   it('clicking intentionJoueur button records response', async () => {
     renderWithProviders(<SurveysPage />);
-    await userEvent.click(screen.getAllByText('Voir les réponses')[0]);
+    await userEvent.click(first(screen.getAllByText('Voir les réponses')));
     // Find first Présent button in the intention section (p1 area — already 'present')
     const presentBtns = screen.getAllByRole('button', { name: 'Présent' });
     if (presentBtns.length > 0) {
-      await userEvent.click(presentBtns[0]);
+      await userEvent.click(first(presentBtns));
     }
   });
 
   it('clicking confirmationParent button records response', async () => {
     renderWithProviders(<SurveysPage />);
-    await userEvent.click(screen.getAllByText('Voir les réponses')[0]);
+    await userEvent.click(first(screen.getAllByText('Voir les réponses')));
     const absentBtns = screen.getAllByRole('button', { name: 'Absent' });
     if (absentBtns.length > 0) {
-      await userEvent.click(absentBtns[0]);
+      await userEvent.click(first(absentBtns));
     }
   });
 
   it('clicking Incertain button records uncertain response', async () => {
     renderWithProviders(<SurveysPage />);
-    await userEvent.click(screen.getAllByText('Voir les réponses')[0]);
+    await userEvent.click(first(screen.getAllByText('Voir les réponses')));
     const incertainBtns = screen.getAllByRole('button', { name: 'Incertain' });
     if (incertainBtns.length > 0) {
-      await userEvent.click(incertainBtns[0]);
+      await userEvent.click(first(incertainBtns));
     }
   });
 
@@ -120,14 +128,15 @@ describe('SurveysPage', () => {
 
   it('creates new response for player with no existing response', async () => {
     renderWithProviders(<SurveysPage />);
-    await userEvent.click(screen.getAllByText('Voir les réponses')[0]);
+    await userEvent.click(first(screen.getAllByText('Voir les réponses')));
     // p4 and beyond have no responses — clicking any button creates a new one
     const allIncertainBtns = screen.getAllByRole('button', {
       name: 'Incertain',
     });
     // Click the last one (should be for a player without existing response)
-    if (allIncertainBtns.length > 0) {
-      await userEvent.click(allIncertainBtns[allIncertainBtns.length - 1]);
+    const lastIncertain = allIncertainBtns.at(-1);
+    if (lastIncertain) {
+      await userEvent.click(lastIncertain);
     }
   });
 

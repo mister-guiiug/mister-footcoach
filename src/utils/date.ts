@@ -42,7 +42,9 @@ export function age(dateOfBirth: string): number {
 }
 
 export function today(): string {
-  return new Date().toISOString().split('T')[0];
+  // slice plutôt que split()[0] : l'accès indexé serait `string | undefined`
+  // sous noUncheckedIndexedAccess, alors que le format ISO est garanti.
+  return new Date().toISOString().slice(0, 10);
 }
 
 /** Returns the date `days` days after `dateStr` (ISO YYYY-MM-DD). */
