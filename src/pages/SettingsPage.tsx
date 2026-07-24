@@ -8,7 +8,9 @@ import {
   Check,
   RadioTower,
   Coffee,
+  LayoutGrid,
 } from 'lucide-react';
+import { FamilyApps } from '@mister-guiiug/dev-wpa-config/react';
 import { REPO_URL, SPONSOR_URL } from '../links';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -327,6 +329,25 @@ export default function SettingsPage() {
       </Card>
 
       {/* App info */}
+      <Card>
+        <div className="mb-3 flex items-center gap-2">
+          <LayoutGrid size={16} className="text-fg-muted" />
+          <p className="text-sm font-semibold text-fg-heading">
+            Nos autres applications
+          </p>
+        </div>
+        <p className="mb-3 text-xs text-fg-muted">
+          D'autres applications gratuites de la même famille.
+        </p>
+        <div className="family-apps">
+          <FamilyApps
+            currentAppId="mister-footcoach"
+            showSource={false}
+            showSponsor={false}
+          />
+        </div>
+      </Card>
+
       <Card>
         <div className="flex items-start gap-3">
           <Info size={18} className="text-fg-muted flex-shrink-0 mt-0.5" />
