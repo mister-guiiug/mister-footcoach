@@ -1,16 +1,7 @@
 export type Role = 'admin' | 'coach' | 'parent';
 
 export type Position =
-  | 'GK'
-  | 'DD'
-  | 'DC'
-  | 'DG'
-  | 'MD'
-  | 'MC'
-  | 'MO'
-  | 'ATD'
-  | 'ATG'
-  | 'AT';
+  'GK' | 'DD' | 'DC' | 'DG' | 'MD' | 'MC' | 'MO' | 'ATD' | 'ATG' | 'AT';
 
 export const POSITION_LABELS: Record<Position, string> = {
   GK: 'Gardien',
@@ -26,19 +17,10 @@ export const POSITION_LABELS: Record<Position, string> = {
 };
 
 export type ContactType =
-  | 'père'
-  | 'mère'
-  | 'beau-père'
-  | 'belle-mère'
-  | 'tuteur'
-  | 'autre';
+  'père' | 'mère' | 'beau-père' | 'belle-mère' | 'tuteur' | 'autre';
 
 export type MatchStatus =
-  | 'previsionnel'
-  | 'engage'
-  | 'saison'
-  | 'tournoi'
-  | 'annule';
+  'previsionnel' | 'engage' | 'saison' | 'tournoi' | 'annule';
 
 export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
   previsionnel: 'Prévisionnel',
@@ -67,12 +49,7 @@ export const INJURY_STATUS_LABELS: Record<InjuryStatus, string> = {
 };
 
 export type UnavailabilityMotif =
-  | 'blessure'
-  | 'maladie'
-  | 'vacances'
-  | 'suspension'
-  | 'personnel'
-  | 'autre';
+  'blessure' | 'maladie' | 'vacances' | 'suspension' | 'personnel' | 'autre';
 
 export const UNAVAILABILITY_MOTIF_LABELS: Record<UnavailabilityMotif, string> =
   {
@@ -103,9 +80,7 @@ export const TOURNAMENT_STATUS_LABELS: Record<TournamentStatus, string> = {
 };
 
 export type TournamentFormat =
-  | 'poules'
-  | 'elimination_directe'
-  | 'poules_finale';
+  'poules' | 'elimination_directe' | 'poules_finale';
 
 export type MatchEventType =
   | 'but'

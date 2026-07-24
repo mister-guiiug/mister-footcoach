@@ -57,10 +57,7 @@ export function sortedTutorResponses(
 }
 
 export type SurveyFilter =
-  | 'all'
-  | 'confirmed_present'
-  | 'confirmed_absent'
-  | 'unanswered';
+  'all' | 'confirmed_present' | 'confirmed_absent' | 'unanswered';
 
 export function matchesFilter(
   status: RetainedStatus,
