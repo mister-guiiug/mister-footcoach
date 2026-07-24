@@ -2,6 +2,7 @@ import { defineConfig, type PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { pwaSeoPlugin } from '@mister-guiiug/dev-wpa-config/vite-pwa-base';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 const analyze = process.env.ANALYZE === '1';
@@ -42,6 +43,13 @@ export default defineConfig(({ command }) => {
     plugins: [
       react(),
       tailwindcss(),
+      // SEO partagé famille : canonical/OG via placeholders index.html +
+      // sitemap.xml/robots.txt générés au build (robots statique supprimé).
+      pwaSeoPlugin({
+        siteName: 'Mister Footcoach',
+        basePath,
+        logoPath: '/logo.svg',
+      }),
       VitePWA({
         registerType: 'prompt',
         workbox: {

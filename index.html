@@ -15,6 +15,15 @@
       })();
     </script>
     <meta charset="UTF-8" />
+    <!--
+      Content-Security-Policy en défense en profondeur.
+      'unsafe-inline' : script anti-FOUC + styles Tailwind/vite-plugin-pwa.
+      connect-src Supabase : REST https + Realtime wss.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="alternate icon" type="image/png" href="/pwa-192x192.png" />
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
@@ -44,18 +53,34 @@
     <meta name="author" content="Mister Footcoach" />
     <meta name="robots" content="index, follow" />
 
+    <link rel="canonical" href="__SEO_HOME_URL__" />
+
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Mister Footcoach" />
     <meta property="og:locale" content="fr_FR" />
+    <meta property="og:url" content="__SEO_HOME_URL__" />
     <meta property="og:title" content="Mister Footcoach — coach de football" />
     <meta
       property="og:description"
       content="Gérez vos équipes, créez vos compositions tactiques et suivez vos statistiques de match. Web app installable (PWA)."
     />
+    <meta property="og:image" content="__SEO_LOGO_URL__" />
 
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Mister Footcoach — coach de football" />
+    <meta
+      name="twitter:description"
+      content="Gestion d'équipes, compositions tactiques et statistiques de match (PWA)."
+    />
+    <meta name="twitter:image" content="__SEO_LOGO_URL__" />
+
+    <!-- Analytics (GTM/GA4) injecté par pwaSeoPlugin() — vide tant qu'aucun
+         VITE_GTM_CONTAINER_ID / VITE_GA_MEASUREMENT_ID n'est configuré. -->
+    __ANALYTICS_HEAD__
     <title>Mister Footcoach</title>
   </head>
   <body>
+    __ANALYTICS_BODY__
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
