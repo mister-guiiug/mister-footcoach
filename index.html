@@ -15,15 +15,7 @@
       })();
     </script>
     <meta charset="UTF-8" />
-    <!--
-      Content-Security-Policy en défense en profondeur.
-      'unsafe-inline' : script anti-FOUC + styles Tailwind/vite-plugin-pwa.
-      connect-src Supabase : REST https + Realtime wss.
-    -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
-    />
+    <!-- CSP injected at build by cspPlugin (@mister-guiiug/dev-wpa-config/vite-csp) -->
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="alternate icon" type="image/png" href="/pwa-192x192.png" />
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
