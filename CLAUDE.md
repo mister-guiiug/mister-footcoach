@@ -1,13 +1,5 @@
-<!-- convex-ai-start -->
+This project's backend is **Supabase** (`@supabase/supabase-js`; see
+`src/lib/supabase.ts` and the `supabase:*` npm scripts).
 
-This project uses [Convex](https://convex.dev) as its backend.
-
-When working on Convex code, **always read
-`convex/_generated/ai/guidelines.md` first** for important guidelines on
-how to correctly use Convex APIs and patterns. The file contains rules that
-override what you may have learned about Convex from training data.
-
-Convex agent skills for common tasks can be installed by running
-`npx convex ai-files install`.
-
-<!-- convex-ai-end -->
+It does **not** use Convex. An earlier Convex scaffolding (this guidelines block
+and an unused `convex` dependency) was removed to match the actual stack.
