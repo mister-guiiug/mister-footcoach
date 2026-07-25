@@ -4,6 +4,7 @@ import { Input, Textarea } from '../../ui/Input';
 import { Button } from '../../ui/Button';
 import { useAppContext } from '../../../store/AppContext';
 import type { Match } from '../../../types';
+import { useI18n } from '../../../i18n';
 
 interface MeetingPointDialogProps {
   open: boolean;
@@ -16,6 +17,7 @@ export function MeetingPointDialog({
   onClose,
   match,
 }: MeetingPointDialogProps) {
+  const { t } = useI18n();
   const { dispatch } = useAppContext();
   const [address, setAddress] = useState(match.meetingAddress ?? '');
   const [time, setTime] = useState(match.meetingTime ?? '');
@@ -35,7 +37,10 @@ export function MeetingPointDialog({
       type: 'NOTIFY',
       teamId: match.teamId,
       notifType: 'point_rdv_modifie',
-      message: `Point de RDV mis à jour pour le match ${match.isHome ? 'vs' : '@'} ${match.opponent}.`,
+      message: t('notifications.msg.meetingUpdated', {
+        sign: match.isHome ? 'vs' : '@',
+        opponent: match.opponent,
+      }),
       relatedId: match.id,
       relatedType: 'match',
     });
@@ -59,37 +64,37 @@ export function MeetingPointDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Point de rendez-vous"
+      title={t('meeting.title')}
       footer={
         <div className="flex gap-2">
           <Button variant="ghost" onClick={handleClear} className="flex-1">
-            Effacer
+            {t('meeting.clear')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            Enregistrer
+            {t('common.save')}
           </Button>
         </div>
       }
     >
       <div className="space-y-3">
         <Input
-          label="Heure de rendez-vous"
+          label={t('meeting.time')}
           type="time"
           value={time}
           onChange={e => setTime(e.target.value)}
         />
         <Textarea
-          label="Adresse"
+          label={t('meeting.address')}
           value={address}
           onChange={e => setAddress(e.target.value)}
-          placeholder="Ex. Parking du complexe sportif"
+          placeholder={t('meeting.addressPlaceholder')}
           rows={2}
         />
         <Textarea
-          label="Note"
+          label={t('meeting.note')}
           value={note}
           onChange={e => setNote(e.target.value)}
-          placeholder="Ex. Entrée rue du Moulin"
+          placeholder={t('meeting.notePlaceholder')}
           rows={2}
         />
       </div>

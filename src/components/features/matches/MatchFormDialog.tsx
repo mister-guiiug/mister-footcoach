@@ -7,15 +7,11 @@ import {
   useClubSettings,
   useAppContext,
 } from '../../../store/AppContext';
-import {
-  MATCH_STATUS_LABELS,
-  type Match,
-  type MatchStatus,
-  type Survey,
-} from '../../../types';
+import { type Match, type MatchStatus, type Survey } from '../../../types';
 import { genId } from '../../../utils/id';
 import { today, formatDateShort } from '../../../utils/date';
 import { CURRENT_USER_ID } from '../../../constants/session';
+import { useI18n } from '../../../i18n';
 
 interface MatchFormDialogProps {
   open: boolean;
@@ -42,6 +38,7 @@ export function MatchFormDialog({
   match,
   onSaved,
 }: MatchFormDialogProps) {
+  const { t } = useI18n();
   const teams = useTeams();
   const clubSettings = useClubSettings();
   const { state, dispatch } = useAppContext();
@@ -69,11 +66,11 @@ export function MatchFormDialog({
 
   function handleSubmit() {
     if (!form.opponent.trim()) {
-      setError("L'adversaire est obligatoire.");
+      setError(t('matches.form.opponentRequired'));
       return;
     }
     if (!form.location.trim()) {
-      setError('Le lieu est obligatoire.');
+      setError(t('matches.form.locationRequired'));
       return;
     }
 
@@ -106,8 +103,18 @@ export function MatchFormDialog({
       teamId: saved.teamId,
       notifType: isEdit ? 'match_modifie' : 'match_nouveau',
       message: isEdit
-        ? `Match ${form.isHome ? 'vs' : '@'} ${saved.opponent} modifié (${saved.date} à ${saved.time}).`
-        : `Nouveau match ${form.isHome ? 'vs' : '@'} ${saved.opponent} le ${saved.date} à ${saved.time}.`,
+        ? t('notifications.msg.matchModified', {
+            sign: form.isHome ? 'vs' : '@',
+            opponent: saved.opponent,
+            date: saved.date,
+            time: saved.time,
+          })
+        : t('notifications.msg.matchNew', {
+            sign: form.isHome ? 'vs' : '@',
+            opponent: saved.opponent,
+            date: saved.date,
+            time: saved.time,
+          }),
       relatedId: id,
       relatedType: 'match',
     });
@@ -119,7 +126,11 @@ export function MatchFormDialog({
         teamId: saved.teamId,
         sessionType: 'match',
         sessionId: id,
-        question: `Présent au match ${form.isHome ? 'vs' : '@'} ${saved.opponent} le ${formatDateShort(saved.date)} ?`,
+        question: t('surveys.defaultQuestion.match', {
+          sign: form.isHome ? 'vs' : '@',
+          opponent: saved.opponent,
+          date: formatDateShort(saved.date),
+        }),
         deadline: saved.date,
         status: 'ouvert',
         sendNotification: true,
@@ -130,7 +141,9 @@ export function MatchFormDialog({
         type: 'NOTIFY',
         teamId: saved.teamId,
         notifType: 'sondage_nouveau',
-        message: `Nouveau sondage : ${survey.question}`,
+        message: t('notifications.msg.surveyNew', {
+          question: survey.question,
+        }),
         relatedId: survey.id,
         relatedType: 'survey',
       });
@@ -144,21 +157,21 @@ export function MatchFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title={isEdit ? 'Modifier le match' : 'Nouveau match'}
+      title={t(isEdit ? 'matches.form.editTitle' : 'matches.form.newTitle')}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            {isEdit ? 'Enregistrer' : 'Créer'}
+            {t(isEdit ? 'common.save' : 'common.create')}
           </Button>
         </div>
       }
     >
       <div className="space-y-3">
         <Select
-          label="Équipe"
+          label={t('matches.form.team')}
           value={form.teamId}
           onChange={e => set('teamId', e.target.value)}
         >
@@ -170,21 +183,21 @@ export function MatchFormDialog({
         </Select>
 
         <Input
-          label="Adversaire"
+          label={t('matches.form.opponent')}
           value={form.opponent}
           onChange={e => set('opponent', e.target.value)}
-          placeholder="Ex. FC Rivale"
+          placeholder={t('matches.form.opponentPlaceholder')}
         />
 
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Date"
+            label={t('matches.form.date')}
             type="date"
             value={form.date}
             onChange={e => set('date', e.target.value)}
           />
           <Input
-            label="Heure"
+            label={t('matches.form.time')}
             type="time"
             value={form.time}
             onChange={e => set('time', e.target.value)}
@@ -203,42 +216,42 @@ export function MatchFormDialog({
                   : 'border-border-ui text-fg-muted hover:bg-surface-muted'
               }`}
             >
-              {home ? 'Domicile' : 'Extérieur'}
+              {home ? t('matches.home') : t('matches.away')}
             </button>
           ))}
         </div>
 
         <Input
-          label="Lieu / terrain"
+          label={t('matches.form.locationLabel')}
           value={form.location}
           onChange={e => set('location', e.target.value)}
-          placeholder="Ex. Stade municipal"
+          placeholder={t('matches.form.locationPlaceholder')}
         />
         <Textarea
-          label="Adresse"
+          label={t('matches.form.address')}
           value={form.address}
           onChange={e => set('address', e.target.value)}
-          placeholder="Adresse complète pour la navigation GPS"
+          placeholder={t('matches.form.addressPlaceholder')}
           rows={2}
         />
 
         <div className="grid grid-cols-2 gap-3">
           <Select
-            label="Statut"
+            label={t('matches.form.status')}
             value={form.status}
             onChange={e => set('status', e.target.value as MatchStatus)}
           >
             {STATUS_OPTIONS.map(s => (
               <option key={s} value={s}>
-                {MATCH_STATUS_LABELS[s]}
+                {t(`matchStatus.${s}`)}
               </option>
             ))}
           </Select>
           <Input
-            label="Phase"
+            label={t('matches.form.phase')}
             value={form.phase}
             onChange={e => set('phase', e.target.value)}
-            placeholder="Ex. Poule A"
+            placeholder={t('matches.form.phasePlaceholder')}
           />
         </div>
 
@@ -250,7 +263,7 @@ export function MatchFormDialog({
               onChange={e => setCreateSurvey(e.target.checked)}
               className="h-4 w-4 rounded border-border-ui text-primary"
             />
-            Créer un sondage de présence
+            {t('matches.form.createSurvey')}
           </label>
         )}
 

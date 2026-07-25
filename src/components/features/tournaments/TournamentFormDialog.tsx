@@ -6,6 +6,7 @@ import { useTeams, useAppContext } from '../../../store/AppContext';
 import type { Tournament, TournamentFormat } from '../../../types';
 import { genId } from '../../../utils/id';
 import { today } from '../../../utils/date';
+import { useI18n } from '../../../i18n';
 
 interface TournamentFormDialogProps {
   open: boolean;
@@ -14,18 +15,13 @@ interface TournamentFormDialogProps {
   onSaved?: (tournamentId: string) => void;
 }
 
-const FORMAT_LABELS: Record<TournamentFormat, string> = {
-  poules: 'Poules',
-  elimination_directe: 'Élimination directe',
-  poules_finale: 'Poules + finale',
-};
-
 export function TournamentFormDialog({
   open,
   onClose,
   tournament,
   onSaved,
 }: TournamentFormDialogProps) {
+  const { t } = useI18n();
   const teams = useTeams();
   const { state, dispatch } = useAppContext();
   const isEdit = Boolean(tournament);
@@ -60,11 +56,11 @@ export function TournamentFormDialog({
 
   function handleSubmit() {
     if (!form.name.trim()) {
-      setError('Le nom est obligatoire.');
+      setError(t('tournaments.form.nameRequired'));
       return;
     }
     if (form.teamIds.length === 0) {
-      setError('Au moins une équipe doit participer.');
+      setError(t('tournaments.form.atLeastOneTeam'));
       return;
     }
 
@@ -99,7 +95,12 @@ export function TournamentFormDialog({
         type: 'NOTIFY',
         teamId: tid,
         notifType: isEdit ? 'tournoi_modifie' : 'tournoi_nouveau',
-        message: `${isEdit ? 'Tournoi modifié' : 'Nouveau tournoi'} : ${saved.name} (${saved.dateStart}).`,
+        message: t(
+          isEdit
+            ? 'notifications.msg.tournamentModified'
+            : 'notifications.msg.tournamentNew',
+          { name: saved.name, date: saved.dateStart }
+        ),
         relatedId: id,
         relatedType: 'tournament',
       });
@@ -112,35 +113,37 @@ export function TournamentFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title={isEdit ? 'Modifier le tournoi' : 'Nouveau tournoi'}
+      title={t(
+        isEdit ? 'tournaments.form.editTitle' : 'tournaments.form.newTitle'
+      )}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            {isEdit ? 'Enregistrer' : 'Créer'}
+            {t(isEdit ? 'common.save' : 'common.create')}
           </Button>
         </div>
       }
     >
       <div className="space-y-3">
         <Input
-          label="Nom du tournoi"
+          label={t('tournaments.form.name')}
           value={form.name}
           onChange={e => set('name', e.target.value)}
-          placeholder="Ex. Tournoi de Noël 2026"
+          placeholder={t('tournaments.form.namePlaceholder')}
         />
 
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Date de début"
+            label={t('tournaments.form.dateStart')}
             type="date"
             value={form.dateStart}
             onChange={e => set('dateStart', e.target.value)}
           />
           <Input
-            label="Date de fin"
+            label={t('tournaments.form.dateEnd')}
             type="date"
             value={form.dateEnd}
             onChange={e => set('dateEnd', e.target.value)}
@@ -148,19 +151,19 @@ export function TournamentFormDialog({
         </div>
 
         <Input
-          label="Lieu"
+          label={t('tournaments.form.location')}
           value={form.location}
           onChange={e => set('location', e.target.value)}
-          placeholder="Ex. Complexe Sportif Nord"
+          placeholder={t('tournaments.form.locationPlaceholder')}
         />
         <Textarea
-          label="Adresse"
+          label={t('tournaments.form.address')}
           value={form.address}
           onChange={e => set('address', e.target.value)}
           rows={2}
         />
         <Input
-          label="Organisateur"
+          label={t('tournaments.form.organizer')}
           value={form.organizer}
           onChange={e => set('organizer', e.target.value)}
         />
@@ -172,21 +175,21 @@ export function TournamentFormDialog({
             onChange={e => set('isOrganizedByClub', e.target.checked)}
             className="h-4 w-4 rounded border-border-ui text-primary"
           />
-          Organisé par le club
+          {t('tournaments.form.organizedByClub')}
         </label>
 
         {form.isOrganizedByClub && (
           <Input
-            label="Équipes invitées (séparées par des virgules)"
+            label={t('tournaments.form.invitedTeams')}
             value={form.invitedTeams}
             onChange={e => set('invitedTeams', e.target.value)}
-            placeholder="FC Lyon, AS Martin, US Ouest"
+            placeholder={t('tournaments.form.invitedPlaceholder')}
           />
         )}
 
         <div>
           <p className="mb-1 text-xs font-medium text-fg-muted">
-            Équipes participantes
+            {t('tournaments.form.participatingTeams')}
           </p>
           <div className="flex flex-wrap gap-2">
             {teams.map(t => (
@@ -208,26 +211,32 @@ export function TournamentFormDialog({
 
         <div className="grid grid-cols-2 gap-3">
           <Select
-            label="Format"
+            label={t('tournaments.form.format')}
             value={form.format}
             onChange={e => set('format', e.target.value as TournamentFormat)}
           >
-            {(Object.keys(FORMAT_LABELS) as TournamentFormat[]).map(f => (
+            {(
+              [
+                'poules',
+                'elimination_directe',
+                'poules_finale',
+              ] as TournamentFormat[]
+            ).map(f => (
               <option key={f} value={f}>
-                {FORMAT_LABELS[f]}
+                {t(`tournamentFormat.${f}`)}
               </option>
             ))}
           </Select>
           <Select
-            label="Statut"
+            label={t('tournaments.form.status')}
             value={form.status}
             onChange={e =>
               set('status', e.target.value as Tournament['status'])
             }
           >
-            <option value="planifie">Planifié</option>
-            <option value="en_cours">En cours</option>
-            <option value="termine">Terminé</option>
+            <option value="planifie">{t('tournamentStatus.planifie')}</option>
+            <option value="en_cours">{t('tournamentStatus.en_cours')}</option>
+            <option value="termine">{t('tournamentStatus.termine')}</option>
           </Select>
         </div>
 

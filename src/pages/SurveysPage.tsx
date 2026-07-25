@@ -15,11 +15,7 @@ import {
   useTraining,
   useAppContext,
 } from '../store/AppContext';
-import {
-  SURVEY_RESPONSE_LABELS,
-  type SurveyResponseValue,
-  type Survey,
-} from '../types';
+import { type SurveyResponseValue, type Survey } from '../types';
 import { formatDateShort } from '../utils/date';
 import {
   retainedStatus,
@@ -29,19 +25,17 @@ import {
   type RetainedStatus,
   type SurveyFilter,
 } from '../utils/surveyStatus';
-
-const STATUS_FILTERS: { key: SurveyFilter; label: string }[] = [
-  { key: 'all', label: 'Tous' },
-  { key: 'confirmed_present', label: 'Présents' },
-  { key: 'confirmed_absent', label: 'Absents' },
-  { key: 'unanswered', label: 'Non répondus' },
-];
+import { useI18n } from '../i18n';
 
 function RetainedBadge({ status }: { status: RetainedStatus }) {
-  if (!status.answered) return <Badge variant="muted">Non répondu</Badge>;
-  const label = SURVEY_RESPONSE_LABELS[status.value!];
+  const { t } = useI18n();
+  if (!status.answered)
+    return <Badge variant="muted">{t('surveys.notAnswered')}</Badge>;
+  const label = t(`surveyResponse.${status.value!}`);
   if (!status.confirmed) {
-    return <Badge variant="muted">{label} · non confirmé</Badge>;
+    return (
+      <Badge variant="muted">{t('surveys.notConfirmed', { label })}</Badge>
+    );
   }
   const variant =
     status.value === 'present'
@@ -53,6 +47,7 @@ function RetainedBadge({ status }: { status: RetainedStatus }) {
 }
 
 function SurveyCard({ survey }: { survey: Survey }) {
+  const { t } = useI18n();
   const responses = useSurveyResponses(survey.id);
   const players = usePlayers(survey.teamId);
   const match = useMatch(survey.sessionId ?? '');
@@ -61,18 +56,28 @@ function SurveyCard({ survey }: { survey: Survey }) {
   const [expanded, setExpanded] = useState(false);
   const [statusFilter, setStatusFilter] = useState<SurveyFilter>('all');
 
+  const STATUS_FILTERS: { key: SurveyFilter; label: string }[] = [
+    { key: 'all', label: t('surveys.filterAll') },
+    { key: 'confirmed_present', label: t('surveys.filterPresent') },
+    { key: 'confirmed_absent', label: t('surveys.filterAbsent') },
+    { key: 'unanswered', label: t('surveys.filterUnanswered') },
+  ];
+
   function tutorName(userId: string): string {
     const contact = state.contacts.find(c => c.userId === userId);
     if (contact) return `${contact.firstName} ${contact.lastName}`;
     const user = state.users.find(u => u.id === userId);
-    return user ? `${user.firstName} ${user.lastName}` : 'Tuteur';
+    return user ? `${user.firstName} ${user.lastName}` : t('surveys.tutor');
   }
 
   const sessionLabel =
     survey.sessionType === 'match' && match
-      ? `Match vs ${match.opponent} (${formatDateShort(match.date)})`
+      ? t('surveys.sessionMatch', {
+          opponent: match.opponent,
+          date: formatDateShort(match.date),
+        })
       : survey.sessionType === 'training' && training
-        ? `Entraînement ${formatDateShort(training.date)}`
+        ? t('surveys.sessionTraining', { date: formatDateShort(training.date) })
         : /* istanbul ignore next */ survey.question;
 
   const confirmedPresent = responses.filter(
@@ -120,7 +125,9 @@ function SurveyCard({ survey }: { survey: Survey }) {
     <Card>
       <CardHeader
         title={sessionLabel}
-        subtitle={`Clôture : ${formatDateShort(survey.deadline)}`}
+        subtitle={t('surveys.deadline', {
+          date: formatDateShort(survey.deadline),
+        })}
         action={
           <Badge
             variant={
@@ -132,10 +139,10 @@ function SurveyCard({ survey }: { survey: Survey }) {
             }
           >
             {survey.status === 'ouvert'
-              ? 'Ouvert'
+              ? t('surveys.statusOpen')
               : survey.status === 'ferme'
-                ? 'Fermé'
-                : 'Archivé'}
+                ? t('surveys.statusClosed')
+                : t('surveys.statusArchived')}
           </Badge>
         }
       />
@@ -145,18 +152,18 @@ function SurveyCard({ survey }: { survey: Survey }) {
         <div className="flex-1 rounded-xl bg-green-50 dark:bg-green-900/20 p-2.5 text-center">
           <p className="text-xl font-bold text-green-600">{confirmedPresent}</p>
           <p className="text-xs text-green-700 dark:text-green-400">
-            Présents confirmés
+            {t('surveys.presentConfirmed')}
           </p>
         </div>
         <div className="flex-1 rounded-xl bg-red-50 dark:bg-red-900/20 p-2.5 text-center">
           <p className="text-xl font-bold text-red-600">{confirmedAbsent}</p>
           <p className="text-xs text-red-700 dark:text-red-400">
-            Absences confirmées
+            {t('surveys.absentConfirmed')}
           </p>
         </div>
         <div className="flex-1 rounded-xl bg-surface-muted p-2.5 text-center">
           <p className="text-xl font-bold text-fg-muted">{pending}</p>
-          <p className="text-xs text-fg-muted">En attente</p>
+          <p className="text-xs text-fg-muted">{t('surveys.pending')}</p>
         </div>
       </div>
 
@@ -166,7 +173,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
         onClick={() => setExpanded(v => !v)}
         className="w-full"
       >
-        {expanded ? 'Masquer les détails' : 'Voir les réponses'}
+        {expanded ? t('surveys.hideDetails') : t('surveys.viewResponses')}
       </Button>
 
       {expanded && (
@@ -212,7 +219,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
                       {status.divergence && (
                         <div className="flex items-center gap-1 text-amber-600 text-xs">
                           <AlertTriangle size={12} />
-                          <span>Divergence</span>
+                          <span>{t('surveys.divergence')}</span>
                         </div>
                       )}
                       <RetainedBadge status={status} />
@@ -224,7 +231,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
                     <div className="mb-2 rounded-xl bg-amber-50 dark:bg-amber-900/10 p-2.5">
                       <p className="flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-400">
                         <AlertTriangle size={12} />
-                        Réponses divergentes entre tuteurs
+                        {t('surveys.tutorDivergence')}
                       </p>
                       <div className="mt-1.5 space-y-1">
                         {sortedTutorResponses(resp?.tutorResponses).map(tr => (
@@ -234,7 +241,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
                           >
                             <span className="text-fg">
                               {tutorName(tr.userId)} —{' '}
-                              {SURVEY_RESPONSE_LABELS[tr.value]}
+                              {t(`surveyResponse.${tr.value}`)}
                             </span>
                             <button
                               onClick={() =>
@@ -246,7 +253,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
                               }
                               className="rounded-md border border-border-ui px-2 py-0.5 font-medium text-fg-muted hover:bg-surface-muted"
                             >
-                              Retenir
+                              {t('common.retain')}
                             </button>
                           </div>
                         ))}
@@ -257,7 +264,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
                   {/* Intention joueur */}
                   <div className="mb-2">
                     <p className="text-xs text-fg-muted mb-1">
-                      Ce que dit {player.firstName} (indicatif)
+                      {t('surveys.playerSays', { name: player.firstName })}
                     </p>
                     <div className="flex gap-1.5">
                       {(
@@ -282,7 +289,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
                               : 'border-border-ui text-fg-muted hover:bg-surface-muted'
                           }`}
                         >
-                          {SURVEY_RESPONSE_LABELS[v]}
+                          {t(`surveyResponse.${v}`)}
                         </button>
                       ))}
                     </div>
@@ -291,7 +298,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
                   {/* Confirmation parent */}
                   <div>
                     <p className="text-xs font-medium text-fg-muted mb-1">
-                      Confirmation officielle du parent ★
+                      {t('surveys.officialConfirmation')}
                     </p>
                     <div className="flex gap-1.5">
                       {(
@@ -316,7 +323,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
                               : 'border-border-ui text-fg-muted hover:bg-surface-muted'
                           }`}
                         >
-                          {SURVEY_RESPONSE_LABELS[v]}
+                          {t(`surveyResponse.${v}`)}
                         </button>
                       ))}
                     </div>
@@ -331,6 +338,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
 }
 
 export default function SurveysPage() {
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const teams = useTeams();
   const [teamFilter, setTeamFilter] = useState(
@@ -344,10 +352,10 @@ export default function SurveysPage() {
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-fg-heading">
-          Sondages de présence
+          {t('surveys.title')}
         </h1>
         <Button size="sm" onClick={() => setFormOpen(true)}>
-          <Plus size={16} /> Nouveau
+          <Plus size={16} /> {t('common.new')}
         </Button>
       </div>
 
@@ -369,7 +377,7 @@ export default function SurveysPage() {
               : 'bg-surface border border-border-ui text-fg-muted hover:bg-surface-muted'
           }`}
         >
-          Toutes
+          {t('surveys.allTeams')}
         </button>
         {teams.map(t => (
           <button
@@ -386,16 +394,13 @@ export default function SurveysPage() {
         ))}
       </div>
 
-      <p className="text-xs text-fg-muted">
-        ★ La confirmation du parent est la seule valeur officielle retenue par
-        le coach.
-      </p>
+      <p className="text-xs text-fg-muted">{t('surveys.officialNote')}</p>
 
       {
         /* istanbul ignore next */ surveys.length === 0 ? (
           <EmptyState
-            title="Aucun sondage"
-            description="Aucun sondage n'est en cours pour le moment."
+            title={t('surveys.none')}
+            description={t('surveys.noneDesc')}
             icon={<span className="text-4xl">📋</span>}
           />
         ) : (

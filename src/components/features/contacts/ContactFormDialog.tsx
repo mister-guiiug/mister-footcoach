@@ -6,6 +6,7 @@ import { usePlayers, useAppContext } from '../../../store/AppContext';
 import type { Contact, ContactType } from '../../../types';
 import { genId } from '../../../utils/id';
 import { today } from '../../../utils/date';
+import { useI18n } from '../../../i18n';
 
 const CONTACT_TYPES: ContactType[] = [
   'père',
@@ -32,6 +33,7 @@ export function ContactFormDialog({
   contact,
   playerId,
 }: ContactFormDialogProps) {
+  const { t } = useI18n();
   const players = usePlayers();
   const { dispatch } = useAppContext();
   const isEdit = Boolean(contact);
@@ -62,15 +64,15 @@ export function ContactFormDialog({
 
   function handleSubmit() {
     if (!form.firstName.trim() || !form.lastName.trim()) {
-      setError('Le prénom et le nom sont obligatoires.');
+      setError(t('contacts.form.namesRequired'));
       return;
     }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
-      setError('Email invalide.');
+      setError(t('contacts.form.invalidEmail'));
       return;
     }
     if (form.playerIds.length === 0) {
-      setError('Rattachez au moins un joueur.');
+      setError(t('contacts.form.attachAtLeastOne'));
       return;
     }
 
@@ -102,14 +104,14 @@ export function ContactFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title={isEdit ? 'Modifier le contact' : 'Nouveau contact'}
+      title={t(isEdit ? 'contacts.form.editTitle' : 'contacts.form.newTitle')}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            {isEdit ? 'Enregistrer' : 'Créer'}
+            {t(isEdit ? 'common.save' : 'common.create')}
           </Button>
         </div>
       }
@@ -117,35 +119,35 @@ export function ContactFormDialog({
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Prénom"
+            label={t('contacts.form.firstName')}
             value={form.firstName}
             onChange={e => set('firstName', e.target.value)}
           />
           <Input
-            label="Nom"
+            label={t('contacts.form.lastName')}
             value={form.lastName}
             onChange={e => set('lastName', e.target.value)}
           />
         </div>
         <Select
-          label="Type de relation"
+          label={t('contacts.form.relationType')}
           value={form.type}
           onChange={e => set('type', e.target.value as ContactType)}
         >
-          {CONTACT_TYPES.map(t => (
-            <option key={t} value={t}>
-              {t}
+          {CONTACT_TYPES.map(ct => (
+            <option key={ct} value={ct}>
+              {t(`contactType.${ct}`)}
             </option>
           ))}
         </Select>
         <Input
-          label="Téléphone"
+          label={t('contacts.form.phone')}
           value={form.phone}
           onChange={e => set('phone', e.target.value)}
           placeholder="06 12 34 56 78"
         />
         <Input
-          label="Email"
+          label={t('contacts.form.email')}
           type="email"
           value={form.email}
           onChange={e => set('email', e.target.value)}
@@ -153,7 +155,7 @@ export function ContactFormDialog({
 
         <div>
           <p className="mb-1 text-xs font-medium text-fg-muted">
-            Joueurs rattachés
+            {t('contacts.form.attachedPlayers')}
           </p>
           <div className="flex flex-wrap gap-2">
             {players.map(p => (
@@ -181,10 +183,9 @@ export function ContactFormDialog({
             className="mt-0.5 h-4 w-4 rounded border-border-ui text-primary"
           />
           <span>
-            Consentement RGPD recueilli
+            {t('contacts.form.consent')}
             <span className="block text-xs text-fg-muted">
-              Requis pour activer le compte (traçabilité : date + version{' '}
-              {CONSENT_VERSION}).
+              {t('contacts.form.consentHint', { version: CONSENT_VERSION })}
             </span>
           </span>
         </label>

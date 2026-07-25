@@ -8,6 +8,14 @@ import { afterEach, beforeAll, afterAll, vi } from 'vitest';
 
 afterEach(() => cleanup());
 
+// Pin the i18n locale to French in tests so existing French-text assertions
+// stay valid regardless of the jsdom navigator.language default. The shared
+// createI18n reads navigator.language when no locale is persisted.
+Object.defineProperty(window.navigator, 'language', {
+  value: 'fr-FR',
+  configurable: true,
+});
+
 // Mock virtual:pwa-register/react used by UpdateBanner
 vi.mock('virtual:pwa-register/react', () => ({
   useRegisterSW: vi.fn(() => ({

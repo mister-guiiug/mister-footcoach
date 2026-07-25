@@ -11,6 +11,7 @@ import {
 } from '../../../store/AppContext';
 import type { TrainingBlock } from '../../../types';
 import { genId } from '../../../utils/id';
+import { useI18n } from '../../../i18n';
 
 interface TrainingBlocksSectionProps {
   trainingId: string;
@@ -19,6 +20,7 @@ interface TrainingBlocksSectionProps {
 export function TrainingBlocksSection({
   trainingId,
 }: TrainingBlocksSectionProps) {
+  const { t } = useI18n();
   const blocks = useTrainingBlocks(trainingId);
   const { dispatch } = useAppContext();
   const [formOpen, setFormOpen] = useState(false);
@@ -51,9 +53,11 @@ export function TrainingBlocksSection({
   return (
     <Card>
       <CardHeader
-        title="Contenu de la séance"
+        title={t('trainingBlocks.title')}
         subtitle={
-          blocks.length > 0 ? `${totalDuration} min au total` : undefined
+          blocks.length > 0
+            ? t('trainingBlocks.totalMin', { count: totalDuration })
+            : undefined
         }
         action={
           <Button
@@ -61,7 +65,7 @@ export function TrainingBlocksSection({
             variant="secondary"
             onClick={() => setFormOpen(true)}
           >
-            <Plus size={14} /> Bloc
+            <Plus size={14} /> {t('trainingBlocks.addBlock')}
           </Button>
         }
       />
@@ -77,9 +81,7 @@ export function TrainingBlocksSection({
       )}
 
       {blocks.length === 0 ? (
-        <p className="text-sm text-fg-muted">
-          Aucun bloc. Ajoutez les étapes de la séance.
-        </p>
+        <p className="text-sm text-fg-muted">{t('trainingBlocks.empty')}</p>
       ) : (
         <ol className="space-y-2">
           {blocks.map((block, i) => (
@@ -107,7 +109,7 @@ export function TrainingBlocksSection({
                 <button
                   onClick={() => move(i, -1)}
                   disabled={i === 0}
-                  aria-label="Monter"
+                  aria-label={t('trainingBlocks.moveUp')}
                   className="flex h-5 w-5 items-center justify-center rounded text-fg-faint hover:text-fg disabled:opacity-30"
                 >
                   <ChevronUp size={14} />
@@ -115,7 +117,7 @@ export function TrainingBlocksSection({
                 <button
                   onClick={() => move(i, 1)}
                   disabled={i === blocks.length - 1}
-                  aria-label="Descendre"
+                  aria-label={t('trainingBlocks.moveDown')}
                   className="flex h-5 w-5 items-center justify-center rounded text-fg-faint hover:text-fg disabled:opacity-30"
                 >
                   <ChevronDown size={14} />
@@ -123,7 +125,7 @@ export function TrainingBlocksSection({
               </div>
               <button
                 onClick={() => remove(block.id)}
-                aria-label="Supprimer le bloc"
+                aria-label={t('trainingBlocks.deleteBlock')}
                 className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-red-600"
               >
                 <Trash2 size={14} />
@@ -151,6 +153,7 @@ function BlockFormDialog({
   nextOrder,
   onAdd,
 }: BlockFormDialogProps) {
+  const { t } = useI18n();
   const exercises = useExercises();
   const [title, setTitle] = useState('');
   const [duration, setDuration] = useState('15');
@@ -170,7 +173,7 @@ function BlockFormDialog({
 
   function handleSubmit() {
     if (!title.trim()) {
-      setError('Le titre est obligatoire.');
+      setError(t('trainingBlocks.titleRequired'));
       return;
     }
     onAdd({
@@ -194,14 +197,14 @@ function BlockFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Ajouter un bloc"
+      title={t('trainingBlocks.dialogTitle')}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            Ajouter
+            {t('common.add')}
           </Button>
         </div>
       }
@@ -209,11 +212,11 @@ function BlockFormDialog({
       <div className="space-y-3">
         {exercises.length > 0 && (
           <Select
-            label="Depuis un exercice (optionnel)"
+            label={t('trainingBlocks.fromExercise')}
             value={exerciseId}
             onChange={e => handleExerciseChange(e.target.value)}
           >
-            <option value="">— Aucun —</option>
+            <option value="">{t('common.noneMasc')}</option>
             {exercises.map(ex => (
               <option key={ex.id} value={ex.id}>
                 {ex.title}
@@ -222,20 +225,20 @@ function BlockFormDialog({
           </Select>
         )}
         <Input
-          label="Titre"
+          label={t('trainingBlocks.titleLabel')}
           value={title}
           onChange={e => setTitle(e.target.value)}
-          placeholder="Ex. Échauffement"
+          placeholder={t('trainingBlocks.titlePlaceholder')}
         />
         <Input
-          label="Durée (min)"
+          label={t('trainingBlocks.duration')}
           type="number"
           min={0}
           value={duration}
           onChange={e => setDuration(e.target.value)}
         />
         <Textarea
-          label="Description / consignes"
+          label={t('trainingBlocks.description')}
           value={description}
           onChange={e => setDescription(e.target.value)}
           rows={2}

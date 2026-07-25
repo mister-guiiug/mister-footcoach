@@ -8,8 +8,9 @@ import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { TournamentFormDialog } from '../components/features/tournaments/TournamentFormDialog';
 import { useTournaments, useTeams } from '../store/AppContext';
-import { TOURNAMENT_STATUS_LABELS, type TournamentStatus } from '../types';
+import { type TournamentStatus } from '../types';
 import { formatDateShort } from '../utils/date';
+import { useI18n } from '../i18n';
 
 const statusVariant: Record<TournamentStatus, 'muted' | 'warning' | 'success'> =
   {
@@ -18,13 +19,8 @@ const statusVariant: Record<TournamentStatus, 'muted' | 'warning' | 'success'> =
     termine: 'success',
   };
 
-const formatLabels: Record<string, string> = {
-  poules: 'Poules',
-  elimination_directe: 'Élimination directe',
-  poules_finale: 'Poules + finale',
-};
-
 export default function TournamentsPage() {
+  const { t } = useI18n();
   const tournaments = useTournaments();
   const teams = useTeams();
   const [formOpen, setFormOpen] = useState(false);
@@ -38,9 +34,11 @@ export default function TournamentsPage() {
   return (
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-fg-heading">Tournois</h1>
+        <h1 className="text-xl font-bold text-fg-heading">
+          {t('tournaments.title')}
+        </h1>
         <Button size="sm" onClick={openNew}>
-          <Plus size={16} /> Nouveau
+          <Plus size={16} /> {t('common.new')}
         </Button>
       </div>
 
@@ -55,8 +53,8 @@ export default function TournamentsPage() {
       {
         /* istanbul ignore next */ tournaments.length === 0 ? (
           <EmptyState
-            title="Aucun tournoi"
-            description="Aucun tournoi n'est planifié pour cette saison."
+            title={t('tournaments.none')}
+            description={t('tournaments.noneDesc')}
             icon={<span className="text-4xl">🏆</span>}
           />
         ) : (
@@ -79,11 +77,13 @@ export default function TournamentsPage() {
                           <ChevronRight size={15} className="text-fg-faint" />
                         </Link>
                         {tournament.isOrganizedByClub && (
-                          <Badge variant="primary">Organisateur</Badge>
+                          <Badge variant="primary">
+                            {t('tournaments.organizer')}
+                          </Badge>
                         )}
                       </div>
                       <Badge variant={statusVariant[tournament.status]}>
-                        {TOURNAMENT_STATUS_LABELS[tournament.status]}
+                        {t(`tournamentStatus.${tournament.status}`)}
                       </Badge>
                     </div>
                     <button
@@ -91,7 +91,7 @@ export default function TournamentsPage() {
                         setEditing(tournament);
                         setFormOpen(true);
                       }}
-                      aria-label="Modifier le tournoi"
+                      aria-label={t('tournaments.editAria')}
                       className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-primary"
                     >
                       <Pencil size={14} />
@@ -122,8 +122,9 @@ export default function TournamentsPage() {
 
                   <div className="mt-3 pt-3 border-t border-border-ui flex items-center justify-between text-xs text-fg-muted">
                     <span>
-                      Format :{' '}
-                      {formatLabels[tournament.format] ?? tournament.format}
+                      {t('tournaments.formatPrefix', {
+                        format: t(`tournamentFormat.${tournament.format}`),
+                      })}
                     </span>
                     <span>
                       {participatingTeams.map(t => t.name).join(', ')}

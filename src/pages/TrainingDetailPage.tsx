@@ -15,8 +15,9 @@ import {
   useTrainings,
   useAppContext,
 } from '../store/AppContext';
-import { ATTENDANCE_STATUS_LABELS, type AttendanceStatus } from '../types';
+import { type AttendanceStatus } from '../types';
 import { formatDateFull, isUpcoming } from '../utils/date';
+import { useI18n } from '../i18n';
 
 const attendanceVariant: Record<
   AttendanceStatus,
@@ -34,6 +35,7 @@ const nextStatus: Record<AttendanceStatus, AttendanceStatus> = {
 };
 
 export default function TrainingDetailPage() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const training = useTraining(id!);
   const team = useTeam(training?.teamId ?? '');
@@ -46,7 +48,7 @@ export default function TrainingDetailPage() {
   if (!training) {
     return (
       <div className="p-4">
-        <EmptyState title="Entraînement introuvable" />
+        <EmptyState title={t('trainings.notFound')} />
       </div>
     );
   }
@@ -69,7 +71,9 @@ export default function TrainingDetailPage() {
       type: 'NOTIFY',
       teamId: training!.teamId,
       notifType: 'entrainement_annule',
-      message: `Série d'entraînements annulée (${seriesUpcoming.length} séances à venir).`,
+      message: t('notifications.msg.seriesCancelled', {
+        count: seriesUpcoming.length,
+      }),
       relatedId: training!.id,
       relatedType: 'training',
     });
@@ -108,22 +112,26 @@ export default function TrainingDetailPage() {
       <div>
         <div className="flex items-center justify-between gap-2 mb-1">
           <div className="flex items-center gap-2">
-            {training.cancelled && <Badge variant="danger">Annulé</Badge>}
-            {training.type === 'exceptionnel' && (
-              <Badge variant="warning">Exceptionnel</Badge>
+            {training.cancelled && (
+              <Badge variant="danger">{t('trainings.cancelled')}</Badge>
             )}
-            {training.seriesId && <Badge variant="primary">Série</Badge>}
+            {training.type === 'exceptionnel' && (
+              <Badge variant="warning">{t('trainings.exceptional')}</Badge>
+            )}
+            {training.seriesId && (
+              <Badge variant="primary">{t('trainings.series')}</Badge>
+            )}
           </div>
           <Button
             size="sm"
             variant="secondary"
             onClick={() => setEditOpen(true)}
           >
-            <Pencil size={14} /> Modifier
+            <Pencil size={14} /> {t('common.edit')}
           </Button>
         </div>
         <h1 className="text-xl font-bold text-fg-heading">
-          {training.theme ?? 'Entraînement'}
+          {training.theme ?? t('trainings.fallback')}
         </h1>
         <p className="text-sm text-fg-muted">{team?.name}</p>
       </div>
@@ -142,7 +150,9 @@ export default function TrainingDetailPage() {
               size={15}
               className="text-fg-muted flex-shrink-0 opacity-0"
             />
-            <span className="text-fg-muted">{training.duration} minutes</span>
+            <span className="text-fg-muted">
+              {t('trainings.minutes', { count: training.duration })}
+            </span>
           </div>
           {training.note && (
             <p className="text-sm text-fg-muted border-t border-border-ui pt-2.5">
@@ -156,16 +166,20 @@ export default function TrainingDetailPage() {
       {seriesUpcoming.length > 0 && (
         <Card>
           <p className="text-sm text-fg">
-            Cette séance fait partie d'une série de{' '}
-            <strong>{seriesUpcoming.length}</strong> occurrence
-            {seriesUpcoming.length > 1 ? 's' : ''} à venir.
+            {t('trainings.seriesInfoPre')}
+            <strong>{seriesUpcoming.length}</strong>
+            {t(
+              seriesUpcoming.length > 1
+                ? 'trainings.seriesInfoPostPlural'
+                : 'trainings.seriesInfoPost'
+            )}
           </p>
           <Button
             variant="secondary"
             onClick={cancelSeries}
             className="mt-2 w-full"
           >
-            Annuler les séances à venir de la série
+            {t('trainings.cancelSeries')}
           </Button>
         </Card>
       )}
@@ -178,15 +192,15 @@ export default function TrainingDetailPage() {
         <div className="grid grid-cols-3 gap-2">
           <Card className="text-center">
             <p className="text-xl font-bold text-green-600">{presentCount}</p>
-            <p className="text-xs text-fg-muted">Présents</p>
+            <p className="text-xs text-fg-muted">{t('trainings.present')}</p>
           </Card>
           <Card className="text-center">
             <p className="text-xl font-bold text-red-600">{absentCount}</p>
-            <p className="text-xs text-fg-muted">Absents</p>
+            <p className="text-xs text-fg-muted">{t('trainings.absent')}</p>
           </Card>
           <Card className="text-center">
             <p className="text-xl font-bold text-amber-600">{excuseCount}</p>
-            <p className="text-xs text-fg-muted">Excusés</p>
+            <p className="text-xs text-fg-muted">{t('trainings.excused')}</p>
           </Card>
         </div>
       )}
@@ -195,10 +209,10 @@ export default function TrainingDetailPage() {
       <Card padding={false}>
         <div className="px-4 py-3 border-b border-border-ui">
           <h3 className="text-sm font-semibold text-fg-heading">
-            Feuille de présence
+            {t('trainings.attendanceSheet')}
           </h3>
           <p className="text-xs text-fg-muted mt-0.5">
-            Toucher pour changer le statut
+            {t('trainings.tapToChange')}
           </p>
         </div>
         <ul className="divide-y divide-border-ui">
@@ -215,7 +229,7 @@ export default function TrainingDetailPage() {
                     {player.firstName} {player.lastName}
                   </span>
                   <Badge variant={attendanceVariant[status]}>
-                    {ATTENDANCE_STATUS_LABELS[status]}
+                    {t(`attendance.${status}`)}
                   </Badge>
                 </button>
               </li>

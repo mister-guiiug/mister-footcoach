@@ -4,8 +4,10 @@ import { Card, CardHeader } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { useTeams, usePlayers, useAppContext } from '../store/AppContext';
 import { computeTeamStats, computePlayerStats } from '../utils/stats';
+import { useI18n } from '../i18n';
 
 export default function StatsPage() {
+  const { t } = useI18n();
   const teams = useTeams();
   const { state } = useAppContext();
   const [teamId, setTeamId] = useState(teams[0]?.id ?? '');
@@ -26,7 +28,7 @@ export default function StatsPage() {
 
   return (
     <div className="px-4 py-4 space-y-4">
-      <h1 className="text-xl font-bold text-fg-heading">Statistiques</h1>
+      <h1 className="text-xl font-bold text-fg-heading">{t('stats.title')}</h1>
 
       {/* Team filter */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
@@ -47,33 +49,36 @@ export default function StatsPage() {
 
       {/* Team results */}
       <Card>
-        <CardHeader title="Bilan de l'équipe" subtitle="Saison en cours" />
+        <CardHeader
+          title={t('stats.teamResults')}
+          subtitle={t('stats.currentSeason')}
+        />
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-xl bg-green-50 dark:bg-green-900/20 p-2.5">
             <p className="text-xl font-bold text-green-600">{teamStats.wins}</p>
-            <p className="text-xs text-fg-muted">Victoires</p>
+            <p className="text-xs text-fg-muted">{t('stats.wins')}</p>
           </div>
           <div className="rounded-xl bg-surface-muted p-2.5">
             <p className="text-xl font-bold text-fg-muted">{teamStats.draws}</p>
-            <p className="text-xs text-fg-muted">Nuls</p>
+            <p className="text-xs text-fg-muted">{t('stats.draws')}</p>
           </div>
           <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-2.5">
             <p className="text-xl font-bold text-red-600">{teamStats.losses}</p>
-            <p className="text-xs text-fg-muted">Défaites</p>
+            <p className="text-xs text-fg-muted">{t('stats.losses')}</p>
           </div>
         </div>
         <div className="mt-3 flex items-center justify-between text-sm">
-          <span className="text-fg-muted">Buts pour / contre</span>
+          <span className="text-fg-muted">{t('stats.goalsForAgainst')}</span>
           <span className="font-semibold text-fg">
             {teamStats.goalsFor} : {teamStats.goalsAgainst}
           </span>
         </div>
         <div className="mt-1 flex items-center justify-between text-sm">
-          <span className="text-fg-muted">Matchs joués</span>
+          <span className="text-fg-muted">{t('stats.matchesPlayed')}</span>
           <span className="font-semibold text-fg">{teamStats.played}</span>
         </div>
         <div className="mt-1 flex items-center justify-between text-sm">
-          <span className="text-fg-muted">Taux de présence global</span>
+          <span className="text-fg-muted">{t('stats.globalAttendance')}</span>
           <span className="font-semibold text-fg">
             {Math.round(teamStats.attendance.rate * 100)}%
           </span>
@@ -83,7 +88,7 @@ export default function StatsPage() {
       {/* Top scorers */}
       {teamStats.topScorers.length > 0 && (
         <Card>
-          <CardHeader title="Meilleurs buteurs" />
+          <CardHeader title={t('stats.topScorers')} />
           <div className="space-y-2">
             {teamStats.topScorers.slice(0, 5).map((s, i) => (
               <div
@@ -94,7 +99,10 @@ export default function StatsPage() {
                   {i + 1}. {topScorerName(s.playerId)}
                 </span>
                 <Badge variant="primary">
-                  {s.goals} but{s.goals > 1 ? 's' : ''}
+                  {t(
+                    s.goals > 1 ? 'stats.goalsCountPlural' : 'stats.goalsCount',
+                    { count: s.goals }
+                  )}
                 </Badge>
               </div>
             ))}
@@ -106,18 +114,24 @@ export default function StatsPage() {
       <Card padding={false}>
         <div className="border-b border-border-ui px-4 py-3">
           <h3 className="text-sm font-semibold text-fg-heading">
-            Statistiques par joueur
+            {t('stats.perPlayer')}
           </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-fg-muted">
-                <th className="px-4 py-2 text-left font-medium">Joueur</th>
-                <th className="px-2 py-2 text-center font-medium">MJ</th>
+                <th className="px-4 py-2 text-left font-medium">
+                  {t('stats.colPlayer')}
+                </th>
+                <th className="px-2 py-2 text-center font-medium">
+                  {t('stats.colPlayed')}
+                </th>
                 <th className="px-2 py-2 text-center font-medium">⚽</th>
                 <th className="px-2 py-2 text-center font-medium">🅰️</th>
-                <th className="px-4 py-2 text-right font-medium">Présence</th>
+                <th className="px-4 py-2 text-right font-medium">
+                  {t('stats.colAttendance')}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-ui">

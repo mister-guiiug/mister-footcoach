@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { TopBar } from './TopBar';
 import { AppProvider } from '../../store/AppContext';
+import { I18nProvider } from '../../i18n';
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -15,11 +16,13 @@ vi.mock('react-router-dom', async importOriginal => {
 function renderTopBar(path: string, props = {}) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <AppProvider>
-        <Routes>
-          <Route path="*" element={<TopBar {...props} />} />
-        </Routes>
-      </AppProvider>
+      <I18nProvider>
+        <AppProvider>
+          <Routes>
+            <Route path="*" element={<TopBar {...props} />} />
+          </Routes>
+        </AppProvider>
+      </I18nProvider>
     </MemoryRouter>
   );
 }

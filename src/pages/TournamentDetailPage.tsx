@@ -23,7 +23,6 @@ import {
   useAppContext,
 } from '../store/AppContext';
 import {
-  TOURNAMENT_STATUS_LABELS,
   type Match,
   type TournamentGroup,
   type TournamentStatus,
@@ -31,6 +30,7 @@ import {
 import { formatDateShort } from '../utils/date';
 import { googleMapsUrl, appleMapsUrl } from '../utils/maps';
 import { computeGroupStandings } from '../utils/tournament';
+import { useI18n } from '../i18n';
 
 const statusVariant: Record<TournamentStatus, 'muted' | 'warning' | 'success'> =
   {
@@ -39,13 +39,8 @@ const statusVariant: Record<TournamentStatus, 'muted' | 'warning' | 'success'> =
     termine: 'success',
   };
 
-const formatLabels: Record<string, string> = {
-  poules: 'Poules',
-  elimination_directe: 'Élimination directe',
-  poules_finale: 'Poules + finale',
-};
-
 export default function TournamentDetailPage() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const tournament = useTournament(id!);
   const groups = useTournamentGroups(id!);
@@ -63,13 +58,13 @@ export default function TournamentDetailPage() {
   if (!tournament) {
     return (
       <div className="p-4">
-        <EmptyState title="Tournoi introuvable" />
+        <EmptyState title={t('tournaments.notFound')} />
       </div>
     );
   }
 
   const teamName = (teamId: string) =>
-    teams.find(t => t.id === teamId)?.name ?? 'Notre équipe';
+    teams.find(team => team.id === teamId)?.name ?? t('tournaments.ourTeam');
 
   return (
     <div className="px-4 py-4 space-y-4">
@@ -106,7 +101,7 @@ export default function TournamentDetailPage() {
               {tournament.name}
             </h1>
             {tournament.isOrganizedByClub && (
-              <Badge variant="primary">Organisateur</Badge>
+              <Badge variant="primary">{t('tournaments.organizer')}</Badge>
             )}
           </div>
           <Button
@@ -114,12 +109,12 @@ export default function TournamentDetailPage() {
             variant="secondary"
             onClick={() => setEditOpen(true)}
           >
-            <Pencil size={14} /> Modifier
+            <Pencil size={14} /> {t('common.edit')}
           </Button>
         </div>
         <div className="mt-1">
           <Badge variant={statusVariant[tournament.status]}>
-            {TOURNAMENT_STATUS_LABELS[tournament.status]}
+            {t(`tournamentStatus.${tournament.status}`)}
           </Badge>
         </div>
       </div>
@@ -162,7 +157,9 @@ export default function TournamentDetailPage() {
           )}
           <div className="flex items-center justify-between border-t border-border-ui pt-2 text-xs text-fg-muted">
             <span>
-              Format : {formatLabels[tournament.format] ?? tournament.format}
+              {t('tournaments.formatPrefix', {
+                format: t(`tournamentFormat.${tournament.format}`),
+              })}
             </span>
             <span>
               {teams
@@ -177,11 +174,11 @@ export default function TournamentDetailPage() {
       {/* Home tournament — invited teams & pitch schedule (specs §12.5) */}
       {tournament.isOrganizedByClub && (
         <Card>
-          <CardHeader title="Organisation (tournoi maison)" />
+          <CardHeader title={t('tournaments.organization')} />
           {tournament.invitedTeams && tournament.invitedTeams.length > 0 && (
             <div className="mb-3">
               <p className="mb-1 text-xs font-medium text-fg-muted">
-                Équipes invitées
+                {t('tournaments.invitedTeams')}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {tournament.invitedTeams.map(name => (
@@ -197,14 +194,14 @@ export default function TournamentDetailPage() {
           )}
 
           <p className="mb-1 text-xs font-medium text-fg-muted">
-            Planning par terrain
+            {t('tournaments.scheduleByField')}
           </p>
           {(() => {
             const scheduled = matches.filter(m => m.field);
             if (scheduled.length === 0) {
               return (
                 <p className="text-sm text-fg-muted">
-                  Aucun match affecté à un terrain.
+                  {t('tournaments.noFieldMatch')}
                 </p>
               );
             }
@@ -243,17 +240,17 @@ export default function TournamentDetailPage() {
       {/* Groups */}
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-fg-heading">
-          Groupes & poules
+          {t('tournaments.groups')}
         </h2>
         <Button size="sm" onClick={() => setGroupOpen(true)}>
-          <Plus size={14} /> Groupe
+          <Plus size={14} /> {t('tournaments.addGroup')}
         </Button>
       </div>
 
       {groups.length === 0 ? (
         <EmptyState
-          title="Aucun groupe"
-          description="Ajoutez des poules ou des phases d'élimination."
+          title={t('tournaments.noGroup')}
+          description={t('tournaments.noGroupDesc')}
           icon={<span className="text-4xl">🏆</span>}
         />
       ) : (
@@ -270,7 +267,11 @@ export default function TournamentDetailPage() {
             <Card key={group.id}>
               <CardHeader
                 title={group.name}
-                subtitle={group.type === 'poule' ? 'Poule' : 'Élimination'}
+                subtitle={t(
+                  group.type === 'poule'
+                    ? 'tournaments.poule'
+                    : 'tournaments.elimination'
+                )}
                 action={
                   <button
                     onClick={() =>
@@ -279,7 +280,7 @@ export default function TournamentDetailPage() {
                         groupId: group.id,
                       })
                     }
-                    aria-label="Supprimer le groupe"
+                    aria-label={t('tournaments.deleteGroup')}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-red-600"
                   >
                     <Trash2 size={14} />
@@ -304,7 +305,7 @@ export default function TournamentDetailPage() {
                       <span className="font-semibold text-fg-heading">
                         {hasScore
                           ? `${m.scoreHome} - ${m.scoreAway}`
-                          : 'à jouer'}
+                          : t('tournaments.toPlay')}
                       </span>
                     </button>
                   );
@@ -315,7 +316,7 @@ export default function TournamentDetailPage() {
                   onClick={() => setMatchCtx({ group })}
                   className="w-full"
                 >
-                  <Plus size={14} /> Ajouter un match
+                  <Plus size={14} /> {t('tournaments.addMatch')}
                 </Button>
               </div>
 
@@ -326,13 +327,17 @@ export default function TournamentDetailPage() {
                     <thead>
                       <tr className="text-fg-muted">
                         <th className="py-1 text-left font-medium">#</th>
-                        <th className="py-1 text-left font-medium">Équipe</th>
-                        <th className="px-1 py-1 text-center font-medium">J</th>
-                        <th className="px-1 py-1 text-center font-medium">
-                          Diff
+                        <th className="py-1 text-left font-medium">
+                          {t('tournaments.standTeam')}
                         </th>
                         <th className="px-1 py-1 text-center font-medium">
-                          Pts
+                          {t('tournaments.standPlayed')}
+                        </th>
+                        <th className="px-1 py-1 text-center font-medium">
+                          {t('tournaments.standDiff')}
+                        </th>
+                        <th className="px-1 py-1 text-center font-medium">
+                          {t('tournaments.standPoints')}
                         </th>
                       </tr>
                     </thead>

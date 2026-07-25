@@ -8,6 +8,7 @@ import {
 } from '@mister-guiiug/dev-wpa-config/react/observability';
 import './index.css';
 import App from './App.tsx';
+import { I18nProvider } from './i18n';
 import { ThemeProvider } from './theme/ThemeContext.tsx';
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
@@ -35,17 +36,19 @@ createRoot(document.getElementById('root')!).render(
         recordError(error, { source: 'error-boundary' });
       }}
     >
-      <ThemeProvider>
-        <ToastProvider>
-          <AuthProvider>
-            <AuthGate>
-              <AppProvider>
-                <App />
-              </AppProvider>
-            </AuthGate>
-          </AuthProvider>
-        </ToastProvider>
-      </ThemeProvider>
+      <I18nProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <AuthGate>
+                <AppProvider>
+                  <App />
+                </AppProvider>
+              </AuthGate>
+            </AuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
+      </I18nProvider>
     </ErrorBoundary>
   </StrictMode>
 );

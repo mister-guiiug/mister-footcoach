@@ -5,6 +5,7 @@ import { Button } from '../../ui/Button';
 import { useTeams, useAppContext } from '../../../store/AppContext';
 import type { Match, Tournament, TournamentGroup } from '../../../types';
 import { genId } from '../../../utils/id';
+import { useI18n } from '../../../i18n';
 
 interface TournamentMatchFormDialogProps {
   open: boolean;
@@ -22,6 +23,7 @@ export function TournamentMatchFormDialog({
   group,
   match,
 }: TournamentMatchFormDialogProps) {
+  const { t } = useI18n();
   const allTeams = useTeams();
   const { dispatch } = useAppContext();
   const isEdit = Boolean(match);
@@ -44,7 +46,7 @@ export function TournamentMatchFormDialog({
 
   function handleSubmit() {
     if (!form.opponent.trim()) {
-      setError("L'adversaire est obligatoire.");
+      setError(t('tournaments.match.opponentRequired'));
       return;
     }
     const hasScore = form.scoreHome !== '' && form.scoreAway !== '';
@@ -77,21 +79,25 @@ export function TournamentMatchFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title={isEdit ? 'Match — score' : `Nouveau match · ${group.name}`}
+      title={
+        isEdit
+          ? t('tournaments.match.editTitle')
+          : t('tournaments.match.newTitle', { group: group.name })
+      }
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            {isEdit ? 'Enregistrer' : 'Ajouter'}
+            {t(isEdit ? 'common.save' : 'common.add')}
           </Button>
         </div>
       }
     >
       <div className="space-y-3">
         <Select
-          label="Notre équipe"
+          label={t('tournaments.match.ourTeam')}
           value={form.teamId}
           onChange={e => set('teamId', e.target.value)}
         >
@@ -102,30 +108,30 @@ export function TournamentMatchFormDialog({
           ))}
         </Select>
         <Input
-          label="Adversaire"
+          label={t('tournaments.match.opponent')}
           value={form.opponent}
           onChange={e => set('opponent', e.target.value)}
-          placeholder="Ex. AS Martin"
+          placeholder={t('tournaments.match.opponentPlaceholder')}
         />
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Heure"
+            label={t('tournaments.match.time')}
             type="time"
             value={form.time}
             onChange={e => set('time', e.target.value)}
           />
           {tournament.isOrganizedByClub && (
             <Input
-              label="Terrain"
+              label={t('tournaments.match.field')}
               value={form.field}
               onChange={e => set('field', e.target.value)}
-              placeholder="Ex. Terrain 1"
+              placeholder={t('tournaments.match.fieldPlaceholder')}
             />
           )}
         </div>
         <div>
           <p className="mb-1 text-xs font-medium text-fg-muted">
-            Score (laisser vide si non joué)
+            {t('tournaments.match.scoreHint')}
           </p>
           <div className="flex items-center gap-2">
             <Input
@@ -133,7 +139,7 @@ export function TournamentMatchFormDialog({
               min={0}
               value={form.scoreHome}
               onChange={e => set('scoreHome', e.target.value)}
-              aria-label="Score notre équipe"
+              aria-label={t('tournaments.match.scoreHomeAria')}
               className="text-center"
             />
             <span className="text-fg-muted">-</span>
@@ -142,7 +148,7 @@ export function TournamentMatchFormDialog({
               min={0}
               value={form.scoreAway}
               onChange={e => set('scoreAway', e.target.value)}
-              aria-label="Score adversaire"
+              aria-label={t('tournaments.match.scoreAwayAria')}
               className="text-center"
             />
           </div>

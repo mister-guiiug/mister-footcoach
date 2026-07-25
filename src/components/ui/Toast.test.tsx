@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { I18nProvider } from '../../i18n';
 import { ToastProvider, useToast } from './Toast';
 
 function Trigger({ variant }: { variant?: 'error' | 'success' | 'info' }) {
@@ -11,9 +12,11 @@ function Trigger({ variant }: { variant?: 'error' | 'success' | 'info' }) {
 describe('Toast', () => {
   it('shows a toast on demand and exposes errors as alerts', async () => {
     render(
-      <ToastProvider>
-        <Trigger variant="error" />
-      </ToastProvider>
+      <I18nProvider>
+        <ToastProvider>
+          <Trigger variant="error" />
+        </ToastProvider>
+      </I18nProvider>
     );
     await userEvent.click(screen.getByText('déclencher'));
     expect(screen.getByRole('alert')).toHaveTextContent('Échec');
@@ -21,9 +24,11 @@ describe('Toast', () => {
 
   it('dismisses a toast when the close button is clicked', async () => {
     render(
-      <ToastProvider>
-        <Trigger variant="info" />
-      </ToastProvider>
+      <I18nProvider>
+        <ToastProvider>
+          <Trigger variant="info" />
+        </ToastProvider>
+      </I18nProvider>
     );
     await userEvent.click(screen.getByText('déclencher'));
     expect(screen.getByText('Échec')).toBeInTheDocument();

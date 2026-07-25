@@ -1,8 +1,18 @@
 import type { NotificationPreferences } from '../types';
 
+/** Stable keys of the user-facing notification categories (specs §16.3). */
+export type NotificationCategoryKey =
+  | 'match'
+  | 'entrainement'
+  | 'tournoi'
+  | 'sondage'
+  | 'logistique'
+  | 'sante'
+  | 'rappel';
+
 /** User-facing notification categories (specs §16.3). */
 export interface NotificationCategory {
-  key: string;
+  key: NotificationCategoryKey;
   label: string;
 }
 

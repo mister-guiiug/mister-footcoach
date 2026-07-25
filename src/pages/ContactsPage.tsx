@@ -7,8 +7,10 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { ContactFormDialog } from '../components/features/contacts/ContactFormDialog';
 import { useContacts, useAppContext } from '../store/AppContext';
 import type { Contact } from '../types';
+import { useI18n } from '../i18n';
 
 export default function ContactsPage() {
+  const { t } = useI18n();
   const contacts = useContacts();
   const { state, dispatch } = useAppContext();
   const [formOpen, setFormOpen] = useState(false);
@@ -34,13 +36,15 @@ export default function ContactsPage() {
 
   function remove(contact: Contact) {
     if (!canDelete(contact)) {
-      window.alert(
-        'Suppression impossible : ce contact est le seul rattaché à un joueur actif. Rattachez un autre contact d’abord.'
-      );
+      window.alert(t('contacts.deleteImpossible'));
       return;
     }
     if (
-      window.confirm(`Supprimer ${contact.firstName} ${contact.lastName} ?`)
+      window.confirm(
+        t('contacts.deleteConfirm', {
+          name: `${contact.firstName} ${contact.lastName}`,
+        })
+      )
     ) {
       dispatch({ type: 'DELETE_CONTACT', contactId: contact.id });
     }
@@ -54,9 +58,11 @@ export default function ContactsPage() {
   return (
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-fg-heading">Contacts</h1>
+        <h1 className="text-xl font-bold text-fg-heading">
+          {t('contacts.title')}
+        </h1>
         <Button size="sm" onClick={openNew}>
-          <Plus size={16} /> Nouveau
+          <Plus size={16} /> {t('common.new')}
         </Button>
       </div>
 
@@ -70,8 +76,8 @@ export default function ContactsPage() {
 
       {contacts.length === 0 ? (
         <EmptyState
-          title="Aucun contact"
-          description="Ajoutez les représentants légaux des joueurs."
+          title={t('contacts.none')}
+          description={t('contacts.noneDesc')}
           icon={<span className="text-4xl">👪</span>}
         />
       ) : (
@@ -84,13 +90,18 @@ export default function ContactsPage() {
                     <h2 className="font-semibold text-fg-heading">
                       {contact.firstName} {contact.lastName}
                     </h2>
-                    <Badge variant="muted">{contact.type}</Badge>
+                    <Badge variant="muted">
+                      {t(`contactType.${contact.type}`)}
+                    </Badge>
                     {contact.consentDate ? (
                       <Badge variant="success">
-                        <ShieldCheck size={11} className="mr-1" /> Consenti
+                        <ShieldCheck size={11} className="mr-1" />{' '}
+                        {t('contacts.consented')}
                       </Badge>
                     ) : (
-                      <Badge variant="warning">Consentement en attente</Badge>
+                      <Badge variant="warning">
+                        {t('contacts.consentPending')}
+                      </Badge>
                     )}
                   </div>
                   <div className="mt-1.5 space-y-0.5 text-sm">
@@ -106,7 +117,9 @@ export default function ContactsPage() {
                     )}
                   </div>
                   <p className="mt-1.5 text-xs text-fg-muted">
-                    Joueurs : {contact.playerIds.map(playerName).join(', ')}
+                    {t('contacts.players', {
+                      names: contact.playerIds.map(playerName).join(', '),
+                    })}
                   </p>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -115,14 +128,14 @@ export default function ContactsPage() {
                       setEditing(contact);
                       setFormOpen(true);
                     }}
-                    aria-label="Modifier"
+                    aria-label={t('common.edit')}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-primary"
                   >
                     <Pencil size={14} />
                   </button>
                   <button
                     onClick={() => remove(contact)}
-                    aria-label="Supprimer"
+                    aria-label={t('common.delete')}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-red-600"
                   >
                     <Trash2 size={14} />

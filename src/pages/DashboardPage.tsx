@@ -12,7 +12,7 @@ import {
 } from '../store/AppContext';
 import { formatDateShort, isUpcoming } from '../utils/date';
 import type { MatchStatus } from '../types';
-import { MATCH_STATUS_LABELS } from '../types';
+import { useI18n } from '../i18n';
 
 const statusVariant: Record<
   MatchStatus,
@@ -26,6 +26,7 @@ const statusVariant: Record<
 };
 
 export default function DashboardPage() {
+  const { t } = useI18n();
   const { state } = useAppContext();
   const teams = useTeams();
   const allMatches = useMatches();
@@ -44,9 +45,11 @@ export default function DashboardPage() {
     <div className="px-4 py-4 space-y-5">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-fg-heading">Bonjour 👋</h1>
+        <h1 className="text-xl font-bold text-fg-heading">
+          {t('dashboard.greeting')}
+        </h1>
         <p className="text-sm text-fg-muted mt-0.5">
-          Saison {state.season.name}
+          {t('dashboard.season', { name: state.season.name })}
         </p>
       </div>
 
@@ -54,23 +57,27 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 gap-3">
         <Card className="flex flex-col gap-1">
           <p className="text-2xl font-bold text-primary">{teams.length}</p>
-          <p className="text-xs text-fg-muted">Équipes</p>
+          <p className="text-xs text-fg-muted">{t('dashboard.teams')}</p>
         </Card>
         <Card className="flex flex-col gap-1">
           <p className="text-2xl font-bold text-primary">
             {state.players.filter(p => p.active).length}
           </p>
-          <p className="text-xs text-fg-muted">Joueurs actifs</p>
+          <p className="text-xs text-fg-muted">
+            {t('dashboard.activePlayers')}
+          </p>
         </Card>
         <Card className="flex flex-col gap-1">
           <p className="text-2xl font-bold text-primary">
             {upcomingMatches.length}
           </p>
-          <p className="text-xs text-fg-muted">Matchs à venir</p>
+          <p className="text-xs text-fg-muted">
+            {t('dashboard.upcomingMatches')}
+          </p>
         </Card>
         <Card className="flex flex-col gap-1">
           <p className="text-2xl font-bold text-amber-500">{openSurveys}</p>
-          <p className="text-xs text-fg-muted">Sondages ouverts</p>
+          <p className="text-xs text-fg-muted">{t('dashboard.openSurveys')}</p>
         </Card>
       </div>
 
@@ -80,10 +87,10 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-semibold text-fg-heading flex items-center gap-2">
               <Calendar size={15} className="text-primary" />
-              Prochains matchs
+              {t('dashboard.nextMatches')}
             </h2>
             <Link to="/matchs" className="text-xs text-primary font-medium">
-              Voir tout
+              {t('common.viewAll')}
             </Link>
           </div>
           <div className="space-y-2">
@@ -106,7 +113,7 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <Badge variant={statusVariant[match.status]}>
-                        {MATCH_STATUS_LABELS[match.status]}
+                        {t(`matchStatus.${match.status}`)}
                       </Badge>
                     </div>
                   </Card>
@@ -123,20 +130,20 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-semibold text-fg-heading flex items-center gap-2">
               <Dumbbell size={15} className="text-primary" />
-              Prochains entraînements
+              {t('dashboard.nextTrainings')}
             </h2>
             <Link
               to="/entrainements"
               className="text-xs text-primary font-medium"
             >
-              Voir tout
+              {t('common.viewAll')}
             </Link>
           </div>
           <div className="space-y-2">
-            {upcomingTrainings.map(t => {
-              const team = teams.find(te => te.id === t.teamId);
+            {upcomingTrainings.map(training => {
+              const team = teams.find(te => te.id === training.teamId);
               return (
-                <Link key={t.id} to={`/entrainements/${t.id}`}>
+                <Link key={training.id} to={`/entrainements/${training.id}`}>
                   <Card
                     padding={false}
                     className="p-3 hover:bg-surface-muted transition-colors"
@@ -144,15 +151,17 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-fg">
-                          {t.theme ?? 'Entraînement'}
+                          {training.theme ?? t('dashboard.trainingFallback')}
                         </p>
                         <p className="text-xs text-fg-muted mt-0.5">
-                          {team?.name} · {formatDateShort(t.date)} à {t.time} ·{' '}
-                          {t.duration} min
+                          {team?.name} · {formatDateShort(training.date)} à{' '}
+                          {training.time} · {training.duration} min
                         </p>
                       </div>
-                      {t.type === 'exceptionnel' && (
-                        <Badge variant="warning">Exceptionnel</Badge>
+                      {training.type === 'exceptionnel' && (
+                        <Badge variant="warning">
+                          {t('dashboard.exceptional')}
+                        </Badge>
                       )}
                     </div>
                   </Card>
@@ -168,10 +177,10 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-sm font-semibold text-fg-heading flex items-center gap-2">
             <Users size={15} className="text-primary" />
-            Mes équipes
+            {t('dashboard.myTeams')}
           </h2>
           <Link to="/equipes" className="text-xs text-primary font-medium">
-            Gérer
+            {t('common.manage')}
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -194,7 +203,9 @@ export default function DashboardPage() {
                       {team.name}
                     </p>
                   </div>
-                  <p className="text-xs text-fg-muted">{playerCount} joueurs</p>
+                  <p className="text-xs text-fg-muted">
+                    {t('dashboard.playersCount', { count: playerCount })}
+                  </p>
                 </Card>
               </Link>
             );
@@ -212,9 +223,16 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-fg">
-                  {openSurveys} sondage{openSurveys > 1 ? 's' : ''} en attente
+                  {t(
+                    openSurveys > 1
+                      ? 'dashboard.surveysPendingPlural'
+                      : 'dashboard.surveysPending',
+                    { count: openSurveys }
+                  )}
                 </p>
-                <p className="text-xs text-fg-muted">Répondre maintenant</p>
+                <p className="text-xs text-fg-muted">
+                  {t('dashboard.respondNow')}
+                </p>
               </div>
             </Card>
           </Link>
@@ -227,10 +245,10 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-semibold text-fg-heading flex items-center gap-2">
               <Trophy size={15} className="text-primary" />
-              Tournois
+              {t('dashboard.tournaments')}
             </h2>
             <Link to="/tournois" className="text-xs text-primary font-medium">
-              Voir tout
+              {t('common.viewAll')}
             </Link>
           </div>
           <div className="space-y-2">

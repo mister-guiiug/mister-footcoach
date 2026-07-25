@@ -13,12 +13,14 @@ import {
 import type { Match, CarpoolOffer } from '../../../types';
 import { genId } from '../../../utils/id';
 import { CURRENT_USER_ID } from '../../../constants/session';
+import { useI18n } from '../../../i18n';
 
 interface CarpoolSectionProps {
   match: Match;
 }
 
 export function CarpoolSection({ match }: CarpoolSectionProps) {
+  const { t } = useI18n();
   const offers = useCarpoolOffers(match.id);
   const players = usePlayers(match.teamId);
   const { state, dispatch } = useAppContext();
@@ -44,15 +46,15 @@ export function CarpoolSection({ match }: CarpoolSectionProps) {
   return (
     <Card>
       <CardHeader
-        title="Covoiturage"
-        subtitle="Coordination des déplacements"
+        title={t('carpool.title')}
+        subtitle={t('carpool.subtitle')}
         action={
           <Button
             size="sm"
             variant="secondary"
             onClick={() => setFormOpen(true)}
           >
-            <Plus size={14} /> Offre
+            <Plus size={14} /> {t('carpool.offer')}
           </Button>
         }
       />
@@ -66,9 +68,7 @@ export function CarpoolSection({ match }: CarpoolSectionProps) {
       )}
 
       {offers.length === 0 ? (
-        <p className="text-sm text-fg-muted">
-          Aucune offre de covoiturage pour l'instant.
-        </p>
+        <p className="text-sm text-fg-muted">{t('carpool.none')}</p>
       ) : (
         <div className="space-y-2">
           {offers.map(offer => {
@@ -85,20 +85,27 @@ export function CarpoolSection({ match }: CarpoolSectionProps) {
                       {conductorName(offer.offeredBy)}
                     </p>
                     <Badge variant={free > 0 ? 'success' : 'muted'}>
-                      {free} place{free > 1 ? 's' : ''} libre
-                      {free > 1 ? 's' : ''}
+                      {t(
+                        free > 1
+                          ? 'carpool.seatsFreePlural'
+                          : 'carpool.seatsFree',
+                        { count: free }
+                      )}
                     </Badge>
                   </div>
                   {(offer.departureLocation || offer.departureTime) && (
                     <p className="text-xs text-fg-muted mt-0.5">
-                      Départ : {offer.departureLocation ?? '—'}
+                      {t('carpool.departure', {
+                        location: offer.departureLocation ?? '—',
+                      })}
                       {offer.departureTime ? ` · ${offer.departureTime}` : ''}
                     </p>
                   )}
                   {offer.playerIds.length > 0 && (
                     <p className="text-xs text-fg-muted mt-0.5">
-                      Prend en charge :{' '}
-                      {offer.playerIds.map(playerName).join(', ')}
+                      {t('carpool.takesCharge', {
+                        names: offer.playerIds.map(playerName).join(', '),
+                      })}
                     </p>
                   )}
                 </div>
@@ -109,7 +116,7 @@ export function CarpoolSection({ match }: CarpoolSectionProps) {
                       offerId: offer.id,
                     })
                   }
-                  aria-label="Supprimer l'offre"
+                  aria-label={t('carpool.deleteOffer')}
                   className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-red-600"
                 >
                   <Trash2 size={14} />
@@ -123,7 +130,7 @@ export function CarpoolSection({ match }: CarpoolSectionProps) {
       {withoutSolution.length > 0 && (
         <div className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 p-3">
           <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
-            Sans solution de transport ({withoutSolution.length})
+            {t('carpool.withoutSolution', { count: withoutSolution.length })}
           </p>
           <p className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
             {withoutSolution
@@ -143,6 +150,7 @@ interface CarpoolFormDialogProps {
 }
 
 function CarpoolFormDialog({ match, open, onClose }: CarpoolFormDialogProps) {
+  const { t } = useI18n();
   const players = usePlayers(match.teamId);
   const { dispatch } = useAppContext();
   const [seats, setSeats] = useState('4');
@@ -171,7 +179,10 @@ function CarpoolFormDialog({ match, open, onClose }: CarpoolFormDialogProps) {
       type: 'NOTIFY',
       teamId: match.teamId,
       notifType: 'covoiturage_nouvelle_offre',
-      message: `Nouvelle offre de covoiturage pour le match ${match.isHome ? 'vs' : '@'} ${match.opponent}.`,
+      message: t('notifications.msg.carpoolNew', {
+        sign: match.isHome ? 'vs' : '@',
+        opponent: match.opponent,
+      }),
       relatedId: match.id,
       relatedType: 'match',
     });
@@ -186,14 +197,14 @@ function CarpoolFormDialog({ match, open, onClose }: CarpoolFormDialogProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      title="Proposer un covoiturage"
+      title={t('carpool.proposeTitle')}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            Proposer
+            {t('common.propose')}
           </Button>
         </div>
       }
@@ -201,7 +212,7 @@ function CarpoolFormDialog({ match, open, onClose }: CarpoolFormDialogProps) {
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Places disponibles"
+            label={t('carpool.seatsAvailable')}
             type="number"
             min={1}
             max={8}
@@ -209,21 +220,21 @@ function CarpoolFormDialog({ match, open, onClose }: CarpoolFormDialogProps) {
             onChange={e => setSeats(e.target.value)}
           />
           <Input
-            label="Heure de départ"
+            label={t('carpool.departureTime')}
             type="time"
             value={departureTime}
             onChange={e => setDepartureTime(e.target.value)}
           />
         </div>
         <Input
-          label="Lieu de départ"
+          label={t('carpool.departureLocation')}
           value={departureLocation}
           onChange={e => setDepartureLocation(e.target.value)}
-          placeholder="Ex. Place de la mairie"
+          placeholder={t('carpool.departurePlaceholder')}
         />
         <div>
           <p className="mb-1 text-xs font-medium text-fg-muted">
-            Joueurs pris en charge
+            {t('carpool.playersCovered')}
           </p>
           <div className="flex flex-wrap gap-2">
             {players.map(p => (

@@ -3,6 +3,7 @@ import { Dialog } from '../../ui/Dialog';
 import { Input, Select, Textarea } from '../../ui/Input';
 import { Button } from '../../ui/Button';
 import { useTeams, useAppContext } from '../../../store/AppContext';
+import { useI18n } from '../../../i18n';
 import type { Training, TrainingType } from '../../../types';
 import { genId } from '../../../utils/id';
 import { today } from '../../../utils/date';
@@ -23,6 +24,7 @@ export function TrainingFormDialog({
   training,
   onSaved,
 }: TrainingFormDialogProps) {
+  const { t } = useI18n();
   const teams = useTeams();
   const { dispatch } = useAppContext();
   const isEdit = Boolean(training);
@@ -70,7 +72,10 @@ export function TrainingFormDialog({
         type: 'NOTIFY',
         teamId: form.teamId,
         notifType: 'entrainement_nouveau',
-        message: `Série de ${occurrences} entraînements à partir du ${form.date}.`,
+        message: t('notifications.msg.trainingSeries', {
+          count: occurrences,
+          date: form.date,
+        }),
         relatedId: series[0]!.id,
         relatedType: 'training',
       });
@@ -108,8 +113,17 @@ export function TrainingFormDialog({
             ? 'entrainement_exceptionnel'
             : 'entrainement_nouveau',
       message: saved.cancelled
-        ? `Entraînement du ${saved.date} annulé.`
-        : `Entraînement du ${saved.date} à ${saved.time}${saved.theme ? ` — ${saved.theme}` : ''}.`,
+        ? t('notifications.msg.trainingCancelled', { date: saved.date })
+        : saved.theme
+          ? t('notifications.msg.trainingSingleThemed', {
+              date: saved.date,
+              time: saved.time,
+              theme: saved.theme,
+            })
+          : t('notifications.msg.trainingSingle', {
+              date: saved.date,
+              time: saved.time,
+            }),
       relatedId: id,
       relatedType: 'training',
     });
@@ -121,21 +135,21 @@ export function TrainingFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title={isEdit ? "Modifier l'entraînement" : 'Nouvel entraînement'}
+      title={t(isEdit ? 'trainings.form.editTitle' : 'trainings.form.newTitle')}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            {isEdit ? 'Enregistrer' : 'Créer'}
+            {t(isEdit ? 'common.save' : 'common.create')}
           </Button>
         </div>
       }
     >
       <div className="space-y-3">
         <Select
-          label="Équipe"
+          label={t('trainings.form.team')}
           value={form.teamId}
           onChange={e => set('teamId', e.target.value)}
         >
@@ -148,13 +162,13 @@ export function TrainingFormDialog({
 
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Date"
+            label={t('trainings.form.date')}
             type="date"
             value={form.date}
             onChange={e => set('date', e.target.value)}
           />
           <Input
-            label="Heure"
+            label={t('trainings.form.time')}
             type="time"
             value={form.time}
             onChange={e => set('time', e.target.value)}
@@ -163,30 +177,32 @@ export function TrainingFormDialog({
 
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Durée (min)"
+            label={t('trainings.form.duration')}
             type="number"
             min={0}
             value={form.duration}
             onChange={e => set('duration', Number(e.target.value))}
           />
           <Select
-            label="Type"
+            label={t('trainings.form.type')}
             value={form.type}
             onChange={e => set('type', e.target.value as TrainingType)}
           >
-            <option value="regulier">Régulier</option>
-            <option value="exceptionnel">Exceptionnel</option>
+            <option value="regulier">{t('trainings.form.typeRegular')}</option>
+            <option value="exceptionnel">
+              {t('trainings.form.typeExceptional')}
+            </option>
           </Select>
         </div>
 
         <Input
-          label="Thème"
+          label={t('trainings.form.theme')}
           value={form.theme}
           onChange={e => set('theme', e.target.value)}
-          placeholder="Ex. Pressing haut"
+          placeholder={t('trainings.form.themePlaceholder')}
         />
         <Textarea
-          label="Note / programme"
+          label={t('trainings.form.note')}
           value={form.note}
           onChange={e => set('note', e.target.value)}
           rows={2}
@@ -194,7 +210,7 @@ export function TrainingFormDialog({
 
         {!isEdit && (
           <Input
-            label="Répéter chaque semaine (nombre d'occurrences)"
+            label={t('trainings.form.repeat')}
             type="number"
             min={1}
             max={30}
@@ -211,7 +227,7 @@ export function TrainingFormDialog({
               onChange={e => set('cancelled', e.target.checked)}
               className="h-4 w-4 rounded border-border-ui text-primary"
             />
-            Séance annulée
+            {t('trainings.form.cancelledCheck')}
           </label>
         )}
       </div>

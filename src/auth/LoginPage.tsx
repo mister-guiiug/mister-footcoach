@@ -3,8 +3,10 @@ import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { useAuth } from './AuthContext';
+import { useI18n } from '../i18n';
 
 export function LoginPage() {
+  const { t } = useI18n();
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,7 +19,7 @@ export function LoginPage() {
     setError('');
     const { error: err } = await signIn(email.trim(), password);
     setLoading(false);
-    if (err) setError('Identifiants invalides.');
+    if (err) setError(t('auth.invalidCredentials'));
   }
 
   return (
@@ -31,14 +33,14 @@ export function LoginPage() {
         </div>
         <form onSubmit={handleSubmit} className="space-y-3">
           <Input
-            label="Email"
+            label={t('auth.email')}
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
           />
           <Input
-            label="Mot de passe"
+            label={t('auth.password')}
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
@@ -46,7 +48,7 @@ export function LoginPage() {
           />
           {error && <p className="text-xs text-red-600">{error}</p>}
           <Button type="submit" loading={loading} className="w-full">
-            Se connecter
+            {t('auth.signIn')}
           </Button>
         </form>
       </Card>

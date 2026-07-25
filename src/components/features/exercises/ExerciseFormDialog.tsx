@@ -3,11 +3,8 @@ import { Dialog } from '../../ui/Dialog';
 import { Input, Select, Textarea } from '../../ui/Input';
 import { Button } from '../../ui/Button';
 import { useAppContext } from '../../../store/AppContext';
-import {
-  EXERCISE_CATEGORY_LABELS,
-  type Exercise,
-  type ExerciseCategory,
-} from '../../../types';
+import { type Exercise, type ExerciseCategory } from '../../../types';
+import { useI18n } from '../../../i18n';
 import { genId } from '../../../utils/id';
 
 interface ExerciseFormDialogProps {
@@ -17,7 +14,14 @@ interface ExerciseFormDialogProps {
   onSaved?: (exerciseId: string) => void;
 }
 
-const CATEGORIES = Object.keys(EXERCISE_CATEGORY_LABELS) as ExerciseCategory[];
+const CATEGORIES: ExerciseCategory[] = [
+  'echauffement',
+  'technique',
+  'physique',
+  'tactique',
+  'jeu',
+  'retour_au_calme',
+];
 
 export function ExerciseFormDialog({
   open,
@@ -25,6 +29,7 @@ export function ExerciseFormDialog({
   exercise,
   onSaved,
 }: ExerciseFormDialogProps) {
+  const { t } = useI18n();
   const { dispatch } = useAppContext();
   const isEdit = Boolean(exercise);
 
@@ -43,7 +48,7 @@ export function ExerciseFormDialog({
 
   function handleSubmit() {
     if (form.title.trim().length < 2) {
-      setError('Le titre doit comporter au moins 2 caractères.');
+      setError(t('exercises.form.titleTooShort'));
       return;
     }
 
@@ -74,45 +79,45 @@ export function ExerciseFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title={isEdit ? "Modifier l'exercice" : 'Nouvel exercice'}
+      title={t(isEdit ? 'exercises.form.editTitle' : 'exercises.form.newTitle')}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            {isEdit ? 'Enregistrer' : 'Créer'}
+            {t(isEdit ? 'common.save' : 'common.create')}
           </Button>
         </div>
       }
     >
       <div className="space-y-3">
         <Input
-          label="Titre"
+          label={t('exercises.form.title')}
           value={form.title}
           onChange={e => set('title', e.target.value)}
-          placeholder="Ex. Jeu de passes 3 contre 1"
+          placeholder={t('exercises.form.titlePlaceholder')}
         />
         <Textarea
-          label="Description"
+          label={t('exercises.form.description')}
           value={form.description}
           onChange={e => set('description', e.target.value)}
           rows={3}
         />
         <div className="grid grid-cols-2 gap-3">
           <Select
-            label="Catégorie"
+            label={t('exercises.form.category')}
             value={form.category}
             onChange={e => set('category', e.target.value as ExerciseCategory)}
           >
             {CATEGORIES.map(c => (
               <option key={c} value={c}>
-                {EXERCISE_CATEGORY_LABELS[c]}
+                {t(`exerciseCategory.${c}`)}
               </option>
             ))}
           </Select>
           <Input
-            label="Durée suggérée (min)"
+            label={t('exercises.form.suggestedDuration')}
             type="number"
             min={0}
             value={form.suggestedDuration}
@@ -120,10 +125,10 @@ export function ExerciseFormDialog({
           />
         </div>
         <Input
-          label="Tags (séparés par des virgules)"
+          label={t('exercises.form.tags')}
           value={form.tags}
           onChange={e => set('tags', e.target.value)}
-          placeholder="passes, technique, pression"
+          placeholder={t('exercises.form.tagsPlaceholder')}
         />
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>

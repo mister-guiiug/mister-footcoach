@@ -7,15 +7,20 @@ import { Input } from '../components/ui/Input';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ExerciseFormDialog } from '../components/features/exercises/ExerciseFormDialog';
 import { useExercises, useAppContext } from '../store/AppContext';
-import {
-  EXERCISE_CATEGORY_LABELS,
-  type Exercise,
-  type ExerciseCategory,
-} from '../types';
+import { type Exercise, type ExerciseCategory } from '../types';
+import { useI18n } from '../i18n';
 
-const CATEGORIES = Object.keys(EXERCISE_CATEGORY_LABELS) as ExerciseCategory[];
+const CATEGORIES: ExerciseCategory[] = [
+  'echauffement',
+  'technique',
+  'physique',
+  'tactique',
+  'jeu',
+  'retour_au_calme',
+];
 
 export default function ExercisesPage() {
+  const { t } = useI18n();
   const exercises = useExercises();
   const { dispatch } = useAppContext();
   const [search, setSearch] = useState('');
@@ -33,7 +38,7 @@ export default function ExercisesPage() {
     return (
       ex.title.toLowerCase().includes(q) ||
       ex.tags.some(t => t.toLowerCase().includes(q)) ||
-      EXERCISE_CATEGORY_LABELS[ex.category].toLowerCase().includes(q)
+      t(`exerciseCategory.${ex.category}`).toLowerCase().includes(q)
     );
   });
 
@@ -51,10 +56,10 @@ export default function ExercisesPage() {
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-fg-heading">
-          Bibliothèque d'exercices
+          {t('exercises.title')}
         </h1>
         <Button size="sm" onClick={openNew}>
-          <Plus size={16} /> Nouveau
+          <Plus size={16} /> {t('common.new')}
         </Button>
       </div>
 
@@ -74,7 +79,7 @@ export default function ExercisesPage() {
         <Input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Rechercher par titre, catégorie ou tag…"
+          placeholder={t('exercises.searchPlaceholder')}
           className="pl-9"
         />
       </div>
@@ -88,7 +93,7 @@ export default function ExercisesPage() {
               : 'bg-surface border border-border-ui text-fg-muted hover:bg-surface-muted'
           }`}
         >
-          Toutes
+          {t('exercises.allCategories')}
         </button>
         {CATEGORIES.map(c => (
           <button
@@ -100,15 +105,15 @@ export default function ExercisesPage() {
                 : 'bg-surface border border-border-ui text-fg-muted hover:bg-surface-muted'
             }`}
           >
-            {EXERCISE_CATEGORY_LABELS[c]}
+            {t(`exerciseCategory.${c}`)}
           </button>
         ))}
       </div>
 
       {filtered.length === 0 ? (
         <EmptyState
-          title="Aucun exercice"
-          description="Aucun exercice ne correspond à votre recherche."
+          title={t('exercises.none')}
+          description={t('exercises.noneDesc')}
           icon={<span className="text-4xl">🏃</span>}
         />
       ) : (
@@ -122,7 +127,7 @@ export default function ExercisesPage() {
                       {ex.title}
                     </h2>
                     <Badge variant="primary">
-                      {EXERCISE_CATEGORY_LABELS[ex.category]}
+                      {t(`exerciseCategory.${ex.category}`)}
                     </Badge>
                     {ex.suggestedDuration && (
                       <Badge variant="muted">{ex.suggestedDuration} min</Badge>
@@ -149,7 +154,7 @@ export default function ExercisesPage() {
                 <div className="flex flex-col gap-1">
                   <button
                     onClick={() => openEdit(ex)}
-                    aria-label="Modifier"
+                    aria-label={t('common.edit')}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-primary"
                   >
                     <Pencil size={14} />
@@ -158,7 +163,7 @@ export default function ExercisesPage() {
                     onClick={() =>
                       dispatch({ type: 'DELETE_EXERCISE', exerciseId: ex.id })
                     }
-                    aria-label="Supprimer"
+                    aria-label={t('common.delete')}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-red-600"
                   >
                     <Trash2 size={14} />

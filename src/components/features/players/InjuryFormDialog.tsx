@@ -13,6 +13,7 @@ import {
 import { genId } from '../../../utils/id';
 import { today } from '../../../utils/date';
 import { CURRENT_USER_ID } from '../../../constants/session';
+import { useI18n } from '../../../i18n';
 
 interface InjuryFormDialogProps {
   open: boolean;
@@ -30,7 +31,7 @@ const ZONES = [
   'épaule',
   'tête',
   'autre',
-];
+] as const;
 
 const STATUSES = Object.keys(INJURY_STATUS_LABELS) as InjuryStatus[];
 
@@ -40,6 +41,7 @@ export function InjuryFormDialog({
   player,
   injury,
 }: InjuryFormDialogProps) {
+  const { t } = useI18n();
   const { dispatch } = useAppContext();
   const unavailabilities = useUnavailabilities(player.id);
   const isEdit = Boolean(injury);
@@ -61,7 +63,7 @@ export function InjuryFormDialog({
 
   function handleSubmit() {
     if (!form.nature.trim()) {
-      setError('La nature de la blessure est obligatoire.');
+      setError(t('injury.natureRequired'));
       return;
     }
 
@@ -114,7 +116,10 @@ export function InjuryFormDialog({
         type: 'NOTIFY',
         teamId: player.primaryTeamId,
         notifType: 'blessure_declaree',
-        message: `Blessure déclarée pour ${player.firstName} ${player.lastName} (${form.zone}).`,
+        message: t('notifications.msg.injuryDeclared', {
+          name: `${player.firstName} ${player.lastName}`,
+          zone: form.zone,
+        }),
         relatedId: player.id,
         relatedType: 'player',
       });
@@ -126,54 +131,53 @@ export function InjuryFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title={isEdit ? 'Suivi de blessure' : 'Déclarer une blessure'}
+      title={t(isEdit ? 'injury.trackTitle' : 'injury.declareTitle')}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            {isEdit ? 'Enregistrer' : 'Déclarer'}
+            {t(isEdit ? 'common.save' : 'common.declare')}
           </Button>
         </div>
       }
     >
       <div className="space-y-3">
         <p className="rounded-xl bg-surface-muted p-2.5 text-xs text-fg-muted">
-          Données sportives uniquement (disponibilité, précautions). Aucune
-          donnée médicale ne doit être saisie.
+          {t('injury.dataNotice')}
         </p>
 
         <div className="grid grid-cols-2 gap-3">
           <Select
-            label="Zone"
+            label={t('injury.zone')}
             value={form.zone}
             onChange={e => set('zone', e.target.value)}
           >
             {ZONES.map(z => (
               <option key={z} value={z}>
-                {z}
+                {t(`injury.zoneOptions.${z}`)}
               </option>
             ))}
           </Select>
           <Input
-            label="Nature"
+            label={t('injury.nature')}
             value={form.nature}
             onChange={e => set('nature', e.target.value)}
-            placeholder="Ex. entorse"
+            placeholder={t('injury.naturePlaceholder')}
             maxLength={100}
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Date de survenue"
+            label={t('injury.startDate')}
             type="date"
             value={form.startDate}
             onChange={e => set('startDate', e.target.value)}
           />
           <Input
-            label="Reprise estimée"
+            label={t('injury.estimatedReturn')}
             type="date"
             value={form.estimatedReturnDate}
             onChange={e => set('estimatedReturnDate', e.target.value)}
@@ -181,20 +185,20 @@ export function InjuryFormDialog({
         </div>
 
         <Select
-          label="Statut"
+          label={t('injury.status')}
           value={form.status}
           onChange={e => set('status', e.target.value as InjuryStatus)}
         >
           {STATUSES.map(s => (
             <option key={s} value={s}>
-              {INJURY_STATUS_LABELS[s]}
+              {t(`injuryStatus.${s}`)}
             </option>
           ))}
         </Select>
 
         {form.status === 'apte' && (
           <Input
-            label="Date de reprise effective"
+            label={t('injury.effectiveReturn')}
             type="date"
             value={form.actualReturnDate}
             onChange={e => set('actualReturnDate', e.target.value)}
@@ -202,7 +206,7 @@ export function InjuryFormDialog({
         )}
 
         <Textarea
-          label="Note coach (invisible pour le parent)"
+          label={t('injury.noteCoach')}
           value={form.noteCoach}
           onChange={e => set('noteCoach', e.target.value)}
           rows={2}

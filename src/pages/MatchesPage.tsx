@@ -6,8 +6,9 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { MatchFormDialog } from '../components/features/matches/MatchFormDialog';
 import { useMatches, useTeams } from '../store/AppContext';
-import { MATCH_STATUS_LABELS, type MatchStatus } from '../types';
+import { type MatchStatus } from '../types';
 import { formatDateFull, isUpcoming } from '../utils/date';
+import { useI18n } from '../i18n';
 
 const statusVariant: Record<
   MatchStatus,
@@ -21,6 +22,7 @@ const statusVariant: Record<
 };
 
 export default function MatchesPage() {
+  const { t } = useI18n();
   const allMatches = useMatches();
   const teams = useTeams();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all');
@@ -37,9 +39,11 @@ export default function MatchesPage() {
   return (
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-fg-heading">Matchs</h1>
+        <h1 className="text-xl font-bold text-fg-heading">
+          {t('matches.title')}
+        </h1>
         <Button size="sm" onClick={() => setFormOpen(true)}>
-          <Plus size={16} /> Nouveau
+          <Plus size={16} /> {t('common.new')}
         </Button>
       </div>
 
@@ -63,7 +67,11 @@ export default function MatchesPage() {
                 : 'bg-surface border border-border-ui text-fg-muted hover:bg-surface-muted'
             }`}
           >
-            {f === 'all' ? 'Tous' : f === 'upcoming' ? 'À venir' : 'Passés'}
+            {f === 'all'
+              ? t('matches.filterAll')
+              : f === 'upcoming'
+                ? t('matches.filterUpcoming')
+                : t('matches.filterPast')}
           </button>
         ))}
 
@@ -77,7 +85,7 @@ export default function MatchesPage() {
               : 'bg-surface border border-border-ui text-fg-muted hover:bg-surface-muted'
           }`}
         >
-          Toutes
+          {t('matches.allTeams')}
         </button>
         {teams.map(t => (
           <button
@@ -99,7 +107,7 @@ export default function MatchesPage() {
         {
           /* istanbul ignore next */ filtered.length === 0 && (
             <p className="text-sm text-fg-muted text-center py-8">
-              Aucun match trouvé
+              {t('matches.none')}
             </p>
           )
         }
@@ -121,7 +129,7 @@ export default function MatchesPage() {
                       </p>
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-fg-heading">
-                          {match.isHome ? 'Domicile' : 'Extérieur'}
+                          {match.isHome ? t('matches.home') : t('matches.away')}
                         </p>
                         <span className="text-fg-muted">·</span>
                         <p className="font-semibold text-fg">
@@ -134,7 +142,7 @@ export default function MatchesPage() {
                     </div>
                     <div className="flex flex-col items-end gap-2 flex-shrink-0">
                       <Badge variant={statusVariant[match.status]}>
-                        {MATCH_STATUS_LABELS[match.status]}
+                        {t(`matchStatus.${match.status}`)}
                       </Badge>
                       {hasScore && (
                         <p className="text-lg font-bold text-fg-heading">
