@@ -334,22 +334,28 @@ export default function PlayerDetailPage() {
         <Card>
           <CardHeader title={t('players.appetences')} />
           <div className="space-y-2">
-            {appetenceEntries.map(([pos, score]) => (
-              <div key={pos} className="flex items-center gap-3">
-                <span className="text-xs text-fg-muted w-24 shrink-0">
-                  {t(`position.${pos as Position}`)}
-                </span>
-                <div className="flex-1 h-2 bg-surface-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all"
-                    style={{ width: `${(score / 5) * 100}%` }}
-                  />
+            {appetenceEntries.map(([pos, score]) => {
+              // Known position codes resolve via i18n; an unknown code (absent
+              // from the catalog) makes t() echo the raw path, so we fall back
+              // to the bare key to keep the label readable.
+              const label = t(`position.${pos as Position}`);
+              return (
+                <div key={pos} className="flex items-center gap-3">
+                  <span className="text-xs text-fg-muted w-24 shrink-0">
+                    {label === `position.${pos}` ? pos : label}
+                  </span>
+                  <div className="flex-1 h-2 bg-surface-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all"
+                      style={{ width: `${(score / 5) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-fg w-4 text-right">
+                    {score}
+                  </span>
                 </div>
-                <span className="text-xs font-medium text-fg w-4 text-right">
-                  {score}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       )}

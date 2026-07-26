@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AppProvider, useTrainings } from '../../../store/AppContext';
+import { I18nProvider } from '../../../i18n';
 import { TrainingFormDialog } from './TrainingFormDialog';
 
 function Harness() {
@@ -18,9 +19,11 @@ function Harness() {
 function renderHarness() {
   return render(
     <MemoryRouter>
-      <AppProvider>
-        <Harness />
-      </AppProvider>
+      <I18nProvider>
+        <AppProvider>
+          <Harness />
+        </AppProvider>
+      </I18nProvider>
     </MemoryRouter>
   );
 }
