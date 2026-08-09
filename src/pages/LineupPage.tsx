@@ -29,10 +29,10 @@ export default function LineupPage() {
     searchParams.get('teamId') ?? teams[0]!.id
   );
   const [selectedFormation, setSelectedFormation] = useState<Formation>(
-    FORMATIONS[0]
+    FORMATIONS[0]!
   );
   const [slots, setSlots] = useState<LineupSlot[]>(
-    FORMATIONS[0].slots.map(s => ({ ...s }))
+    FORMATIONS[0]!.slots.map(s => ({ ...s }))
   );
   const [selectedSlotPos, setSelectedSlotPos] = useState<string | null>(null);
   const [substituteIds, setSubstituteIds] = useState<string[]>([]);
@@ -122,7 +122,7 @@ export default function LineupPage() {
     /* c8 ignore next */
     if (!lineup) return;
     const formation =
-      FORMATIONS.find(f => f.id === lineup.formation) ?? FORMATIONS[0];
+      FORMATIONS.find(f => f.id === lineup.formation) ?? FORMATIONS[0]!;
     setSelectedFormation(formation);
     setSlots(lineup.slots);
     setSubstituteIds(lineup.substituteIds);

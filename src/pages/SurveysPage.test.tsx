@@ -48,7 +48,7 @@ describe('SurveysPage', () => {
 
   it('expands survey details on click', async () => {
     renderWithProviders(<SurveysPage />);
-    const btn = screen.getAllByText('Voir les réponses')[0];
+    const btn = screen.getAllByText('Voir les réponses')[0]!;
     await userEvent.click(btn);
     expect(screen.getByText('Masquer les détails')).toBeInTheDocument();
     // Player names should appear
@@ -57,7 +57,7 @@ describe('SurveysPage', () => {
 
   it('collapses survey details on second click', async () => {
     renderWithProviders(<SurveysPage />);
-    const btn = screen.getAllByText('Voir les réponses')[0];
+    const btn = screen.getAllByText('Voir les réponses')[0]!;
     await userEvent.click(btn);
     await userEvent.click(screen.getByText('Masquer les détails'));
     expect(screen.getAllByText('Voir les réponses').length).toBeGreaterThan(0);
@@ -65,36 +65,36 @@ describe('SurveysPage', () => {
 
   it('shows divergence warning when intention != confirmation', async () => {
     renderWithProviders(<SurveysPage />);
-    await userEvent.click(screen.getAllByText('Voir les réponses')[0]);
+    await userEvent.click(screen.getAllByText('Voir les réponses')[0]!);
     // sr2: intentionJoueur=present, confirmationParent=absent → divergence for p2
     expect(screen.getByText('Divergence')).toBeInTheDocument();
   });
 
   it('clicking intentionJoueur button records response', async () => {
     renderWithProviders(<SurveysPage />);
-    await userEvent.click(screen.getAllByText('Voir les réponses')[0]);
+    await userEvent.click(screen.getAllByText('Voir les réponses')[0]!);
     // Find first Présent button in the intention section (p1 area — already 'present')
     const presentBtns = screen.getAllByRole('button', { name: 'Présent' });
     if (presentBtns.length > 0) {
-      await userEvent.click(presentBtns[0]);
+      await userEvent.click(presentBtns[0]!);
     }
   });
 
   it('clicking confirmationParent button records response', async () => {
     renderWithProviders(<SurveysPage />);
-    await userEvent.click(screen.getAllByText('Voir les réponses')[0]);
+    await userEvent.click(screen.getAllByText('Voir les réponses')[0]!);
     const absentBtns = screen.getAllByRole('button', { name: 'Absent' });
     if (absentBtns.length > 0) {
-      await userEvent.click(absentBtns[0]);
+      await userEvent.click(absentBtns[0]!);
     }
   });
 
   it('clicking Incertain button records uncertain response', async () => {
     renderWithProviders(<SurveysPage />);
-    await userEvent.click(screen.getAllByText('Voir les réponses')[0]);
+    await userEvent.click(screen.getAllByText('Voir les réponses')[0]!);
     const incertainBtns = screen.getAllByRole('button', { name: 'Incertain' });
     if (incertainBtns.length > 0) {
-      await userEvent.click(incertainBtns[0]);
+      await userEvent.click(incertainBtns[0]!);
     }
   });
 
@@ -120,14 +120,14 @@ describe('SurveysPage', () => {
 
   it('creates new response for player with no existing response', async () => {
     renderWithProviders(<SurveysPage />);
-    await userEvent.click(screen.getAllByText('Voir les réponses')[0]);
+    await userEvent.click(screen.getAllByText('Voir les réponses')[0]!);
     // p4 and beyond have no responses — clicking any button creates a new one
     const allIncertainBtns = screen.getAllByRole('button', {
       name: 'Incertain',
     });
     // Click the last one (should be for a player without existing response)
     if (allIncertainBtns.length > 0) {
-      await userEvent.click(allIncertainBtns[allIncertainBtns.length - 1]);
+      await userEvent.click(allIncertainBtns[allIncertainBtns.length - 1]!);
     }
   });
 

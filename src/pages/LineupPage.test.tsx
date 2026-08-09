@@ -52,14 +52,14 @@ describe('LineupPage', () => {
   it('clicking a slot opens player panel', async () => {
     renderWithProviders(<LineupPage />);
     // Click GK slot (first slot button on pitch)
-    const gkSlot = screen.getAllByText('GK')[0].closest('button')!;
+    const gkSlot = screen.getAllByText('GK')[0]!.closest('button')!;
     await userEvent.click(gkSlot);
     expect(screen.getByText(/Affecter au poste/)).toBeInTheDocument();
   });
 
   it('clicking same slot twice closes panel', async () => {
     renderWithProviders(<LineupPage />);
-    const gkSlot = screen.getAllByText('GK')[0].closest('button')!;
+    const gkSlot = screen.getAllByText('GK')[0]!.closest('button')!;
     await userEvent.click(gkSlot);
     await userEvent.click(gkSlot);
     expect(screen.queryByText(/Affecter au poste/)).not.toBeInTheDocument();
@@ -75,13 +75,13 @@ describe('LineupPage', () => {
   it('assigning a player from the panel', async () => {
     renderWithProviders(<LineupPage />);
     // Open GK slot — initially no player assigned
-    const gkSlot = screen.getAllByText('GK')[0].closest('button')!;
+    const gkSlot = screen.getAllByText('GK')[0]!.closest('button')!;
     await userEvent.click(gkSlot);
     expect(screen.getByText(/Affecter au poste/)).toBeInTheDocument();
     // Panel shows players by first name — click the first available player
     const lucasBtns = screen.queryAllByText(/Lucas Dupont/);
     if (lucasBtns.length > 0) {
-      await userEvent.click(lucasBtns[0]);
+      await userEvent.click(lucasBtns[0]!);
     }
   });
 
@@ -122,9 +122,9 @@ describe('LineupPage', () => {
       .closest('div')!;
     const playerBtns = subsSection.querySelectorAll('button');
     if (playerBtns.length > 0) {
-      await userEvent.click(playerBtns[0]);
+      await userEvent.click(playerBtns[0]!);
       // Clicking again toggles it off
-      await userEvent.click(playerBtns[0]);
+      await userEvent.click(playerBtns[0]!);
     }
   });
 
@@ -146,7 +146,7 @@ describe('LineupPage', () => {
   it('shows unavailable player with warning', async () => {
     renderWithProviders(<LineupPage />);
     // Open any empty slot so player panel appears
-    const gkSlot = screen.getAllByText('GK')[0].closest('button')!;
+    const gkSlot = screen.getAllByText('GK')[0]!.closest('button')!;
     await userEvent.click(gkSlot);
     // p4 (Hugo) has active unavailability — should appear in panel with ⚠️
     const panel = screen.queryByText(/Affecter au poste/);
@@ -182,7 +182,7 @@ describe('LineupPage', () => {
       await userEvent.click(atdSlotBtn);
       const p9Btns = screen.queryAllByText(/Enzo/);
       if (p9Btns.length > 0) {
-        await userEvent.click(p9Btns[0]);
+        await userEvent.click(p9Btns[0]!);
       }
     }
     expect(screen.getByText('Compositions')).toBeInTheDocument();

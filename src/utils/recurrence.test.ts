@@ -31,8 +31,8 @@ describe('generateWeeklyTrainings', () => {
   it('shares a series id and carries the base fields', () => {
     const list = generateWeeklyTrainings(base, 2, () => 'x', 'series-2');
     expect(list.every(t => t.seriesId === 'series-2')).toBe(true);
-    expect(list[0].theme).toBe('Pressing');
-    expect(list[0].duration).toBe(90);
-    expect(list[0].cancelled).toBe(false);
+    expect(list[0]!.theme).toBe('Pressing');
+    expect(list[0]!.duration).toBe(90);
+    expect(list[0]!.cancelled).toBe(false);
   });
 });

@@ -78,7 +78,7 @@ describe('rankPlayersForPosition', () => {
       mkPlayer({ id: 'appet', preferredPosition: 'MC', appetences: { AT: 5 } }),
     ];
     const ranked = rankPlayersForPosition(players, 'AT', []);
-    expect(ranked[0].id).toBe('striker');
-    expect(ranked[ranked.length - 1].id).toBe('mid');
+    expect(ranked[0]!.id).toBe('striker');
+    expect(ranked[ranked.length - 1]!.id).toBe('mid');
   });
 });

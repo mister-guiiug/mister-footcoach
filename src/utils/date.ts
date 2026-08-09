@@ -42,7 +42,7 @@ export function age(dateOfBirth: string): number {
 }
 
 export function today(): string {
-  return new Date().toISOString().split('T')[0];
+  return new Date().toISOString().slice(0, 10);
 }
 
 /** Returns the date `days` days after `dateStr` (ISO YYYY-MM-DD). */
