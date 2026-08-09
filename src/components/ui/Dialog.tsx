@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { X } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 interface DialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ export function Dialog({
   children,
   footer,
 }: DialogProps) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
@@ -48,7 +50,7 @@ export function Dialog({
           <h2 className="text-sm font-semibold text-fg-heading">{title}</h2>
           <button
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={t('common.close')}
             className="flex h-8 w-8 items-center justify-center rounded-xl text-fg-muted hover:bg-surface-muted"
           >
             <X size={18} />

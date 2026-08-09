@@ -2,14 +2,16 @@ import { Link } from 'react-router-dom';
 import { Users, ChevronRight } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { useTeams, usePlayers } from '../store/AppContext';
+import { useI18n } from '../i18n';
 
 export default function TeamsPage() {
+  const { t } = useI18n();
   const teams = useTeams();
   const allPlayers = usePlayers();
 
   return (
     <div className="px-4 py-4 space-y-4">
-      <h1 className="text-xl font-bold text-fg-heading">Équipes</h1>
+      <h1 className="text-xl font-bold text-fg-heading">{t('teams.title')}</h1>
 
       <div className="space-y-3">
         {teams.map(team => {
@@ -36,8 +38,12 @@ export default function TeamsPage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-fg-heading">{team.name}</p>
                     <p className="text-xs text-fg-muted mt-0.5">
-                      {team.category} · {playerCount} joueurs principaux
-                      {secondaryCount > 0 && ` · ${secondaryCount} renforts`}
+                      {team.category} ·{' '}
+                      {t('teams.principalPlayers', { count: playerCount })}
+                      {secondaryCount > 0 &&
+                        t('teams.reinforcementsSuffix', {
+                          count: secondaryCount,
+                        })}
                     </p>
                   </div>
                   <ChevronRight

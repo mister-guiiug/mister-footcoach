@@ -22,6 +22,7 @@ import {
 import { persistAction } from './persistAction';
 import { Spinner } from '../components/ui/Spinner';
 import { useToast } from '../components/ui/Toast';
+import { useI18n } from '../i18n';
 
 /**
  * Supabase-backed provider. Hydrates the full AppState from Postgres, keeps it
@@ -33,6 +34,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
   const [state, localDispatch] = useReducer(reducer, EMPTY_APP_STATE);
   const [ready, setReady] = useState(false);
   const toast = useToast();
+  const { t } = useI18n();
 
   // Keep the latest state available to the persist layer (e.g. NOTIFY).
   const stateRef = useRef<AppState>(state);
@@ -91,14 +93,11 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       localDispatch(action);
       void persistAction(action, stateRef.current).catch((e: unknown) => {
         console.error('Supabase persist failed', action.type, e);
-        toast.show(
-          "Échec de l'enregistrement. La modification a été annulée.",
-          'error'
-        );
+        toast.show(t('errors.saveFailed'), 'error');
         void reload();
       });
     },
-    [reload, toast]
+    [reload, toast, t]
   );
 
   if (!ready) return <Spinner fullscreen />;

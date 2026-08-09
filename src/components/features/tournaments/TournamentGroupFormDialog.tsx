@@ -5,6 +5,7 @@ import { Button } from '../../ui/Button';
 import { useAppContext } from '../../../store/AppContext';
 import type { TournamentGroup } from '../../../types';
 import { genId } from '../../../utils/id';
+import { useI18n } from '../../../i18n';
 
 interface TournamentGroupFormDialogProps {
   open: boolean;
@@ -19,6 +20,7 @@ export function TournamentGroupFormDialog({
   tournamentId,
   nextOrder,
 }: TournamentGroupFormDialogProps) {
+  const { t } = useI18n();
   const { dispatch } = useAppContext();
   const [name, setName] = useState('');
   const [type, setType] = useState<TournamentGroup['type']>('poule');
@@ -26,7 +28,7 @@ export function TournamentGroupFormDialog({
 
   function handleSubmit() {
     if (!name.trim()) {
-      setError('Le nom est obligatoire.');
+      setError(t('tournaments.group.nameRequired'));
       return;
     }
     const group: TournamentGroup = {
@@ -44,32 +46,34 @@ export function TournamentGroupFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Nouveau groupe"
+      title={t('tournaments.group.title')}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            Créer
+            {t('common.create')}
           </Button>
         </div>
       }
     >
       <div className="space-y-3">
         <Input
-          label="Nom"
+          label={t('tournaments.group.name')}
           value={name}
           onChange={e => setName(e.target.value)}
-          placeholder="Ex. Poule A, Demi-finale"
+          placeholder={t('tournaments.group.namePlaceholder')}
         />
         <Select
-          label="Type"
+          label={t('tournaments.group.type')}
           value={type}
           onChange={e => setType(e.target.value as TournamentGroup['type'])}
         >
-          <option value="poule">Poule</option>
-          <option value="elimination">Élimination</option>
+          <option value="poule">{t('tournaments.group.typePoule')}</option>
+          <option value="elimination">
+            {t('tournaments.group.typeElimination')}
+          </option>
         </Select>
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>

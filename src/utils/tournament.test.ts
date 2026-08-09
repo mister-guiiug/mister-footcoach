@@ -35,10 +35,10 @@ describe('computeGroupStandings', () => {
   });
 
   it('ranks our team first on points', () => {
-    expect(table[0]!.name).toBe('U13 A');
-    expect(table[0]!.points).toBe(4); // 1 win + 1 draw
-    expect(table[0]!.played).toBe(2);
-    expect(table[0]!.goalDiff).toBe(2);
+    expect(table[0]?.name).toBe('U13 A');
+    expect(table[0]?.points).toBe(4); // 1 win + 1 draw
+    expect(table[0]?.played).toBe(2);
+    expect(table[0]?.goalDiff).toBe(2);
   });
 
   it('awards 3 points for a win and 0 for a loss', () => {

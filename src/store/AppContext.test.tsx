@@ -59,7 +59,7 @@ describe('loadState', () => {
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
     const { result } = renderHook(() => useTeams(), { wrapper });
-    expect(result.current[0]!.id).toBe('tx');
+    expect(result.current[0]?.id).toBe('tx');
   });
 
   it('falls back to mock data when localStorage has invalid JSON', () => {
@@ -150,14 +150,15 @@ describe('reducer: ADD_PLAYER / UPDATE_PLAYER', () => {
 
   it('UPDATE_PLAYER replaces an existing player', () => {
     const { result } = renderHook(() => useAppContext(), { wrapper });
-    const existing = result.current.state.players[0]!;
+    const existing = result.current.state.players[0];
+    if (!existing) throw new Error('fixture : aucun joueur seedé');
     act(() =>
       result.current.dispatch({
         type: 'UPDATE_PLAYER',
         player: { ...existing, firstName: 'Updated' },
       })
     );
-    expect(result.current.state.players[0]!.firstName).toBe('Updated');
+    expect(result.current.state.players[0]?.firstName).toBe('Updated');
   });
 });
 
@@ -229,7 +230,8 @@ describe('reducer: ADD_TRAINING / UPDATE_TRAINING', () => {
 
   it('UPDATE_TRAINING replaces existing', () => {
     const { result } = renderHook(() => useAppContext(), { wrapper });
-    const existing = result.current.state.trainings[0]!;
+    const existing = result.current.state.trainings[0];
+    if (!existing) throw new Error('fixture : aucun entraînement seedé');
     act(() =>
       result.current.dispatch({
         type: 'UPDATE_TRAINING',
@@ -356,7 +358,9 @@ describe('reducer: survey responses', () => {
 
   it('UPDATE_SURVEY_RESPONSE replaces existing', () => {
     const { result } = renderHook(() => useAppContext(), { wrapper });
-    const existing = result.current.state.surveyResponses[0]!;
+    const existing = result.current.state.surveyResponses[0];
+    if (!existing)
+      throw new Error('fixture : aucune réponse de sondage seedée');
     act(() =>
       result.current.dispatch({
         type: 'UPDATE_SURVEY_RESPONSE',
@@ -416,7 +420,7 @@ describe('reducer: RESET_TO_MOCK', () => {
       result.current.dispatch({ type: 'SET_SELECTED_TEAM', teamId: 't2' })
     );
     act(() => result.current.dispatch({ type: 'RESET_TO_MOCK' }));
-    expect(result.current.state.selectedTeamId).toBe(MOCK_DATA.teams[0]!.id);
+    expect(result.current.state.selectedTeamId).toBe(MOCK_DATA.teams[0]?.id);
     expect(result.current.state.teams).toHaveLength(MOCK_DATA.teams.length);
   });
 });
@@ -433,7 +437,7 @@ describe('selector hooks', () => {
 
   it('useSelectedTeam returns the currently selected team', () => {
     const { result } = renderHook(() => useSelectedTeam(), { wrapper });
-    expect(result.current?.id).toBe(MOCK_DATA.teams[0]!.id);
+    expect(result.current?.id).toBe(MOCK_DATA.teams[0]?.id);
   });
 
   it('useSelectedTeam falls back to first team when selectedTeamId not found', () => {
@@ -445,7 +449,7 @@ describe('selector hooks', () => {
       })
     );
     const { result } = renderHook(() => useSelectedTeam(), { wrapper });
-    expect(result.current?.id).toBe(MOCK_DATA.teams[0]!.id);
+    expect(result.current?.id).toBe(MOCK_DATA.teams[0]?.id);
   });
 
   it('useTeam returns undefined for unknown id', () => {
@@ -475,7 +479,9 @@ describe('selector hooks', () => {
     const { result } = renderHook(() => useMatches(), { wrapper });
     expect(result.current.length).toBeGreaterThan(0);
     for (let i = 1; i < result.current.length; i++) {
-      expect(result.current[i - 1]!.date >= result.current[i]!.date).toBe(true);
+      expect(
+        (result.current[i - 1]?.date ?? '') >= (result.current[i]?.date ?? '')
+      ).toBe(true);
     }
   });
 
@@ -493,7 +499,7 @@ describe('selector hooks', () => {
     const { result } = renderHook(() => useMatchEvents('m2'), { wrapper });
     for (let i = 1; i < result.current.length; i++) {
       expect(
-        (result.current[i - 1]!.minute ?? 0) <= (result.current[i]!.minute ?? 0)
+        (result.current[i - 1]?.minute ?? 0) <= (result.current[i]?.minute ?? 0)
       ).toBe(true);
     }
   });

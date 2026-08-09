@@ -42,6 +42,8 @@ export function age(dateOfBirth: string): number {
 }
 
 export function today(): string {
+  // slice plutôt que split()[0] : l'accès indexé serait `string | undefined`
+  // sous noUncheckedIndexedAccess, alors que le format ISO est garanti.
   return new Date().toISOString().slice(0, 10);
 }
 

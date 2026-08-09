@@ -11,25 +11,12 @@ import {
   usePlayers,
   useAppContext,
 } from '../store/AppContext';
-import {
-  MATCH_EVENT_LABELS,
-  type MatchEventType,
-  type PositionHistory,
-} from '../types';
+import { type MatchEventType, type PositionHistory } from '../types';
 import { genId } from '../utils/id';
-
-const EVENT_BUTTONS: { type: MatchEventType; emoji: string; label: string }[] =
-  [
-    { type: 'but', emoji: '⚽', label: 'But' },
-    { type: 'but_csc', emoji: '🤦', label: 'CSC' },
-    { type: 'carton_jaune', emoji: '🟨', label: 'Jaune' },
-    { type: 'carton_rouge', emoji: '🟥', label: 'Rouge' },
-    { type: 'remplacement', emoji: '🔄', label: 'Rempl.' },
-    { type: 'blessure_live', emoji: '🩹', label: 'Blessure' },
-    { type: 'arret_mi_temps', emoji: '📌', label: 'Mi-temps' },
-  ];
+import { useI18n } from '../i18n';
 
 export default function MatchLivePage() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const match = useMatch(id!);
   const events = useMatchEvents(id!);
@@ -37,6 +24,20 @@ export default function MatchLivePage() {
   const players = usePlayers(match?.teamId);
   const { dispatch } = useAppContext();
   const navigate = useNavigate();
+
+  const EVENT_BUTTONS: {
+    type: MatchEventType;
+    emoji: string;
+    label: string;
+  }[] = [
+    { type: 'but', emoji: '⚽', label: t('live.btnBut') },
+    { type: 'but_csc', emoji: '🤦', label: t('live.btnCsc') },
+    { type: 'carton_jaune', emoji: '🟨', label: t('live.btnYellow') },
+    { type: 'carton_rouge', emoji: '🟥', label: t('live.btnRed') },
+    { type: 'remplacement', emoji: '🔄', label: t('live.btnSub') },
+    { type: 'blessure_live', emoji: '🩹', label: t('live.btnInjury') },
+    { type: 'arret_mi_temps', emoji: '📌', label: t('live.btnHalf') },
+  ];
 
   const [minute, setMinute] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState<MatchEventType | null>(
@@ -67,7 +68,7 @@ export default function MatchLivePage() {
   if (!match) {
     return (
       <div className="p-4">
-        <EmptyState title="Match introuvable" />
+        <EmptyState title={t('matches.notFound')} />
       </div>
     );
   }
@@ -124,11 +125,7 @@ export default function MatchLivePage() {
     // Live injury → offer to open the player's file to log it (§7.5.5).
     if (selectedEvent === 'blessure_live' && selectedPlayer) {
       const pid = selectedPlayer;
-      if (
-        window.confirm(
-          'Créer un suivi de blessure pour ce joueur ? (ouvre sa fiche)'
-        )
-      ) {
+      if (window.confirm(t('live.confirmInjury'))) {
         navigate(`/joueurs/${pid}`);
       }
     }
@@ -163,19 +160,23 @@ export default function MatchLivePage() {
   }
 
   const usHome = match.isHome
-    ? /* istanbul ignore next */ (team?.name ?? 'Nous')
+    ? /* istanbul ignore next */ (team?.name ?? t('matches.us'))
     : match.opponent;
   const usAway = match.isHome
     ? match.opponent
-    : /* istanbul ignore next */ (team?.name ?? 'Nous');
+    : /* istanbul ignore next */ (team?.name ?? t('matches.us'));
 
   return (
     <div className="px-4 py-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-fg-heading">Mode Live</h1>
-          <p className="text-xs text-fg-muted">vs {match.opponent}</p>
+          <h1 className="text-lg font-bold text-fg-heading">
+            {t('live.title')}
+          </h1>
+          <p className="text-xs text-fg-muted">
+            {t('live.opponentPrefix', { opponent: match.opponent })}
+          </p>
         </div>
         <Button
           variant={isLive ? 'danger' : 'primary'}
@@ -183,7 +184,7 @@ export default function MatchLivePage() {
           onClick={toggleLive}
         >
           <Radio size={14} />
-          {isLive ? 'Arrêter' : 'Démarrer'}
+          {isLive ? t('live.stop') : t('live.start')}
         </Button>
       </div>
 
@@ -192,7 +193,7 @@ export default function MatchLivePage() {
         <div className="flex items-center justify-between">
           <span
             className="font-mono text-2xl font-bold text-fg-heading"
-            aria-label="Chronomètre"
+            aria-label={t('live.chrono')}
           >
             {String(Math.floor(chronoSec / 60)).padStart(2, '0')}:
             {String(chronoSec % 60).padStart(2, '0')}
@@ -204,12 +205,12 @@ export default function MatchLivePage() {
               onClick={() => setChronoRunning(r => !r)}
             >
               {chronoRunning ? <Pause size={14} /> : <Play size={14} />}
-              {chronoRunning ? 'Pause' : 'Lancer'}
+              {chronoRunning ? t('live.pause') : t('live.run')}
             </Button>
             <Button
               size="sm"
               variant="ghost"
-              aria-label="Réinitialiser le chronomètre"
+              aria-label={t('live.resetChrono')}
               onClick={() => {
                 setChronoRunning(false);
                 setChronoSec(0);
@@ -307,7 +308,7 @@ export default function MatchLivePage() {
       {/* Event buttons */}
       <Card>
         <p className="text-xs font-medium text-fg-muted mb-2">
-          Ajouter un événement
+          {t('live.addEvent')}
         </p>
         <div className="grid grid-cols-3 gap-2">
           {EVENT_BUTTONS.map(({ type, emoji, label }) => (
@@ -333,8 +334,8 @@ export default function MatchLivePage() {
           <div className="mt-3">
             <p className="text-xs font-medium text-fg-muted mb-2">
               {selectedEvent === 'remplacement'
-                ? 'Joueur entrant'
-                : 'Joueur concerné'}
+                ? t('live.incomingPlayer')
+                : t('live.concernedPlayer')}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {players.map(p => (
@@ -360,7 +361,7 @@ export default function MatchLivePage() {
         {selectedEvent === 'remplacement' && (
           <div className="mt-3">
             <p className="text-xs font-medium text-fg-muted mb-2">
-              Joueur sortant
+              {t('live.outgoingPlayer')}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {players.map(p => (
@@ -389,7 +390,7 @@ export default function MatchLivePage() {
               className="flex-1"
             >
               <Plus size={14} />
-              Valider {MATCH_EVENT_LABELS[selectedEvent]}
+              {t('live.validate', { event: t(`matchEvent.${selectedEvent}`) })}
             </Button>
             <Button
               variant="ghost"
@@ -408,7 +409,9 @@ export default function MatchLivePage() {
       {/* Event log */}
       {events.length > 0 && (
         <Card>
-          <p className="text-xs font-medium text-fg-muted mb-2">Événements</p>
+          <p className="text-xs font-medium text-fg-muted mb-2">
+            {t('live.events')}
+          </p>
           <div className="space-y-2">
             {[...events].reverse().map(e => {
               const player = players.find(p => p.id === e.playerId);
@@ -424,7 +427,7 @@ export default function MatchLivePage() {
                           ? '🟥'
                           : '📌'}
                   </span>
-                  <span className="text-fg">{MATCH_EVENT_LABELS[e.type]}</span>
+                  <span className="text-fg">{t(`matchEvent.${e.type}`)}</span>
                   {player && (
                     <span className="text-fg-muted text-xs">
                       {player.firstName} {player.lastName}
@@ -449,7 +452,7 @@ export default function MatchLivePage() {
           navigate(`/matchs/${id}`);
         }}
       >
-        Clôturer et saisir l'assiduité
+        {t('live.closeAndRecord')}
       </Button>
     </div>
   );

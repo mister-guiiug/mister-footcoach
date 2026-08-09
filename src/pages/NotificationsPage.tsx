@@ -7,6 +7,7 @@ import {
   useCurrentUser,
   useAppContext,
 } from '../store/AppContext';
+import { useI18n } from '../i18n';
 
 function relativeDate(iso: string): string {
   const d = new Date(iso);
@@ -19,6 +20,7 @@ function relativeDate(iso: string): string {
 }
 
 export default function NotificationsPage() {
+  const { t } = useI18n();
   const notifications = useNotifications();
   const currentUser = useCurrentUser();
   const { dispatch } = useAppContext();
@@ -28,7 +30,9 @@ export default function NotificationsPage() {
   return (
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-fg-heading">Notifications</h1>
+        <h1 className="text-xl font-bold text-fg-heading">
+          {t('notifications.title')}
+        </h1>
         {unreadCount > 0 && currentUser && (
           <Button
             size="sm"
@@ -40,15 +44,15 @@ export default function NotificationsPage() {
               })
             }
           >
-            <CheckCheck size={14} /> Tout lire
+            <CheckCheck size={14} /> {t('notifications.markAllRead')}
           </Button>
         )}
       </div>
 
       {notifications.length === 0 ? (
         <EmptyState
-          title="Aucune notification"
-          description="Vous serez notifié des changements concernant vos équipes."
+          title={t('notifications.none')}
+          description={t('notifications.noneDesc')}
           icon={<Bell size={32} />}
         />
       ) : (
@@ -80,7 +84,7 @@ export default function NotificationsPage() {
                         notificationId: n.id,
                       })
                     }
-                    aria-label="Marquer comme lu"
+                    aria-label={t('notifications.markRead')}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-primary"
                   >
                     <Check size={14} />

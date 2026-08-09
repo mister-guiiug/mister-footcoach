@@ -104,12 +104,12 @@ describe('buildPlayerExport', () => {
 
   it('includes only that player’s contacts', () => {
     expect(exp.contacts).toHaveLength(1);
-    expect(exp.contacts[0]!.firstName).toBe('Pierre');
+    expect(exp.contacts[0]?.firstName).toBe('Pierre');
   });
 
   it('includes only that player’s attendances and unavailabilities', () => {
     expect(exp.attendances).toHaveLength(1);
-    expect(exp.attendances[0]!.id).toBe('a1');
+    expect(exp.attendances[0]?.id).toBe('a1');
     expect(exp.unavailabilities).toHaveLength(1);
   });
 

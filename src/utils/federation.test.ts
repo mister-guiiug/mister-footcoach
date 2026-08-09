@@ -42,8 +42,8 @@ describe('reconcileFederationMatches', () => {
     ];
     const res = reconcileFederationMatches(local, fed, ctx);
     expect(res.updated).toHaveLength(1);
-    expect(res.updated[0]!.scoreHome).toBe(1);
-    expect(res.updated[0]!.scoreAway).toBe(2);
+    expect(res.updated[0]?.scoreHome).toBe(1);
+    expect(res.updated[0]?.scoreAway).toBe(2);
     expect(res.created).toHaveLength(0);
   });
 
@@ -54,8 +54,8 @@ describe('reconcileFederationMatches', () => {
       ctx
     );
     expect(res.created).toHaveLength(1);
-    expect(res.created[0]!.status).toBe('saison');
-    expect(res.created[0]!.opponent).toBe('Racing Nord');
+    expect(res.created[0]?.status).toBe('saison');
+    expect(res.created[0]?.opponent).toBe('Racing Nord');
   });
 
   it('flags a date/time conflict when only the opponent matches', () => {
@@ -94,7 +94,7 @@ describe('reconcileFederationMatches', () => {
       { date: '2026-05-10', time: '15:00', opponent: 'FC Rivale' },
     ];
     const res = reconcileFederationMatches(local, fed, ctx);
-    expect(res.updated[0]!.status).toBe('saison');
+    expect(res.updated[0]?.status).toBe('saison');
   });
 
   it('ignores matches from other teams', () => {

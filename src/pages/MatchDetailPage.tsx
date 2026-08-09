@@ -23,15 +23,10 @@ import {
   usePlayers,
   useAttendances,
 } from '../store/AppContext';
-import {
-  MATCH_STATUS_LABELS,
-  MATCH_EVENT_LABELS,
-  ATTENDANCE_STATUS_LABELS,
-  type MatchStatus,
-  type AttendanceStatus,
-} from '../types';
+import { type MatchStatus, type AttendanceStatus } from '../types';
 import { formatDateFull } from '../utils/date';
 import { googleMapsUrl, appleMapsUrl } from '../utils/maps';
+import { useI18n } from '../i18n';
 
 const statusVariant: Record<
   MatchStatus,
@@ -54,6 +49,7 @@ const attendanceVariant: Record<
 };
 
 export default function MatchDetailPage() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const match = useMatch(id!);
   const events = useMatchEvents(id!);
@@ -66,7 +62,7 @@ export default function MatchDetailPage() {
   if (!match) {
     return (
       <div className="p-4">
-        <EmptyState title="Match introuvable" />
+        <EmptyState title={t('matches.notFound')} />
       </div>
     );
   }
@@ -95,12 +91,12 @@ export default function MatchDetailPage() {
       <div>
         <div className="flex items-center justify-between mb-1">
           <Badge variant={statusVariant[match.status]}>
-            {MATCH_STATUS_LABELS[match.status]}
+            {t(`matchStatus.${match.status}`)}
           </Badge>
           <div className="flex items-center gap-2">
             {match.liveActive && (
               <Badge variant="danger" className="animate-pulse">
-                <Radio size={10} className="mr-1" /> EN DIRECT
+                <Radio size={10} className="mr-1" /> {t('matches.live')}
               </Badge>
             )}
             <Button
@@ -108,7 +104,7 @@ export default function MatchDetailPage() {
               variant="secondary"
               onClick={() => setEditOpen(true)}
             >
-              <Pencil size={14} /> Modifier
+              <Pencil size={14} /> {t('common.edit')}
             </Button>
           </div>
         </div>
@@ -130,12 +126,12 @@ export default function MatchDetailPage() {
           </p>
           <p className="text-xs text-fg-muted mt-1">
             {match.isHome
-              ? /* istanbul ignore next */ (team?.name ?? 'Nous')
+              ? /* istanbul ignore next */ (team?.name ?? t('matches.us'))
               : match.opponent}{' '}
             ·{' '}
             {match.isHome
               ? match.opponent
-              : /* istanbul ignore next */ (team?.name ?? 'Nous')}
+              : /* istanbul ignore next */ (team?.name ?? t('matches.us'))}
           </p>
         </Card>
       )}
@@ -188,7 +184,7 @@ export default function MatchDetailPage() {
               {match.meetingTime || match.meetingAddress ? (
                 <>
                   <p className="text-fg font-medium">
-                    Point de RDV
+                    {t('matches.meetingPoint')}
                     {match.meetingTime ? ` · ${match.meetingTime}` : ''}
                   </p>
                   {match.meetingAddress && (
@@ -204,7 +200,7 @@ export default function MatchDetailPage() {
                 </>
               ) : (
                 <p className="text-xs text-fg-muted">
-                  Aucun point de rendez-vous défini.
+                  {t('matches.meetingNone')}
                 </p>
               )}
             </div>
@@ -214,8 +210,8 @@ export default function MatchDetailPage() {
               onClick={() => setMeetingOpen(true)}
             >
               {match.meetingTime || match.meetingAddress
-                ? 'Modifier'
-                : 'Définir'}
+                ? t('common.edit')
+                : t('matches.define')}
             </Button>
           </div>
         </div>
@@ -233,10 +229,10 @@ export default function MatchDetailPage() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-fg">
-                Mode match en direct
+                {t('matches.liveMode')}
               </p>
               <p className="text-xs text-fg-muted">
-                Saisir les événements en temps réel
+                {t('matches.liveModeDesc')}
               </p>
             </div>
             <ChevronRight size={16} className="text-fg-faint" />
@@ -247,7 +243,7 @@ export default function MatchDetailPage() {
       {/* Events */}
       {events.length > 0 && (
         <Card>
-          <CardHeader title="Événements du match" />
+          <CardHeader title={t('matches.events')} />
           <div className="space-y-2">
             {events.map(event => {
               const player = players.find(p => p.id === event.playerId);
@@ -279,7 +275,7 @@ export default function MatchDetailPage() {
                   </span>
                   <div>
                     <span className="text-fg font-medium">
-                      {MATCH_EVENT_LABELS[event.type]}
+                      {t(`matchEvent.${event.type}`)}
                     </span>
                     {player && (
                       <span className="text-fg-muted ml-1">
@@ -297,7 +293,7 @@ export default function MatchDetailPage() {
       {/* Attendance */}
       {attendances.length > 0 && (
         <Card>
-          <CardHeader title="Présences" />
+          <CardHeader title={t('matches.attendance')} />
           <div className="space-y-2">
             {attendances.map(att => {
               const player = players.find(p => p.id === att.playerId);
@@ -312,7 +308,7 @@ export default function MatchDetailPage() {
                     {player.firstName} {player.lastName}
                   </span>
                   <Badge variant={attendanceVariant[att.status]}>
-                    {ATTENDANCE_STATUS_LABELS[att.status]}
+                    {t(`attendance.${att.status}`)}
                   </Badge>
                 </div>
               );

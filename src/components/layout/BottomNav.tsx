@@ -15,27 +15,34 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
-
-const mainTabs = [
-  { to: '/', label: 'Accueil', icon: LayoutDashboard, exact: true },
-  { to: '/equipes', label: 'Équipes', icon: Users, exact: false },
-  { to: '/matchs', label: 'Matchs', icon: Calendar, exact: false },
-  { to: '/entrainements', label: 'Entraîn.', icon: Dumbbell, exact: false },
-];
-
-const moreTabs = [
-  { to: '/tournois', label: 'Tournois', icon: Trophy },
-  { to: '/sondages', label: 'Sondages', icon: ClipboardList },
-  { to: '/compositions', label: 'Compositions', icon: Layers },
-  { to: '/statistiques', label: 'Statistiques', icon: BarChart3 },
-  { to: '/exercices', label: 'Exercices', icon: BookOpen },
-  { to: '/contacts', label: 'Contacts', icon: Contact },
-  { to: '/parametres', label: 'Paramètres', icon: Settings },
-];
+import { useI18n } from '../../i18n';
 
 export function BottomNav() {
+  const { t } = useI18n();
   const [showMore, setShowMore] = useState(false);
   const navigate = useNavigate();
+
+  const mainTabs = [
+    { to: '/', label: t('nav.home'), icon: LayoutDashboard, exact: true },
+    { to: '/equipes', label: t('nav.teams'), icon: Users, exact: false },
+    { to: '/matchs', label: t('nav.matches'), icon: Calendar, exact: false },
+    {
+      to: '/entrainements',
+      label: t('nav.trainingsShort'),
+      icon: Dumbbell,
+      exact: false,
+    },
+  ];
+
+  const moreTabs = [
+    { to: '/tournois', label: t('nav.tournaments'), icon: Trophy },
+    { to: '/sondages', label: t('nav.surveys'), icon: ClipboardList },
+    { to: '/compositions', label: t('nav.lineups'), icon: Layers },
+    { to: '/statistiques', label: t('nav.stats'), icon: BarChart3 },
+    { to: '/exercices', label: t('nav.exercises'), icon: BookOpen },
+    { to: '/contacts', label: t('nav.contacts'), icon: Contact },
+    { to: '/parametres', label: t('nav.settings'), icon: Settings },
+  ];
 
   return (
     <>
@@ -67,7 +74,7 @@ export function BottomNav() {
               className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs text-fg-muted hover:bg-surface-muted"
             >
               <X size={14} />
-              Fermer
+              {t('common.close')}
             </button>
           </div>
         </>
@@ -102,7 +109,7 @@ export function BottomNav() {
           }`}
         >
           <MoreHorizontal size={20} strokeWidth={showMore ? 2.5 : 1.75} />
-          Plus
+          {t('nav.more')}
         </button>
       </nav>
     </>

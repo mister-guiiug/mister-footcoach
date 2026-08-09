@@ -7,8 +7,10 @@ import { Button } from '../components/ui/Button';
 import { TrainingFormDialog } from '../components/features/trainings/TrainingFormDialog';
 import { useTrainings, useTeams } from '../store/AppContext';
 import { formatDateFull, isUpcoming } from '../utils/date';
+import { useI18n } from '../i18n';
 
 export default function TrainingsPage() {
+  const { t } = useI18n();
   const allTrainings = useTrainings();
   const teams = useTeams();
   const [teamFilter, setTeamFilter] = useState<string>('all');
@@ -25,9 +27,11 @@ export default function TrainingsPage() {
   return (
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-fg-heading">Entraînements</h1>
+        <h1 className="text-xl font-bold text-fg-heading">
+          {t('trainings.title')}
+        </h1>
         <Button size="sm" onClick={() => setFormOpen(true)}>
-          <Plus size={16} /> Nouveau
+          <Plus size={16} /> {t('common.new')}
         </Button>
       </div>
 
@@ -51,7 +55,11 @@ export default function TrainingsPage() {
                 : 'bg-surface border border-border-ui text-fg-muted hover:bg-surface-muted'
             }`}
           >
-            {f === 'all' ? 'Tous' : f === 'upcoming' ? 'À venir' : 'Passés'}
+            {f === 'all'
+              ? t('trainings.filterAll')
+              : f === 'upcoming'
+                ? t('trainings.filterUpcoming')
+                : t('trainings.filterPast')}
           </button>
         ))}
 
@@ -65,7 +73,7 @@ export default function TrainingsPage() {
               : 'bg-surface border border-border-ui text-fg-muted hover:bg-surface-muted'
           }`}
         >
-          Toutes
+          {t('trainings.allTeams')}
         </button>
         {teams.map(t => (
           <button
@@ -87,7 +95,7 @@ export default function TrainingsPage() {
         {
           /* istanbul ignore next */ filtered.length === 0 && (
             <p className="text-sm text-fg-muted text-center py-8">
-              Aucun entraînement trouvé
+              {t('trainings.none')}
             </p>
           )
         }
@@ -106,7 +114,7 @@ export default function TrainingsPage() {
                         {formatDateFull(training.date)} à {training.time}
                       </p>
                       <p className="font-semibold text-fg-heading">
-                        {training.theme ?? 'Entraînement'}
+                        {training.theme ?? t('trainings.fallback')}
                       </p>
                       <div className="flex items-center gap-2 mt-1 text-xs text-fg-muted">
                         <Clock size={12} />
@@ -117,11 +125,15 @@ export default function TrainingsPage() {
                     </div>
                     <div className="flex flex-col items-end gap-1.5">
                       {training.cancelled && (
-                        <Badge variant="danger">Annulé</Badge>
+                        <Badge variant="danger">
+                          {t('trainings.cancelled')}
+                        </Badge>
                       )}
                       {training.type === 'exceptionnel' &&
                         !training.cancelled && (
-                          <Badge variant="warning">Exceptionnel</Badge>
+                          <Badge variant="warning">
+                            {t('trainings.exceptional')}
+                          </Badge>
                         )}
                     </div>
                   </div>

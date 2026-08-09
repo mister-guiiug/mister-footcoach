@@ -12,15 +12,20 @@ import {
 } from '../store/AppContext';
 import {
   FORMATIONS,
-  POSITION_LABELS,
   type LineupSlot,
   type Formation,
   type Position,
 } from '../types';
 import { isActiveUnavailability, today } from '../utils/date';
 import { rankPlayersForPosition, isSuggested } from '../utils/lineup';
+import { useI18n } from '../i18n';
+
+// FORMATIONS est une constante non vide : la première sert de défaut
+// (noUncheckedIndexedAccess rend l'accès [0] `Formation | undefined`).
+const DEFAULT_FORMATION = FORMATIONS[0]!;
 
 export default function LineupPage() {
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const teams = useTeams();
   const { state, dispatch } = useAppContext();
@@ -28,11 +33,10 @@ export default function LineupPage() {
   const [selectedTeamId, setSelectedTeamId] = useState(
     searchParams.get('teamId') ?? teams[0]!.id
   );
-  const [selectedFormation, setSelectedFormation] = useState<Formation>(
-    FORMATIONS[0]!
-  );
+  const [selectedFormation, setSelectedFormation] =
+    useState<Formation>(DEFAULT_FORMATION);
   const [slots, setSlots] = useState<LineupSlot[]>(
-    FORMATIONS[0]!.slots.map(s => ({ ...s }))
+    DEFAULT_FORMATION.slots.map(s => ({ ...s }))
   );
   const [selectedSlotPos, setSelectedSlotPos] = useState<string | null>(null);
   const [substituteIds, setSubstituteIds] = useState<string[]>([]);
@@ -122,7 +126,7 @@ export default function LineupPage() {
     /* c8 ignore next */
     if (!lineup) return;
     const formation =
-      FORMATIONS.find(f => f.id === lineup.formation) ?? FORMATIONS[0]!;
+      FORMATIONS.find(f => f.id === lineup.formation) ?? DEFAULT_FORMATION;
     setSelectedFormation(formation);
     setSlots(lineup.slots);
     setSubstituteIds(lineup.substituteIds);
@@ -135,10 +139,12 @@ export default function LineupPage() {
   return (
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-fg-heading">Compositions</h1>
+        <h1 className="text-xl font-bold text-fg-heading">
+          {t('lineups.title')}
+        </h1>
         <Button variant="primary" size="sm" onClick={saveLineup}>
           <Save size={14} />
-          Sauvegarder
+          {t('lineups.save')}
         </Button>
       </div>
 
@@ -234,14 +240,8 @@ export default function LineupPage() {
       {selectedSlotPos && (
         <Card>
           <p className="text-xs font-medium text-fg-muted mb-2">
-            Affecter au poste :{' '}
-            <strong>
-              {
-                /* istanbul ignore next */ POSITION_LABELS[
-                  selectedSlotPos as keyof typeof POSITION_LABELS
-                ] ?? selectedSlotPos
-              }
-            </strong>
+            {t('lineups.assignToPosition')}
+            <strong>{t(`position.${selectedSlotPos as Position}`)}</strong>
           </p>
           <div className="flex flex-wrap gap-1.5">
             {slots.find(s => s.position === selectedSlotPos)?.playerId && (
@@ -249,7 +249,7 @@ export default function LineupPage() {
                 onClick={() => removeFromSlot(selectedSlotPos)}
                 className="px-2.5 py-1 rounded-lg text-xs font-medium border border-red-300 bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400"
               >
-                Retirer
+                {t('common.remove')}
               </button>
             )}
             {rankPlayersForPosition(
@@ -292,7 +292,7 @@ export default function LineupPage() {
       {unassignedPlayers.length > 0 && (
         <Card>
           <p className="text-xs font-medium text-fg-muted mb-2">
-            Remplaçants / non assignés
+            {t('lineups.substitutes')}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {unassignedPlayers.map(p => (
@@ -317,7 +317,7 @@ export default function LineupPage() {
       {lineups.length > 0 && (
         <Card>
           <p className="text-xs font-medium text-fg-muted mb-2">
-            Compositions sauvegardées
+            {t('lineups.saved')}
           </p>
           <div className="space-y-1">
             {lineups.map(l => (

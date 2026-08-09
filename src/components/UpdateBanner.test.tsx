@@ -1,9 +1,19 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { I18nProvider } from '../i18n';
 import { UpdateBanner } from './UpdateBanner';
 
-// The module is mocked in setup.ts with needRefresh: [false] by default
+// Mock local à CE fichier : le setup partagé (vitest-setup dev-wpa-config)
+// enregistre aussi un mock de ce module, mais en simple fonction — pas un
+// spy pilotable. Le vi.mock du fichier de test reprend la main.
+vi.mock('virtual:pwa-register/react', () => ({
+  useRegisterSW: vi.fn(() => ({
+    needRefresh: [false],
+    updateServiceWorker: vi.fn(),
+  })),
+}));
+
 const { useRegisterSW } = await vi.importMock<
   typeof import('virtual:pwa-register/react')
 >('virtual:pwa-register/react');
@@ -14,7 +24,11 @@ describe('UpdateBanner', () => {
       needRefresh: [false],
       updateServiceWorker: vi.fn(),
     });
-    const { container } = render(<UpdateBanner />);
+    const { container } = render(
+      <I18nProvider>
+        <UpdateBanner />
+      </I18nProvider>
+    );
     expect(container.firstChild).toBeNull();
   });
 
@@ -23,7 +37,11 @@ describe('UpdateBanner', () => {
       needRefresh: [true],
       updateServiceWorker: vi.fn(),
     });
-    render(<UpdateBanner />);
+    render(
+      <I18nProvider>
+        <UpdateBanner />
+      </I18nProvider>
+    );
     expect(screen.getByText('Mise à jour disponible')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Actualiser' })
@@ -36,7 +54,11 @@ describe('UpdateBanner', () => {
       needRefresh: [true],
       updateServiceWorker,
     });
-    render(<UpdateBanner />);
+    render(
+      <I18nProvider>
+        <UpdateBanner />
+      </I18nProvider>
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Actualiser' }));
     expect(updateServiceWorker).toHaveBeenCalledWith(true);
   });

@@ -1,6 +1,7 @@
 import { type ReactElement } from 'react';
 import { render, type RenderResult } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { I18nProvider } from '../i18n';
 import { ThemeProvider } from '../theme/ThemeContext';
 import { AppProvider } from '../store/AppContext';
 
@@ -14,13 +15,15 @@ export function renderWithProviders(
 ): RenderResult {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
-      <ThemeProvider>
-        <AppProvider>
-          <Routes>
-            <Route path={route} element={ui} />
-          </Routes>
-        </AppProvider>
-      </ThemeProvider>
+      <I18nProvider>
+        <ThemeProvider>
+          <AppProvider>
+            <Routes>
+              <Route path={route} element={ui} />
+            </Routes>
+          </AppProvider>
+        </ThemeProvider>
+      </I18nProvider>
     </MemoryRouter>
   );
 }
@@ -35,18 +38,20 @@ export function renderAtRoute(
 ): RenderResult {
   return render(
     <MemoryRouter initialEntries={[options.initialPath]}>
-      <ThemeProvider>
-        <AppProvider>
-          <Routes>
-            <Route path={options.routePattern} element={ui} />
-            {/* child routes needed by some pages */}
-            <Route
-              path={`${options.routePattern}/live`}
-              element={<div>live</div>}
-            />
-          </Routes>
-        </AppProvider>
-      </ThemeProvider>
+      <I18nProvider>
+        <ThemeProvider>
+          <AppProvider>
+            <Routes>
+              <Route path={options.routePattern} element={ui} />
+              {/* child routes needed by some pages */}
+              <Route
+                path={`${options.routePattern}/live`}
+                element={<div>live</div>}
+              />
+            </Routes>
+          </AppProvider>
+        </ThemeProvider>
+      </I18nProvider>
     </MemoryRouter>
   );
 }

@@ -13,7 +13,6 @@ import {
   useUnavailabilities,
   useTournaments,
 } from '../store/AppContext';
-import { POSITION_LABELS } from '../types';
 import {
   formatDateShort,
   isUpcoming,
@@ -22,8 +21,10 @@ import {
 } from '../utils/date';
 import { matchEvent, trainingEvent, buildICal } from '../utils/ical';
 import { downloadFile } from '../utils/download';
+import { useI18n } from '../i18n';
 
 export default function TeamDetailPage() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const team = useTeam(id!);
   const players = usePlayers(id);
@@ -50,7 +51,7 @@ export default function TeamDetailPage() {
   if (!team) {
     return (
       <div className="p-4">
-        <EmptyState title="Équipe introuvable" />
+        <EmptyState title={t('teams.notFound')} />
       </div>
     );
   }
@@ -76,7 +77,8 @@ export default function TeamDetailPage() {
         <div>
           <h1 className="text-xl font-bold text-fg-heading">{team.name}</h1>
           <p className="text-sm text-fg-muted">
-            {team.category} · {players.length} joueurs
+            {team.category} ·{' '}
+            {t('teams.playersCount', { count: players.length })}
           </p>
         </div>
       </div>
@@ -92,19 +94,21 @@ export default function TeamDetailPage() {
       {/* Players */}
       <section>
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-semibold text-fg-heading">Effectif</h2>
+          <h2 className="text-sm font-semibold text-fg-heading">
+            {t('teams.squad')}
+          </h2>
           <Button
             size="sm"
             variant="secondary"
             onClick={() => setPlayerFormOpen(true)}
           >
-            <Plus size={14} /> Joueur
+            <Plus size={14} /> {t('teams.addPlayer')}
           </Button>
         </div>
         <Card padding={false}>
           {
             /* istanbul ignore next */ players.length === 0 ? (
-              <EmptyState title="Aucun joueur" />
+              <EmptyState title={t('teams.noPlayers')} />
             ) : (
               <ul className="divide-y divide-border-ui">
                 {players.map(player => {
@@ -143,8 +147,8 @@ export default function TeamDetailPage() {
                             )}
                           </div>
                           <p className="text-xs text-fg-muted">
-                            {POSITION_LABELS[player.preferredPosition]}
-                            {isSecondary && ' · Renfort'}
+                            {t(`position.${player.preferredPosition}`)}
+                            {isSecondary && ' · ' + t('teams.reinforcement')}
                           </p>
                         </div>
                         <ChevronRight
@@ -166,10 +170,10 @@ export default function TeamDetailPage() {
         <section>
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-semibold text-fg-heading">
-              Prochains matchs
+              {t('teams.nextMatches')}
             </h2>
             <Link to="/matchs" className="text-xs text-primary">
-              Voir tout
+              {t('common.viewAll')}
             </Link>
           </div>
           <div className="space-y-2">
@@ -197,24 +201,25 @@ export default function TeamDetailPage() {
         <section>
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-semibold text-fg-heading">
-              Prochains entraînements
+              {t('teams.nextTrainings')}
             </h2>
             <Link to="/entrainements" className="text-xs text-primary">
-              Voir tout
+              {t('common.viewAll')}
             </Link>
           </div>
           <div className="space-y-2">
-            {upcomingTrainings.map(t => (
-              <Link key={t.id} to={`/entrainements/${t.id}`}>
+            {upcomingTrainings.map(training => (
+              <Link key={training.id} to={`/entrainements/${training.id}`}>
                 <Card
                   padding={false}
                   className="p-3 hover:bg-surface-muted transition-colors"
                 >
                   <p className="text-sm font-medium text-fg">
-                    {t.theme ?? 'Entraînement'}
+                    {training.theme ?? t('teams.trainingFallback')}
                   </p>
                   <p className="text-xs text-fg-muted mt-0.5">
-                    {formatDateShort(t.date)} à {t.time} · {t.duration} min
+                    {formatDateShort(training.date)} à {training.time} ·{' '}
+                    {training.duration} min
                   </p>
                 </Card>
               </Link>
@@ -225,14 +230,18 @@ export default function TeamDetailPage() {
 
       {/* Actions */}
       <section>
-        <h2 className="text-sm font-semibold text-fg-heading mb-2">Actions</h2>
+        <h2 className="text-sm font-semibold text-fg-heading mb-2">
+          {t('teams.actions')}
+        </h2>
         <div className="grid grid-cols-2 gap-2">
           <Link to={`/compositions?teamId=${id}`}>
             <Card
               padding={false}
               className="p-3 hover:bg-surface-muted transition-colors text-center"
             >
-              <p className="text-sm font-medium text-primary">Compositions</p>
+              <p className="text-sm font-medium text-primary">
+                {t('teams.lineups')}
+              </p>
             </Card>
           </Link>
           <Link to={`/sondages?teamId=${id}`}>
@@ -240,7 +249,9 @@ export default function TeamDetailPage() {
               padding={false}
               className="p-3 hover:bg-surface-muted transition-colors text-center"
             >
-              <p className="text-sm font-medium text-primary">Sondages</p>
+              <p className="text-sm font-medium text-primary">
+                {t('teams.surveys')}
+              </p>
             </Card>
           </Link>
         </div>
@@ -249,7 +260,7 @@ export default function TeamDetailPage() {
           onClick={exportICal}
           className="mt-2 w-full"
         >
-          <Download size={15} /> Exporter le calendrier (iCal)
+          <Download size={15} /> {t('teams.exportICal')}
         </Button>
       </section>
     </div>

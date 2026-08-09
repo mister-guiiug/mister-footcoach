@@ -23,12 +23,7 @@ import {
   usePositionHistory,
   useAppContext,
 } from '../store/AppContext';
-import {
-  POSITION_LABELS,
-  INJURY_STATUS_LABELS,
-  UNAVAILABILITY_MOTIF_LABELS,
-  type Injury,
-} from '../types';
+import { type Injury, type Position } from '../types';
 import {
   formatDateShort,
   age,
@@ -38,8 +33,10 @@ import {
 import { computePlayerStats } from '../utils/stats';
 import { buildPlayerExport, exportToJson } from '../utils/rgpd';
 import { downloadFile } from '../utils/download';
+import { useI18n } from '../i18n';
 
 export default function PlayerDetailPage() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const player = usePlayer(id!);
   const primaryTeam = useTeam(player?.primaryTeamId ?? '');
@@ -56,7 +53,7 @@ export default function PlayerDetailPage() {
   if (!player) {
     return (
       <div className="p-4">
-        <EmptyState title="Joueur introuvable" />
+        <EmptyState title={t('players.notFound')} />
       </div>
     );
   }
@@ -121,16 +118,17 @@ export default function PlayerDetailPage() {
             {player.number && <Badge variant="primary">#{player.number}</Badge>}
           </div>
           <p className="text-sm text-fg-muted mt-0.5">
-            {POSITION_LABELS[player.preferredPosition]} ·{' '}
-            {age(player.dateOfBirth)} ans
+            {t(`position.${player.preferredPosition}`)} ·{' '}
+            {t('players.yearsOld', { count: age(player.dateOfBirth) })}
           </p>
           <p className="text-xs text-fg-faint mt-0.5">
             {primaryTeam?.name}
-            {secondaryTeam && ` · Renfort ${secondaryTeam.name}`}
+            {secondaryTeam &&
+              ` · ${t('players.reinforcementOf', { team: secondaryTeam.name })}`}
           </p>
         </div>
         <Button size="sm" variant="secondary" onClick={() => setEditOpen(true)}>
-          <Pencil size={14} /> Modifier
+          <Pencil size={14} /> {t('common.edit')}
         </Button>
       </div>
 
@@ -141,19 +139,19 @@ export default function PlayerDetailPage() {
             <p className="text-lg font-bold text-fg-heading">
               {stats.matchesPlayed}
             </p>
-            <p className="text-[10px] text-fg-muted">Matchs</p>
+            <p className="text-[10px] text-fg-muted">{t('players.matches')}</p>
           </div>
         </Card>
         <Card className="text-center" padding={false}>
           <div className="py-2.5">
             <p className="text-lg font-bold text-fg-heading">{stats.goals}</p>
-            <p className="text-[10px] text-fg-muted">Buts</p>
+            <p className="text-[10px] text-fg-muted">{t('players.goals')}</p>
           </div>
         </Card>
         <Card className="text-center" padding={false}>
           <div className="py-2.5">
             <p className="text-lg font-bold text-fg-heading">{stats.assists}</p>
-            <p className="text-[10px] text-fg-muted">Passes D.</p>
+            <p className="text-[10px] text-fg-muted">{t('players.assists')}</p>
           </div>
         </Card>
         <Card className="text-center" padding={false}>
@@ -161,7 +159,9 @@ export default function PlayerDetailPage() {
             <p className="text-lg font-bold text-fg-heading">
               {Math.round(stats.attendance.rate * 100)}%
             </p>
-            <p className="text-[10px] text-fg-muted">Présence</p>
+            <p className="text-[10px] text-fg-muted">
+              {t('players.attendance')}
+            </p>
           </div>
         </Card>
       </div>
@@ -169,7 +169,7 @@ export default function PlayerDetailPage() {
       {/* Availability & health actions (specs §4.6 & §4.7) */}
       <div className="grid grid-cols-2 gap-2">
         <Button variant="secondary" onClick={() => setUnavailOpen(true)}>
-          <CalendarOff size={15} /> Indisponibilité
+          <CalendarOff size={15} /> {t('players.unavailability')}
         </Button>
         <Button
           variant="secondary"
@@ -178,7 +178,7 @@ export default function PlayerDetailPage() {
             setInjuryOpen(true);
           }}
         >
-          <Plus size={15} /> Blessure
+          <Plus size={15} /> {t('players.injury')}
         </Button>
       </div>
 
@@ -204,7 +204,7 @@ export default function PlayerDetailPage() {
           )
         }
       >
-        <Download size={15} /> Export RGPD (JSON)
+        <Download size={15} /> {t('players.exportRgpd')}
       </Button>
 
       {/* Unavailability alert */}
@@ -217,13 +217,18 @@ export default function PlayerDetailPage() {
             />
             <div className="flex-1">
               <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
-                Indisponible —{' '}
-                {UNAVAILABILITY_MOTIF_LABELS[activeUnavail.motif]}
+                {t('players.unavailableWith', {
+                  motif: t(`unavailabilityMotif.${activeUnavail.motif}`),
+                })}
               </p>
               <p className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
-                Depuis le {formatDateShort(activeUnavail.startDate)}
+                {t('players.since', {
+                  date: formatDateShort(activeUnavail.startDate),
+                })}
                 {activeUnavail.endDate &&
-                  ` jusqu'au ${formatDateShort(activeUnavail.endDate)}`}
+                  t('players.until', {
+                    date: formatDateShort(activeUnavail.endDate),
+                  })}
               </p>
               {activeUnavail.note && (
                 <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
@@ -241,7 +246,7 @@ export default function PlayerDetailPage() {
                 })
               }
             >
-              Clôturer
+              {t('common.closeOut')}
             </Button>
           </div>
         </Card>
@@ -265,9 +270,11 @@ export default function PlayerDetailPage() {
                   {injury.nature} — {injury.zone}
                 </p>
                 <p className="text-xs text-red-600 mt-0.5">
-                  {INJURY_STATUS_LABELS[injury.status]}
+                  {t(`injuryStatus.${injury.status}`)}
                   {injury.estimatedReturnDate &&
-                    ` · Retour estimé ${formatDateShort(injury.estimatedReturnDate)}`}
+                    t('players.returnEstimated', {
+                      date: formatDateShort(injury.estimatedReturnDate),
+                    })}
                 </p>
                 {injury.noteCoach && (
                   <p className="text-xs text-red-500 mt-1">
@@ -283,7 +290,7 @@ export default function PlayerDetailPage() {
                   setInjuryOpen(true);
                 }}
               >
-                Suivre
+                {t('common.track')}
               </Button>
             </div>
           </Card>
@@ -291,28 +298,32 @@ export default function PlayerDetailPage() {
 
       {/* Info */}
       <Card>
-        <CardHeader title="Informations" />
+        <CardHeader title={t('players.information')} />
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <div>
-            <dt className="text-xs text-fg-muted">Date de naissance</dt>
+            <dt className="text-xs text-fg-muted">
+              {t('players.dateOfBirth')}
+            </dt>
             <dd className="font-medium text-fg">
               {formatDateShort(player.dateOfBirth)}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-fg-muted">Âge</dt>
+            <dt className="text-xs text-fg-muted">{t('players.age')}</dt>
             <dd className="font-medium text-fg">
-              {age(player.dateOfBirth)} ans
+              {t('players.yearsOld', { count: age(player.dateOfBirth) })}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-fg-muted">Poste préféré</dt>
+            <dt className="text-xs text-fg-muted">
+              {t('players.preferredPosition')}
+            </dt>
             <dd className="font-medium text-fg">
-              {POSITION_LABELS[player.preferredPosition]}
+              {t(`position.${player.preferredPosition}`)}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-fg-muted">Numéro</dt>
+            <dt className="text-xs text-fg-muted">{t('players.number')}</dt>
             <dd className="font-medium text-fg">{player.number ?? '—'}</dd>
           </div>
         </dl>
@@ -321,28 +332,30 @@ export default function PlayerDetailPage() {
       {/* Appetences */}
       {appetenceEntries.length > 0 && (
         <Card>
-          <CardHeader title="Appétences par poste" />
+          <CardHeader title={t('players.appetences')} />
           <div className="space-y-2">
-            {appetenceEntries.map(([pos, score]) => (
-              <div key={pos} className="flex items-center gap-3">
-                <span className="text-xs text-fg-muted w-24 shrink-0">
-                  {
-                    /* istanbul ignore next */ POSITION_LABELS[
-                      pos as keyof typeof POSITION_LABELS
-                    ] ?? pos
-                  }
-                </span>
-                <div className="flex-1 h-2 bg-surface-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all"
-                    style={{ width: `${(score / 5) * 100}%` }}
-                  />
+            {appetenceEntries.map(([pos, score]) => {
+              // Known position codes resolve via i18n; an unknown code (absent
+              // from the catalog) makes t() echo the raw path, so we fall back
+              // to the bare key to keep the label readable.
+              const label = t(`position.${pos as Position}`);
+              return (
+                <div key={pos} className="flex items-center gap-3">
+                  <span className="text-xs text-fg-muted w-24 shrink-0">
+                    {label === `position.${pos}` ? pos : label}
+                  </span>
+                  <div className="flex-1 h-2 bg-surface-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all"
+                      style={{ width: `${(score / 5) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-fg w-4 text-right">
+                    {score}
+                  </span>
                 </div>
-                <span className="text-xs font-medium text-fg w-4 text-right">
-                  {score}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       )}
@@ -350,7 +363,7 @@ export default function PlayerDetailPage() {
       {/* Position history */}
       {positionHistory.length > 0 && (
         <Card>
-          <CardHeader title="Historique des postes" />
+          <CardHeader title={t('players.positionHistory')} />
           <div className="space-y-2">
             {positionHistory.slice(0, 6).map(h => (
               <div
@@ -359,7 +372,7 @@ export default function PlayerDetailPage() {
               >
                 <div>
                   <span className="text-fg font-medium">
-                    {POSITION_LABELS[h.position]}
+                    {t(`position.${h.position}`)}
                   </span>
                   <span className="text-fg-muted text-xs ml-2">{h.period}</span>
                 </div>

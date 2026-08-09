@@ -12,6 +12,7 @@ import type { Survey } from '../../../types';
 import { genId } from '../../../utils/id';
 import { today, formatDateShort } from '../../../utils/date';
 import { CURRENT_USER_ID } from '../../../constants/session';
+import { useI18n } from '../../../i18n';
 
 type SessionType = Survey['sessionType'];
 
@@ -28,6 +29,7 @@ export function SurveyFormDialog({
   teamId,
   onSaved,
 }: SurveyFormDialogProps) {
+  const { t } = useI18n();
   const teams = useTeams();
   const { dispatch } = useAppContext();
 
@@ -47,14 +49,20 @@ export function SurveyFormDialog({
     if (type === 'match') {
       const m = matches.find(x => x.id === sid);
       return m
-        ? `Présent au match ${m.isHome ? 'vs' : '@'} ${m.opponent} le ${formatDateShort(m.date)} ?`
-        : 'Présent au prochain match ?';
+        ? t('surveys.defaultQuestion.match', {
+            sign: m.isHome ? 'vs' : '@',
+            opponent: m.opponent,
+            date: formatDateShort(m.date),
+          })
+        : t('surveys.defaultQuestion.matchGeneric');
     }
     if (type === 'training') {
-      const t = trainings.find(x => x.id === sid);
-      return t
-        ? `Présent à l'entraînement du ${formatDateShort(t.date)} ?`
-        : 'Présent au prochain entraînement ?';
+      const tr = trainings.find(x => x.id === sid);
+      return tr
+        ? t('surveys.defaultQuestion.training', {
+            date: formatDateShort(tr.date),
+          })
+        : t('surveys.defaultQuestion.trainingGeneric');
     }
     return '';
   }
@@ -77,7 +85,9 @@ export function SurveyFormDialog({
       sessionType,
       sessionId: sessionType === 'libre' ? undefined : sessionId || undefined,
       question:
-        question.trim() || defaultQuestion(sessionType, sessionId) || 'Sondage',
+        question.trim() ||
+        defaultQuestion(sessionType, sessionId) ||
+        t('surveys.defaultQuestion.fallback'),
       deadline,
       status: 'ouvert',
       sendNotification,
@@ -90,7 +100,9 @@ export function SurveyFormDialog({
         type: 'NOTIFY',
         teamId: selectedTeam,
         notifType: 'sondage_nouveau',
-        message: `Nouveau sondage : ${survey.question}`,
+        message: t('notifications.msg.surveyNew', {
+          question: survey.question,
+        }),
         relatedId: id,
         relatedType: 'survey',
       });
@@ -103,21 +115,21 @@ export function SurveyFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Nouveau sondage"
+      title={t('surveys.form.title')}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            Créer
+            {t('common.create')}
           </Button>
         </div>
       }
     >
       <div className="space-y-3">
         <Select
-          label="Équipe"
+          label={t('surveys.form.team')}
           value={selectedTeam}
           onChange={e => {
             setSelectedTeam(e.target.value);
@@ -132,7 +144,7 @@ export function SurveyFormDialog({
         </Select>
 
         <Select
-          label="Type de séance"
+          label={t('surveys.form.sessionType')}
           value={sessionType}
           onChange={e => {
             const next = e.target.value as SessionType;
@@ -140,19 +152,21 @@ export function SurveyFormDialog({
             setSessionId('');
           }}
         >
-          <option value="match">Match</option>
-          <option value="training">Entraînement</option>
-          <option value="tournament">Tournoi</option>
-          <option value="libre">Libre</option>
+          <option value="match">{t('surveys.form.sessionMatch')}</option>
+          <option value="training">{t('surveys.form.sessionTraining')}</option>
+          <option value="tournament">
+            {t('surveys.form.sessionTournament')}
+          </option>
+          <option value="libre">{t('surveys.form.sessionFree')}</option>
         </Select>
 
         {sessionType === 'match' && (
           <Select
-            label="Match associé"
+            label={t('surveys.form.matchAssociated')}
             value={sessionId}
             onChange={e => handleSessionChange(e.target.value)}
           >
-            <option value="">— Sélectionner —</option>
+            <option value="">{t('common.selectPlaceholder')}</option>
             {matches.map(m => (
               <option key={m.id} value={m.id}>
                 {m.isHome ? 'vs' : '@'} {m.opponent} · {formatDateShort(m.date)}
@@ -163,29 +177,30 @@ export function SurveyFormDialog({
 
         {sessionType === 'training' && (
           <Select
-            label="Entraînement associé"
+            label={t('surveys.form.trainingAssociated')}
             value={sessionId}
             onChange={e => handleSessionChange(e.target.value)}
           >
-            <option value="">— Sélectionner —</option>
-            {trainings.map(t => (
-              <option key={t.id} value={t.id}>
-                {t.theme ?? 'Entraînement'} · {formatDateShort(t.date)}
+            <option value="">{t('common.selectPlaceholder')}</option>
+            {trainings.map(tr => (
+              <option key={tr.id} value={tr.id}>
+                {tr.theme ?? t('surveys.form.trainingFallback')} ·{' '}
+                {formatDateShort(tr.date)}
               </option>
             ))}
           </Select>
         )}
 
         <Textarea
-          label="Question"
+          label={t('surveys.form.question')}
           value={question}
           onChange={e => setQuestion(e.target.value)}
-          placeholder="Ex. Serez-vous présent au match du 15/05 ?"
+          placeholder={t('surveys.form.questionPlaceholder')}
           rows={2}
         />
 
         <Input
-          label="Date limite de réponse"
+          label={t('surveys.form.deadline')}
           type="date"
           value={deadline}
           onChange={e => setDeadline(e.target.value)}
@@ -198,7 +213,7 @@ export function SurveyFormDialog({
             onChange={e => setSendNotification(e.target.checked)}
             className="h-4 w-4 rounded border-border-ui text-primary"
           />
-          Notifier les familles à l'ouverture
+          {t('surveys.form.notifyFamilies')}
         </label>
       </div>
     </Dialog>

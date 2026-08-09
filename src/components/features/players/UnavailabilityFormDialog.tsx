@@ -12,6 +12,7 @@ import {
 import { genId } from '../../../utils/id';
 import { today } from '../../../utils/date';
 import { CURRENT_USER_ID } from '../../../constants/session';
+import { useI18n } from '../../../i18n';
 
 interface UnavailabilityFormDialogProps {
   open: boolean;
@@ -28,6 +29,7 @@ export function UnavailabilityFormDialog({
   onClose,
   player,
 }: UnavailabilityFormDialogProps) {
+  const { t } = useI18n();
   const { dispatch } = useAppContext();
   const [startDate, setStartDate] = useState(today());
   const [endDate, setEndDate] = useState('');
@@ -49,7 +51,10 @@ export function UnavailabilityFormDialog({
       type: 'NOTIFY',
       teamId: player.primaryTeamId,
       notifType: 'indispo_declaree',
-      message: `Indisponibilité déclarée pour ${player.firstName} ${player.lastName} (${UNAVAILABILITY_MOTIF_LABELS[motif].toLowerCase()}).`,
+      message: t('notifications.msg.unavailDeclared', {
+        name: `${player.firstName} ${player.lastName}`,
+        motif: t(`unavailabilityMotif.${motif}`).toLowerCase(),
+      }),
       relatedId: player.id,
       relatedType: 'player',
     });
@@ -60,50 +65,47 @@ export function UnavailabilityFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Déclarer une indisponibilité"
+      title={t('unavailability.title')}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            Déclarer
+            {t('common.declare')}
           </Button>
         </div>
       }
     >
       <div className="space-y-3">
         <Select
-          label="Motif"
+          label={t('unavailability.motif')}
           value={motif}
           onChange={e => setMotif(e.target.value as UnavailabilityMotif)}
         >
           {MOTIFS.map(m => (
             <option key={m} value={m}>
-              {UNAVAILABILITY_MOTIF_LABELS[m]}
+              {t(`unavailabilityMotif.${m}`)}
             </option>
           ))}
         </Select>
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Date de début"
+            label={t('unavailability.startDate')}
             type="date"
             value={startDate}
             onChange={e => setStartDate(e.target.value)}
           />
           <Input
-            label="Date de fin (optionnel)"
+            label={t('unavailability.endDate')}
             type="date"
             value={endDate}
             onChange={e => setEndDate(e.target.value)}
           />
         </div>
-        <p className="text-xs text-fg-faint">
-          Sans date de fin, l'indisponibilité reste active jusqu'à clôture
-          manuelle.
-        </p>
+        <p className="text-xs text-fg-faint">{t('unavailability.noEndHint')}</p>
         <Textarea
-          label="Note (visible coach/admin)"
+          label={t('unavailability.note')}
           value={note}
           onChange={e => setNote(e.target.value)}
           rows={2}

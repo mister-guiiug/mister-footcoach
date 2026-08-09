@@ -8,7 +8,9 @@ import {
   Check,
   RadioTower,
   Coffee,
+  LayoutGrid,
 } from 'lucide-react';
+import { FamilyApps } from '@mister-guiiug/dev-wpa-config/react';
 import { REPO_URL, SPONSOR_URL } from '../links';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -29,6 +31,7 @@ import {
 import { FEDERATION_SAMPLE } from '../data/federation';
 import { genId, nowIso } from '../utils/id';
 import { formatDate } from '../utils/date';
+import { useI18n } from '../i18n';
 
 const REMINDER_DELAYS: { value: ReminderDelay; label: string }[] = [
   { value: 'J-1', label: 'J-1' },
@@ -37,6 +40,7 @@ const REMINDER_DELAYS: { value: ReminderDelay; label: string }[] = [
 ];
 
 export default function SettingsPage() {
+  const { t, locale, setLocale, locales } = useI18n();
   const { theme, setTheme } = useTheme();
   const { state, dispatch } = useAppContext();
   const currentUser = useCurrentUser();
@@ -66,7 +70,7 @@ export default function SettingsPage() {
   }
 
   function resetData() {
-    if (window.confirm('Réinitialiser toutes les données de démonstration ?')) {
+    if (window.confirm(t('settings.resetConfirm'))) {
       dispatch({ type: 'RESET_TO_MOCK' });
     }
   }
@@ -88,18 +92,22 @@ export default function SettingsPage() {
   }
 
   const themeOptions = [
-    { value: 'light', label: 'Clair', icon: Sun },
-    { value: 'dark', label: 'Sombre', icon: Moon },
-    { value: 'system', label: 'Système', icon: Monitor },
+    { value: 'light', label: t('settings.themeLight'), icon: Sun },
+    { value: 'dark', label: t('settings.themeDark'), icon: Moon },
+    { value: 'system', label: t('settings.themeSystem'), icon: Monitor },
   ] as const;
 
   return (
     <div className="px-4 py-4 space-y-5">
-      <h1 className="text-xl font-bold text-fg-heading">Paramètres</h1>
+      <h1 className="text-xl font-bold text-fg-heading">
+        {t('settings.title')}
+      </h1>
 
       {/* Theme */}
       <Card>
-        <p className="text-sm font-semibold text-fg-heading mb-3">Apparence</p>
+        <p className="text-sm font-semibold text-fg-heading mb-3">
+          {t('settings.appearance')}
+        </p>
         <div className="grid grid-cols-3 gap-2">
           {themeOptions.map(({ value, label, icon: Icon }) => (
             <button
@@ -118,15 +126,47 @@ export default function SettingsPage() {
         </div>
       </Card>
 
+      {/* Language */}
+      <Card>
+        <p className="text-sm font-semibold text-fg-heading mb-3">
+          {t('settings.language')}
+        </p>
+        <div
+          role="group"
+          aria-label={t('settings.language')}
+          className="grid grid-cols-2 gap-2"
+        >
+          {locales.map(loc => (
+            <button
+              key={loc}
+              type="button"
+              onClick={() => setLocale(loc)}
+              aria-pressed={locale === loc}
+              className={`rounded-xl p-3 border text-sm font-medium transition-colors ${
+                locale === loc
+                  ? 'border-primary bg-primary-subtle text-primary'
+                  : 'border-border-ui text-fg-muted hover:bg-surface-muted'
+              }`}
+            >
+              {loc === 'fr'
+                ? t('settings.languageFr')
+                : t('settings.languageEn')}
+            </button>
+          ))}
+        </div>
+      </Card>
+
       {/* Notification preferences (specs §16.3) */}
       <Card>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-fg-heading">Notifications</p>
+          <p className="text-sm font-semibold text-fg-heading">
+            {t('settings.notifications')}
+          </p>
           <button
             onClick={() => updatePrefs({ enabled: !prefs.enabled })}
             role="switch"
             aria-checked={prefs.enabled}
-            aria-label="Activer les notifications"
+            aria-label={t('settings.enableNotifications')}
             className={`relative h-6 w-11 rounded-full transition-colors ${
               prefs.enabled ? 'bg-primary' : 'bg-border-ui-strong'
             }`}
@@ -150,7 +190,9 @@ export default function SettingsPage() {
                     onClick={() => toggleCategory(cat.key)}
                     className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm hover:bg-surface-muted"
                   >
-                    <span className="text-fg">{cat.label}</span>
+                    <span className="text-fg">
+                      {t(`notifications.category.${cat.key}`)}
+                    </span>
                     <span
                       className={`flex h-5 w-5 items-center justify-center rounded-md border ${
                         active
@@ -167,7 +209,7 @@ export default function SettingsPage() {
 
             <div className="mt-3 border-t border-border-ui pt-3">
               <p className="mb-1.5 text-xs font-medium text-fg-muted">
-                Rappel de séance
+                {t('settings.sessionReminder')}
               </p>
               <div className="flex gap-2">
                 {REMINDER_DELAYS.map(d => (
@@ -187,15 +229,15 @@ export default function SettingsPage() {
             </div>
           </>
         ) : (
-          <p className="text-xs text-fg-muted">
-            Toutes les notifications sont désactivées.
-          </p>
+          <p className="text-xs text-fg-muted">{t('settings.allDisabled')}</p>
         )}
       </Card>
 
       {/* Club settings */}
       <Card>
-        <p className="text-sm font-semibold text-fg-heading mb-3">Club</p>
+        <p className="text-sm font-semibold text-fg-heading mb-3">
+          {t('settings.club')}
+        </p>
         <button
           onClick={() =>
             dispatch({
@@ -208,11 +250,11 @@ export default function SettingsPage() {
           }
           className="flex w-full items-center justify-between text-sm"
         >
-          <span className="text-fg">Sondage auto à la création d'un match</span>
+          <span className="text-fg">{t('settings.autoSurvey')}</span>
           <span
             role="switch"
             aria-checked={clubSettings.autoSurveyOnMatch}
-            aria-label="Sondage auto à la création d'un match"
+            aria-label={t('settings.autoSurvey')}
             className={`relative h-6 w-11 rounded-full transition-colors ${
               clubSettings.autoSurveyOnMatch
                 ? 'bg-primary'
@@ -235,34 +277,43 @@ export default function SettingsPage() {
         <div className="mb-3 flex items-center gap-2">
           <RadioTower size={16} className="text-fg-muted" />
           <p className="text-sm font-semibold text-fg-heading">
-            Intégration fédération
+            {t('settings.federation')}
           </p>
         </div>
         <p className="mb-3 text-xs text-fg-muted">
-          Synchronise le calendrier et les résultats officiels. Les champs
-          locaux (note, assiduité, composition, événements live) ne sont jamais
-          écrasés.
+          {t('settings.federationDesc')}
         </p>
         {clubSettings.federationLastSync && (
           <p className="mb-2 text-xs text-fg-faint">
-            Dernière synchronisation :{' '}
-            {formatDate(clubSettings.federationLastSync.split('T')[0]!)}
+            {t('settings.lastSync', {
+              date: formatDate(clubSettings.federationLastSync.split('T')[0]!),
+            })}
           </p>
         )}
         <Button variant="secondary" onClick={syncFederation} className="w-full">
-          <RefreshCw size={14} /> Synchroniser la fédération
+          <RefreshCw size={14} /> {t('settings.syncFederation')}
         </Button>
 
         {syncResult && (
           <div className="mt-3 space-y-2 text-sm">
             <div className="flex gap-2">
               <Badge variant="success">
-                {syncResult.updated.length} mis à jour
+                {t('settings.syncUpdated', {
+                  count: syncResult.updated.length,
+                })}
               </Badge>
-              <Badge variant="primary">{syncResult.created.length} créés</Badge>
+              <Badge variant="primary">
+                {t('settings.syncCreated', {
+                  count: syncResult.created.length,
+                })}
+              </Badge>
               <Badge variant="warning">
-                {syncResult.conflicts.length} conflit
-                {syncResult.conflicts.length > 1 ? 's' : ''}
+                {t(
+                  syncResult.conflicts.length > 1
+                    ? 'settings.syncConflictPlural'
+                    : 'settings.syncConflict',
+                  { count: syncResult.conflicts.length }
+                )}
               </Badge>
             </div>
             {syncResult.conflicts.map((c, i) => (
@@ -270,7 +321,11 @@ export default function SettingsPage() {
                 key={i}
                 className="rounded-xl bg-amber-50 dark:bg-amber-900/10 p-2.5 text-xs text-amber-700 dark:text-amber-400"
               >
-                Conflit {c.field} — local : {c.local} · fédéral : {c.federal}
+                {t('settings.conflictDetail', {
+                  field: c.field,
+                  local: c.local,
+                  federal: c.federal,
+                })}
               </div>
             ))}
           </div>
@@ -280,29 +335,29 @@ export default function SettingsPage() {
       {/* Season info */}
       <Card>
         <p className="text-sm font-semibold text-fg-heading mb-3">
-          Saison active
+          {t('settings.activeSeason')}
         </p>
         <div className="space-y-1 text-sm">
           <div className="flex justify-between">
-            <span className="text-fg-muted">Saison</span>
+            <span className="text-fg-muted">{t('settings.season')}</span>
             <span className="font-medium text-fg">{state.season.name}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-fg-muted">Début</span>
+            <span className="text-fg-muted">{t('settings.start')}</span>
             <span className="font-medium text-fg">
               {state.season.startDate}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-fg-muted">Fin</span>
+            <span className="text-fg-muted">{t('settings.end')}</span>
             <span className="font-medium text-fg">{state.season.endDate}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-fg-muted">Équipes</span>
+            <span className="text-fg-muted">{t('settings.teams')}</span>
             <span className="font-medium text-fg">{state.teams.length}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-fg-muted">Joueurs actifs</span>
+            <span className="text-fg-muted">{t('settings.activePlayers')}</span>
             <span className="font-medium text-fg">
               {state.players.filter(p => p.active).length}
             </span>
@@ -313,31 +368,47 @@ export default function SettingsPage() {
       {/* Data management */}
       <Card>
         <p className="text-sm font-semibold text-fg-heading mb-3">
-          Données de démonstration
+          {t('settings.demoData')}
         </p>
         <p className="text-xs text-fg-muted mb-3">
-          L'application utilise des données de démonstration stockées
-          localement. La réinitialisation restaure les données d'exemple
-          originales.
+          {t('settings.demoDataDesc')}
         </p>
         <Button variant="secondary" onClick={resetData} className="w-full">
           <RefreshCw size={14} />
-          Réinitialiser les données
+          {t('settings.resetData')}
         </Button>
       </Card>
 
       {/* App info */}
       <Card>
+        <div className="mb-3 flex items-center gap-2">
+          <LayoutGrid size={16} className="text-fg-muted" />
+          <p className="text-sm font-semibold text-fg-heading">
+            {t('settings.otherApps')}
+          </p>
+        </div>
+        <p className="mb-3 text-xs text-fg-muted">
+          {t('settings.otherAppsDesc')}
+        </p>
+        <div className="family-apps">
+          <FamilyApps
+            currentAppId="mister-footcoach"
+            showSource={false}
+            showSponsor={false}
+          />
+        </div>
+      </Card>
+
+      <Card>
         <div className="flex items-start gap-3">
           <Info size={18} className="text-fg-muted flex-shrink-0 mt-0.5" />
           <div className="text-sm">
-            <p className="font-semibold text-fg-heading">Mister Footcoach</p>
+            <p className="font-semibold text-fg-heading">{t('app.name')}</p>
             <p className="text-xs text-fg-muted mt-0.5">
-              Version MVP — Phase 0
+              {t('settings.version')}
             </p>
             <p className="text-xs text-fg-muted mt-0.5">
-              Application PWA de gestion d'équipes jeunes de football. Données
-              stockées localement (localStorage).
+              {t('settings.appDescription')}
             </p>
             <div className="flex flex-wrap items-center gap-3 mt-2">
               <a
@@ -355,7 +426,7 @@ export default function SettingsPage() {
                 >
                   <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
                 </svg>
-                Code source
+                {t('settings.sourceCode')}
               </a>
               <a
                 href={SPONSOR_URL}
@@ -364,7 +435,7 @@ export default function SettingsPage() {
                 className="inline-flex items-center gap-1.5 text-xs font-medium text-fg-muted hover:text-fg-heading"
               >
                 <Coffee size={14} aria-hidden="true" />
-                M'offrir un café
+                {t('settings.buyCoffee')}
               </a>
             </div>
           </div>

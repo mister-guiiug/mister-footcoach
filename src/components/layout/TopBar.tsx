@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Bell } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useUnreadNotificationCount } from '../../store/AppContext';
+import { useI18n } from '../../i18n';
 
 interface TopBarProps {
   title?: string;
@@ -10,6 +11,7 @@ interface TopBarProps {
 }
 
 export function TopBar({ title, showBack, actions }: TopBarProps) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const unreadCount = useUnreadNotificationCount();
@@ -22,7 +24,7 @@ export function TopBar({ title, showBack, actions }: TopBarProps) {
         <button
           onClick={() => navigate(-1)}
           className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-surface-muted text-fg-muted"
-          aria-label="Retour"
+          aria-label={t('common.back')}
         >
           <ArrowLeft size={20} />
         </button>
@@ -46,7 +48,7 @@ export function TopBar({ title, showBack, actions }: TopBarProps) {
         <button
           onClick={() => navigate('/notifications')}
           className="relative flex h-9 w-9 items-center justify-center rounded-xl hover:bg-surface-muted text-fg-muted"
-          aria-label="Notifications"
+          aria-label={t('topbar.notifications')}
         >
           <Bell size={20} />
           {unreadCount > 0 && (

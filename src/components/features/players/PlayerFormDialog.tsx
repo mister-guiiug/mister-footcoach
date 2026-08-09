@@ -5,6 +5,7 @@ import { Button } from '../../ui/Button';
 import { useTeams, useAppContext } from '../../../store/AppContext';
 import { POSITION_LABELS, type Player, type Position } from '../../../types';
 import { genId } from '../../../utils/id';
+import { useI18n } from '../../../i18n';
 
 interface PlayerFormDialogProps {
   open: boolean;
@@ -23,6 +24,7 @@ export function PlayerFormDialog({
   player,
   onSaved,
 }: PlayerFormDialogProps) {
+  const { t } = useI18n();
   const teams = useTeams();
   const { dispatch } = useAppContext();
   const isEdit = Boolean(player);
@@ -44,11 +46,11 @@ export function PlayerFormDialog({
 
   function handleSubmit() {
     if (!form.firstName.trim() || !form.lastName.trim()) {
-      setError('Le prénom et le nom sont obligatoires.');
+      setError(t('players.form.namesRequired'));
       return;
     }
     if (!form.dateOfBirth) {
-      setError('La date de naissance est obligatoire.');
+      setError(t('players.form.dobRequired'));
       return;
     }
 
@@ -75,14 +77,14 @@ export function PlayerFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title={isEdit ? 'Modifier le joueur' : 'Nouveau joueur'}
+      title={t(isEdit ? 'players.form.editTitle' : 'players.form.newTitle')}
       footer={
         <div className="flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} className="flex-1">
-            {isEdit ? 'Enregistrer' : 'Créer'}
+            {t(isEdit ? 'common.save' : 'common.create')}
           </Button>
         </div>
       }
@@ -90,65 +92,65 @@ export function PlayerFormDialog({
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Prénom"
+            label={t('players.form.firstName')}
             value={form.firstName}
             onChange={e => set('firstName', e.target.value)}
           />
           <Input
-            label="Nom"
+            label={t('players.form.lastName')}
             value={form.lastName}
             onChange={e => set('lastName', e.target.value)}
           />
         </div>
 
         <Input
-          label="Date de naissance"
+          label={t('players.form.dateOfBirth')}
           type="date"
           value={form.dateOfBirth}
           onChange={e => set('dateOfBirth', e.target.value)}
         />
 
         <Select
-          label="Équipe principale"
+          label={t('players.form.primaryTeam')}
           value={form.primaryTeamId}
           onChange={e => set('primaryTeamId', e.target.value)}
         >
-          {teams.map(t => (
-            <option key={t.id} value={t.id}>
-              {t.name}
+          {teams.map(team => (
+            <option key={team.id} value={team.id}>
+              {team.name}
             </option>
           ))}
         </Select>
 
         <Select
-          label="Équipe secondaire (renfort)"
+          label={t('players.form.secondaryTeam')}
           value={form.secondaryTeamId}
           onChange={e => set('secondaryTeamId', e.target.value)}
         >
-          <option value="">— Aucune —</option>
+          <option value="">{t('common.noneFem')}</option>
           {teams
-            .filter(t => t.id !== form.primaryTeamId)
-            .map(t => (
-              <option key={t.id} value={t.id}>
-                {t.name}
+            .filter(team => team.id !== form.primaryTeamId)
+            .map(team => (
+              <option key={team.id} value={team.id}>
+                {team.name}
               </option>
             ))}
         </Select>
 
         <div className="grid grid-cols-2 gap-3">
           <Select
-            label="Poste de prédilection"
+            label={t('players.form.preferredPosition')}
             value={form.preferredPosition}
             onChange={e => set('preferredPosition', e.target.value as Position)}
           >
             {POSITIONS.map(p => (
               <option key={p} value={p}>
-                {POSITION_LABELS[p]}
+                {t(`position.${p}`)}
               </option>
             ))}
           </Select>
           <Input
-            label="Numéro"
+            label={t('players.form.number')}
             type="number"
             min={1}
             value={form.number}

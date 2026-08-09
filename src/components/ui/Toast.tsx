@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { X } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 export type ToastVariant = 'success' | 'error' | 'info';
 
@@ -34,6 +35,7 @@ const variantStyles: Record<ToastVariant, string> = {
 const AUTO_DISMISS_MS = 5000;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const { t } = useI18n();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const nextId = useRef(0);
 
@@ -59,17 +61,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-2 p-4 sm:items-end"
         aria-live="polite"
       >
-        {toasts.map(t => (
+        {toasts.map(toast => (
           <div
-            key={t.id}
-            role={t.variant === 'error' ? 'alert' : 'status'}
-            className={`pointer-events-auto flex w-full max-w-sm items-start gap-2 rounded-xl bg-surface px-4 py-3 text-sm text-fg shadow-lg ${variantStyles[t.variant]}`}
+            key={toast.id}
+            role={toast.variant === 'error' ? 'alert' : 'status'}
+            className={`pointer-events-auto flex w-full max-w-sm items-start gap-2 rounded-xl bg-surface px-4 py-3 text-sm text-fg shadow-lg ${variantStyles[toast.variant]}`}
           >
-            <span className="flex-1">{t.message}</span>
+            <span className="flex-1">{toast.message}</span>
             <button
               type="button"
-              aria-label="Fermer"
-              onClick={() => dismiss(t.id)}
+              aria-label={t('common.close')}
+              onClick={() => dismiss(toast.id)}
               className="text-fg-faint transition-colors hover:text-fg"
             >
               <X className="h-4 w-4" />
