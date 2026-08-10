@@ -24,7 +24,10 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 export default function App() {
   return (
-    <BrowserRouter basename="/mister-footcoach">
+    // Basename dérivé de `BASE_URL` (donc de `VITE_BASE_PATH`) : `/mister-footcoach/`
+    // pour GitHub Pages, `/` quand `dist/` est servi à la racine (Lighthouse CI,
+    // e2e Playwright). En dur, l'app ne rendait rien hors GitHub Pages.
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Suspense fallback={<Spinner fullscreen />}>
         <Routes>
           <Route element={<AppShell />}>
