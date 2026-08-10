@@ -1,18 +1,26 @@
 # Spécifications Fonctionnelles — Mister Footcoach
 
-**Version :** 1.2  
-**Date :** 05/05/2026  
-**Statut :** Brouillon — en attente de validation  
+**Version :** 1.3  
+**Date :** 11/08/2026  
+**Statut :** Spécification de référence — cible fonctionnelle du produit  
 **Auteur :** Product Owner / Analyste Fonctionnel  
 **Application :** Mister Footcoach — PWA de gestion d'équipes jeunes de football
 
 **Historique des versions**
 
-| Version | Date       | Modifications                                                                                                                                                       |
-| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0     | 05/05/2026 | Version initiale                                                                                                                                                    |
-| 1.1     | 05/05/2026 | Ajout §4.6–4.7 (indisponibilités, blessures), §7.5 (mode match live), §8.5–8.6 (contenu séance, bibliothèque exercices), §12 (tournois), §13 (calendrier externe)   |
-| 1.2     | 05/05/2026 | Ajout §14 (logistique des déplacements), §15 (sondages de présence) ; mise à jour matrice permissions, modèle de données, user stories, découpage et points ouverts |
+| Version | Date       | Modifications                                                                                                                                                                                        |
+| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 05/05/2026 | Version initiale                                                                                                                                                                                     |
+| 1.1     | 05/05/2026 | Ajout §4.6–4.7 (indisponibilités, blessures), §7.5 (mode match live), §8.5–8.6 (contenu séance, bibliothèque exercices), §12 (tournois), §13 (calendrier externe)                                    |
+| 1.2     | 05/05/2026 | Ajout §14 (logistique des déplacements), §15 (sondages de présence) ; mise à jour matrice permissions, modèle de données, user stories, découpage et points ouverts                                  |
+| 1.3     | 11/08/2026 | Clôture des points ouverts tranchés par l'implémentation (§22), correction du modèle de données (§19), écarts d'implémentation signalés (§7.5, §13), découpage §21 remplacé par un état de livraison |
+
+> **Nature de ce document.** Il décrit la **cible fonctionnelle**, pas l'état du
+> code. Les exigences non encore livrées y restent volontairement : elles
+> constituent le backlog. L'état d'avancement réel est en § 21, et les écarts
+> assumés entre la cible et l'implémentation sont signalés en encadré dans les
+> sections concernées. Pour l'architecture effectivement en place, voir
+> [`docs/conception-technique.md`](./conception-technique.md).
 
 ---
 
@@ -38,7 +46,7 @@
 18. [RGPD et données de mineurs](#18-rgpd-et-données-de-mineurs)
 19. [Modèle de données conceptuel](#19-modèle-de-données-conceptuel)
 20. [User Stories](#20-user-stories)
-21. [Découpage MVP / V1 / Évolutions](#21-découpage-mvp--v1--évolutions)
+21. [État de livraison](#21-état-de-livraison)
 22. [Points ouverts](#22-points-ouverts)
 
 ---
@@ -485,6 +493,12 @@ Permettre au coach de saisir les événements d'un match depuis le bord du terra
 - **RG-LIVE-04** : La clôture depuis le mode live est irréversible et verrouille le journal.
 - **RG-LIVE-05** : Le score en temps réel est visible en lecture par les parents connectés.
 
+> **Écart d'implémentation.** RG-LIVE-01 et RG-LIVE-02 ne sont pas appliquées à
+> ce jour : le mode live n'impose aucune fenêtre temporelle, et il n'existe
+> aucune file d'attente hors-ligne — une coupure réseau pendant un match fait
+> échouer les écritures en mode `supabase`. RG-LIVE-05 repose sur le temps réel
+> Supabase, effectivement en place. Voir `conception-technique.md` § 7.2.
+
 ---
 
 ## 8. Entraînements
@@ -808,6 +822,15 @@ Synchroniser les événements de l'application dans le calendrier personnel (Goo
 - **RG-ICAL-04** : Les matchs de tournoi incluent le nom du tournoi dans la `DESCRIPTION`.
 - **RG-ICAL-05** : Le token iCal est distinct du token d'authentification.
 
+> **Écart d'implémentation.** La cible ci-dessus est un **flux d'abonnement**
+> (URL persistante que le calendrier interroge périodiquement). Ce qui est livré
+> est un **export ponctuel** : un bouton sur la fiche équipe génère un fichier
+> `.ics` téléchargé côté client (`src/utils/ical.ts`). Conséquences : il n'existe
+> ni URL, ni token (donc § 13.4, RG-ICAL-01, RG-ICAL-02 et RG-ICAL-05 sont sans
+> objet en l'état), et le calendrier de l'utilisateur ne se met pas à jour tout
+> seul. Le passage à un vrai flux d'abonnement suppose un composant serveur, que
+> l'architecture actuelle n'a pas.
+
 ---
 
 ## 14. Logistique des déplacements
@@ -1030,12 +1053,22 @@ Un joueur peut avoir plusieurs contacts avec un compte utilisateur (ex. père et
 | Nouvelle offre de covoiturage     | Coach                       | Soumission d'une offre                     |
 | Divergence de réponses tuteurs    | Coach                       | Deux tuteurs ont répondu différemment      |
 
+> **Écart d'implémentation.** Les notifications déclenchées par une **action
+> utilisateur** sont livrées : elles sont créées côté client au moment du
+> dispatch, avec une ligne par destinataire éligible selon ses préférences.
+> Celles qui supposent un **déclencheur temporel** — « Rappel de séance » à J-1,
+> « Deadline sondage dans 24h » — ne le sont pas : l'architecture actuelle n'a
+> aucun composant serveur ni tâche planifiée pour les émettre (cf. PO-21).
+
 ### 16.2 Canaux
 
 - Notifications **in-app** (centre de notifications dans l'application)
 - **Push PWA** (si l'utilisateur a accordé la permission)
 
-> **Point ouvert PO-03** : Les notifications par email ou SMS sont-elles dans le périmètre V1 ?
+> **Point ouvert PO-03** : Les notifications par email ou SMS sont-elles dans le périmètre ?
+>
+> Le **push PWA** n'est pas implémenté à ce jour : seul le centre de
+> notifications in-app existe.
 
 ### 16.3 Paramétrage utilisateur
 
@@ -1131,6 +1164,13 @@ Synchroniser automatiquement le calendrier officiel des matchs et les résultats
 | Portabilité   | Export JSON ou CSV                                 |
 | Opposition    | Désactivation notifications et compte              |
 
+> **Écart d'implémentation.** L'accès et la portabilité sont livrés : la fiche
+> joueur produit un export JSON complet (`src/utils/rgpd.ts`), et l'assiduité
+> s'exporte en CSV. Le **droit à la suppression n'est pas outillé** : il
+> n'existe aucune action de suppression de joueur dans l'application, seulement
+> pour les contacts. Une demande d'effacement suppose aujourd'hui une
+> intervention manuelle en base.
+
 ### 18.5 Traçabilité du consentement
 
 | Information            | Description                                  |
@@ -1148,7 +1188,16 @@ Synchroniser automatiquement le calendrier officiel des matchs et les résultats
 - Durée de conservation : données actives tant que le joueur est licencié ; archivage ou suppression à la fin de la saison suivant la désinscription
 - Tokens iCal invalidés à la désactivation du compte
 
-> **Point ouvert PO-05** : Prestataire d'hébergement prévu ? Hébergement en UE requis (RGPD).
+> **PO-05 tranché.** L'hébergement des données est **Supabase, région Frankfurt
+> (`eu-central-1`)** — donc dans l'UE, conformément à l'exigence RGPD. Le
+> cloisonnement par rôle est imposé en base par des politiques Row Level
+> Security, et non par le client. Seul le frontend statique est hébergé sur
+> GitHub Pages ; il ne contient aucune donnée. Voir
+> `conception-technique.md` § 4.5 et § 9.1.
+>
+> La ligne « tokens iCal » reste sans objet tant que le calendrier externe est
+> un export de fichier (§ 13.5). La durée de conservation n'est pas encore
+> outillée : aucune purge automatique n'est implémentée.
 
 ---
 
@@ -1169,10 +1218,10 @@ EQUIPE
 
 USER
  ├── id / email / firstName / lastName
+ ├── authId       (→ session d'authentification ; résout le rôle)
  ├── roles[]      (admin | coach | parent)
  ├── teamIds[]  →  EQUIPE
- ├── contactId  →  CONTACT
- └── icalTokens{}  (flux → token)
+ └── contactId  →  CONTACT
 
 JOUEUR
  ├── id / firstName / lastName / dateOfBirth
@@ -1263,9 +1312,9 @@ PRESENCE
  └── playerId   →  JOUEUR
 
 HISTORIQUE_POSTE
- ├── id / period / position / minute
+ ├── id / period / position
  ├── playerId  →  JOUEUR
- └── matchId   →  MATCH
+ └── matchId   →  MATCH  (+ matchDate / opponent dénormalisés)
 
 COMPOSITION
  ├── id / name / formation / createdAt
@@ -1278,8 +1327,15 @@ COMPOSITION
 
 NOTIFICATION
  ├── id / type / message / read / createdAt
+ ├── relatedId / relatedType  (opt. — lien vers l'événement d'origine)
  └── userId  →  USER
 ```
+
+> Ce modèle est **conceptuel**. Sa traduction physique est le schéma Postgres
+> de `supabase/migrations/0001_schema.sql`, qui le reflète entité par entité et
+> y ajoute les tables de paramétrage (`club_settings`,
+> `notification_preferences`). L'historique des postes est enregistré **par
+> période**, sans granularité à la minute (cf. PO-01, § 22.1).
 
 ---
 
@@ -1560,86 +1616,101 @@ Then je vois matchs, entraînements et tournois de mon enfant
 
 ---
 
-## 21. Découpage MVP / V1 / Évolutions
+## 21. État de livraison
 
-### 21.1 MVP (Minimum Viable Product)
+Le découpage MVP / V1 initial est caduc : le périmètre annoncé en V1 a été
+livré en même temps que le MVP. Cette section est donc remplacée par un état de
+livraison, à mettre à jour au fil des développements.
 
-Objectif : cœur fonctionnel utilisable par un coach, sans authentification multi-utilisateurs.
+### 21.1 Livré
 
-| Module                   | Fonctionnalités incluses                                |
-| ------------------------ | ------------------------------------------------------- |
-| Équipes                  | Création, modification, liste                           |
-| Joueurs                  | CRUD complet, postes, appétences                        |
-| Indisponibilités         | Déclaration coach, affichage dans simulateur            |
-| Matchs                   | CRUD, calendrier, score manuel                          |
-| Mode match live          | Chronomètre, buts, changements, cartons — offline       |
-| Entraînements            | Création manuelle, annulation, contenu de séance        |
-| Bibliothèque d'exercices | CRUD, utilisation dans les plans de séance              |
-| Assiduité                | Saisie simple (présent / absent / excusé)               |
-| Composition              | Simulateur visuel, grisage des indisponibles            |
-| Statistiques             | Taux de présence, postes joués, buts/cartons (via live) |
-| Navigation               | PWA installable, offline partiel                        |
-| RGPD                     | Stockage local uniquement, aucune donnée tiers          |
+| Module                   | Fonctionnalités                                                     |
+| ------------------------ | ------------------------------------------------------------------- |
+| Équipes & saisons        | Création, modification, liste                                       |
+| Joueurs                  | CRUD complet, postes, appétences, équipes multiples                 |
+| Indisponibilités         | Déclaration, affichage dans le simulateur                           |
+| Suivi des blessures      | Suivi complet, liaison à l'indisponibilité                          |
+| Contacts & filiation     | CRUD contacts, lien joueur ↔ contact                                |
+| Matchs                   | CRUD, calendrier multi-vues, score                                  |
+| Mode match live          | Événements, score, historique des postes (**en ligne uniquement**)  |
+| Entraînements            | Création, récurrence, annulation, contenu de séance                 |
+| Bibliothèque d'exercices | CRUD, utilisation dans les plans de séance                          |
+| Assiduité                | Saisie présent / absent / excusé                                    |
+| Composition              | Simulateur visuel, formations foot à 8, grisage des indisponibles   |
+| Statistiques             | Assiduité, postes joués, statistiques d'équipe et par joueur        |
+| Tournois                 | Création, poules, classement automatique                            |
+| Logistique               | Point de RDV, navigation GPS, covoiturage simplifié                 |
+| Sondages de présence     | Création, intention joueur + confirmation tuteur, synthèse coach    |
+| Notifications in-app     | Événements principaux, préférences par utilisateur                  |
+| Authentification & rôles | Supabase Auth, rôles admin / coach / parent appliqués en base (RLS) |
+| Calendrier externe       | Export `.ics` **par fichier** — pas de flux d'abonnement (§ 13.5)   |
+| Navigation               | PWA installable, français / anglais, thème clair / sombre           |
 
-**Hors MVP :** suivi blessures, tournois, iCal, notifications, multi-utilisateurs, contacts/filiation, sondages, covoiturage, point de RDV, intégration fédération.
+### 21.2 Partiellement livré
 
-### 21.2 V1
-
-| Module                   | Fonctionnalités ajoutées                                                   |
-| ------------------------ | -------------------------------------------------------------------------- |
-| Authentification         | Inscription, connexion, gestion de session                                 |
-| Rôles                    | Admin, Coach, Parent avec droits différenciés                              |
-| Contacts & filiation     | CRUD contacts, lien joueur ↔ contact                                       |
-| Indisponibilités         | Déclaration parent, notification au coach                                  |
-| Suivi des blessures      | Suivi complet, liaison automatique indisponibilité                         |
-| Tournois                 | Création, poules, classement automatique                                   |
-| Calendrier iCal          | Flux par équipe, joueur et parent                                          |
-| Logistique               | Point de RDV, navigation GPS, covoiturage simplifié                        |
-| Sondages de présence     | Création, réponse parent (intention + confirmation), tableau de bord coach |
-| Notifications in-app     | Événements principaux + push PWA                                           |
-| RGPD                     | Consentement, export, suppression                                          |
-| Entraînements récurrents | Création en série, modification d'occurrence                               |
+| Module                 | Ce qui manque                                                                                                          |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Mode match live        | Fenêtre J-0 (RG-LIVE-01) et fonctionnement hors-ligne (RG-LIVE-02) — § 7.5.6                                           |
+| Calendrier externe     | Flux d'abonnement avec URL et token, au lieu d'un export ponctuel — § 13.5                                             |
+| Notifications          | Rappels automatiques J-1 : aucune tâche planifiée n'existe (§ 16.1)                                                    |
+| RGPD                   | Consentement tracé et export livrés ; **droit à la suppression et purge de fin de conservation non outillés** (§ 18.4) |
+| Intégration fédération | Flux **simulé** pour démontrer le rapprochement ; pas d'API réelle branchée (PO-04)                                    |
+| Photos de joueurs      | Champ prévu au modèle, stockage de fichiers non branché                                                                |
 
 ### 21.3 Évolutions ultérieures
 
-| Module                      | Description                                            |
-| --------------------------- | ------------------------------------------------------ |
-| Intégration fédération      | Synchronisation calendrier et résultats                |
-| Notifications email / SMS   | Canal complémentaire                                   |
-| Organisation tournoi maison | Gestion terrains, équipes adverses, planning           |
-| Compte joueur               | Saisie de l'intention par le joueur lui-même (sondage) |
-| Analyse tactique            | Annotations, schémas dessinés                          |
-| Application native          | Publication iOS / Android                              |
-| Multi-club                  | Gestion de plusieurs clubs depuis un seul compte admin |
-| Export PDF                  | Feuille de match, rapport d'assiduité                  |
-| Estimation de trajet        | Intégration API cartographique                         |
+| Module                      | Description                                              |
+| --------------------------- | -------------------------------------------------------- |
+| Notifications push PWA      | VAPID + Web Push API                                     |
+| Notifications email / SMS   | Canal complémentaire (PO-03)                             |
+| Organisation tournoi maison | Gestion terrains, équipes adverses, planning             |
+| Compte joueur               | Saisie de l'intention par le joueur lui-même (sondage)   |
+| Analyse tactique            | Annotations, schémas dessinés                            |
+| Application native          | Publication iOS / Android                                |
+| Multi-club                  | Gestion de plusieurs clubs depuis un seul compte admin   |
+| Export PDF                  | Feuille de match, rapport d'assiduité                    |
+| Estimation de trajet        | Durée et distance — nécessiterait une API tierce (PO-16) |
 
 ---
 
 ## 22. Points ouverts
 
-| Ref   | Sujet                                                                                                              | Impact                 | Priorité |
-| ----- | ------------------------------------------------------------------------------------------------------------------ | ---------------------- | -------- |
-| PO-01 | Granularité à la minute pour l'historique des postes : saisie manuelle requise en plus du mode live ?              | Modèle, UX             | Haute    |
-| PO-02 | Nombre de remplaçants autorisés en foot à 8 selon catégorie                                                        | Simulateur, mode live  | Haute    |
-| PO-03 | Notifications email / SMS dans le périmètre V1 ?                                                                   | Architecture, coût     | Moyenne  |
-| PO-04 | API fédération : disponibilité, format, documentation                                                              | Intégration fédération | Haute    |
-| PO-05 | Hébergement prévu : prestataire, localisation (UE requis RGPD)                                                     | Architecture, RGPD     | Haute    |
-| PO-06 | Gestion de plusieurs catégories (U11 + U13) dans la V1 ?                                                           | Structure de données   | Moyenne  |
-| PO-07 | Délai de saisie de l'assiduité (7 jours) : configurable ou fixe ?                                                  | Règle métier           | Faible   |
-| PO-08 | La composition peut-elle être partagée avec les parents ?                                                          | Notifications, droits  | Moyenne  |
-| PO-09 | Gestion des surclassements : règles fédérales à respecter pour les indisponibilités ?                              | Données joueurs        | Haute    |
-| PO-10 | Identité visuelle et charte graphique définies ?                                                                   | UI/UX                  | Faible   |
-| PO-11 | Critères de départage dans les tournois : règle fixe ou configurable par tournoi ?                                 | Tournois               | Moyenne  |
-| PO-12 | Score live pour les parents : push WebSocket ou polling ?                                                          | Architecture technique | Haute    |
-| PO-13 | Bibliothèque d'exercices : partage inter-clubs prévu ?                                                             | Périmètre, données     | Faible   |
-| PO-14 | Mode live : fenêtre de tolérance avant J-0 pour préparer la saisie ?                                               | UX, règle métier       | Moyenne  |
-| PO-15 | Token iCal : durée de validité ou révocation manuelle uniquement ?                                                 | Sécurité, RGPD         | Moyenne  |
-| PO-16 | API cartographique pour estimation de trajet et covoiturage : périmètre V1 ? Impact RGPD ?                         | Architecture, coût     | Moyenne  |
-| PO-17 | Sondage — divergence entre tuteurs : résolution automatique (plus récente prévaut) ou décision manuelle du coach ? | Règle métier           | Haute    |
-| PO-18 | Sondage — création automatique à la création d'un match : activée par défaut ou opt-in au niveau du club ?         | Paramétrage            | Faible   |
-| PO-19 | Covoiturage — mise en relation directe entre parents envisagée en V2 ? (avec consentement explicite)               | RGPD, fonctionnel      | Faible   |
+### 22.1 Points tranchés par l'implémentation
+
+Ces points ont été arbitrés dans le code. La décision est indiquée telle
+qu'elle est effectivement appliquée ; elle reste révisable.
+
+| Ref   | Sujet                                                   | Décision appliquée                                                                                                                        |
+| ----- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| PO-01 | Granularité de l'historique des postes                  | **Par période**, pas à la minute — `HISTORIQUE_POSTE` ne porte aucun champ minute (§ 19)                                                  |
+| PO-05 | Hébergement et localisation                             | **Supabase, région Frankfurt (`eu-central-1`)** — UE. Frontend statique sur GitHub Pages, sans données (§ 18.6)                           |
+| PO-11 | Critères de départage en tournoi                        | **Règle fixe**, non configurable : points → différence de buts → buts marqués → ordre alphabétique                                        |
+| PO-12 | Score live pour les parents : WebSocket ou polling ?    | **WebSocket** — temps réel Supabase (`postgres_changes`), pas de polling                                                                  |
+| PO-15 | Token iCal : durée de validité ?                        | **Sans objet** — le calendrier est un export de fichier `.ics`, il n'y a ni URL d'abonnement ni token (§ 13.5)                            |
+| PO-16 | API cartographique : périmètre ? impact RGPD ?          | **Aucune API tierce.** Liens de navigation construits depuis la seule adresse de destination ; aucune position utilisateur transmise      |
+| PO-17 | Sondage — divergence entre tuteurs                      | **Décision du coach.** L'app détecte la divergence, l'affiche et liste les réponses de la plus récente à la plus ancienne — sans trancher |
+| PO-18 | Sondage — création automatique à la création d'un match | **Opt-in au niveau du club** (`autoSurveyOnMatch`), avec case à cocher par match pré-remplie depuis ce réglage                            |
+
+### 22.2 Points encore ouverts
+
+| Ref   | Sujet                                                                                            | Impact                 | Priorité |
+| ----- | ------------------------------------------------------------------------------------------------ | ---------------------- | -------- |
+| PO-02 | Nombre de remplaçants autorisés en foot à 8 selon catégorie                                      | Simulateur, mode live  | Haute    |
+| PO-03 | Notifications email / SMS dans le périmètre ?                                                    | Architecture, coût     | Moyenne  |
+| PO-04 | API fédération : disponibilité, format, documentation — le flux actuel est simulé                | Intégration fédération | Haute    |
+| PO-06 | Gestion de plusieurs catégories (U11 + U13) simultanément ?                                      | Structure de données   | Moyenne  |
+| PO-07 | Délai de saisie de l'assiduité (7 jours) : configurable ou fixe ?                                | Règle métier           | Faible   |
+| PO-08 | La composition peut-elle être partagée avec les parents ?                                        | Notifications, droits  | Moyenne  |
+| PO-09 | Gestion des surclassements : règles fédérales à respecter pour les indisponibilités ?            | Données joueurs        | Haute    |
+| PO-10 | Identité visuelle et charte graphique définies ?                                                 | UI/UX                  | Faible   |
+| PO-13 | Bibliothèque d'exercices : partage inter-clubs prévu ?                                           | Périmètre, données     | Faible   |
+| PO-14 | Mode live : fenêtre de tolérance avant J-0 ? (RG-LIVE-01 n'est pas appliquée aujourd'hui)        | UX, règle métier       | Moyenne  |
+| PO-19 | Covoiturage — mise en relation directe entre parents ? (avec consentement explicite)             | RGPD, fonctionnel      | Faible   |
+| PO-20 | Droit à la suppression : outiller l'effacement d'un joueur dans l'app ou traiter manuellement ?  | RGPD                   | Haute    |
+| PO-21 | Rappels automatiques J-1 : quel mécanisme, sans composant serveur dans l'architecture actuelle ? | Architecture, § 16.1   | Haute    |
 
 ---
 
-_Document v1.2 — 05/05/2026 — à valider avec les parties prenantes avant démarrage du développement._
+_Document v1.3 — 11/08/2026 — cible fonctionnelle de référence. Les exigences
+non encore livrées sont conservées volontairement : l'état d'avancement réel est
+en § 21._
