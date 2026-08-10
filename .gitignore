@@ -41,3 +41,6 @@ dev-dist
 
 # Coverage (rapport généré)
 /coverage/
+
+# Lighthouse CI (rapports locaux)
+.lighthouseci/
