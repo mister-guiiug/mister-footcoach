@@ -42,7 +42,7 @@
 │           └───────────────────┼───────────────────┘           │
 │                    PWA React 19 (Vite 6)                        │
 │                    Tailwind CSS v4 · Lucide React               │
-│                    React Router v7 · Vitest 3                   │
+│                    React Router v7 · Vitest 4                   │
 └───────────────────────────────┬─────────────────────────────────┘
                                 │ HTTPS / WebSocket
 ┌───────────────────────────────▼─────────────────────────────────┐
@@ -1426,54 +1426,120 @@ PUSH_VAPID_PRIVATE_KEY=...
 │           │   Intégration   │  Vitest + MSW          │
 │           │  (hooks+store)  │  (adapters mockés)     │
 │        ┌──┴─────────────────┴──┐                    │
-│        │  Unitaires (Vitest 3) │  Composants, utils  │
+│        │  Unitaires (Vitest 4) │  Composants, utils  │
 │        │  + Testing Library    │  logique métier      │
 │        └────────────────────── ┘                    │
 └─────────────────────────────────────────────────────┘
 ```
 
-### 10.2 Configuration Vitest 3
+### 10.2 Configuration Vitest 4
+
+La configuration ne part pas de zéro : elle étend `baseTestOptions` et
+`coveragePreset` de `@mister-guiiug/dev-wpa-config/vitest-base` (environnement
+`jsdom`, `globals`, `setupFiles`, provider v8, reporters `text` / `html` /
+`lcov` / `json-summary`, exclusions communes). Le projet n'ajoute que ce qui lui
+est propre : le périmètre de couverture, les seuils, et les alias.
 
 ```typescript
 // vitest.config.ts
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
+import {
+  baseTestOptions,
+  coveragePreset,
+} from '@mister-guiiug/dev-wpa-config/vitest-base';
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
   test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./src/test/setup.ts'],
+    ...baseTestOptions,
     coverage: {
+      ...coveragePreset,
       provider: 'v8',
-      reporter: ['text', 'lcov'],
-      exclude: ['convex/_generated/**', 'src/test/**'],
+      include: ['src/**/*.{ts,tsx}'],
+      // `coveragePreset` couvre déjà src/test/** et *.d.ts ; main.tsx est le
+      // point d'entrée (montage React), non testable unitairement.
+      exclude: [...coveragePreset.exclude, 'src/main.tsx'],
+      // Planchers = couverture réelle EXACTE au 2026-08-10, sans marge :
+      // statements 1456/2007, branches 1199/1641, functions 540/778,
+      // lines 1316/1804 (le `pct` d'istanbul tronque à 2 décimales). Mesures
+      // identiques sur Linux (CI) et Windows, d'où la tolérance zéro.
+      // Cliquet strict : toute régression casse la CI, et tout gain de
+      // couverture doit être répercuté ici. À monter, jamais à baisser pour
+      // faire passer le rouge au vert.
+      thresholds: {
+        statements: 72.54,
+        branches: 73.06,
+        functions: 69.4,
+        lines: 72.94,
+      },
     },
   },
   resolve: {
-    alias: { '@': resolve(__dirname, './src') },
+    alias: {
+      '@': resolve(__dirname, './src'),
+      'virtual:pwa-register/react': resolve(
+        __dirname,
+        './src/test/pwa-mock.ts'
+      ),
+    },
   },
 });
 ```
 
+Les seuils sont un **cliquet anti-régression** : ils sont calés sur la
+couverture réelle mesurée, sans marge. Toute baisse de couverture fait échouer
+`npm run test`, donc la CI (cf. § 12.1). Le fichier `vitest.config.ts` reste la
+source de vérité — les valeurs ci-dessus datent du 2026-08-10 et sont relevées à
+chaque gain de couverture.
+
+Le setup partagé (`@mister-guiiug/dev-wpa-config/vitest-setup`) apporte
+jest-dom, le polyfill `localStorage` / `sessionStorage` et les stubs de base. Le
+setup projet n'ajoute que les mocks spécifiques à l'application :
+
 ```typescript
-// src/test/setup.ts
-import '@testing-library/jest-dom';
+// src/test/setup.ts (extrait)
+import '@mister-guiiug/dev-wpa-config/vitest-setup';
 import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 
 afterEach(() => cleanup());
 
-// Mock Convex en dehors des tests d'intégration
-vi.mock('convex/react', () => ({
-  useQuery: vi.fn(),
-  useMutation: vi.fn(() => vi.fn()),
-  useConvexAuth: vi.fn(() => ({ isAuthenticated: true, isLoading: false })),
+// Locale i18n figée en français : les assertions sur du texte français
+// restent valides quel que soit le navigator.language de jsdom.
+Object.defineProperty(window.navigator, 'language', {
+  value: 'fr-FR',
+  configurable: true,
+});
+
+// Mock de virtual:pwa-register/react, utilisé par UpdateBanner
+vi.mock('virtual:pwa-register/react', () => ({
+  useRegisterSW: vi.fn(() => ({
+    needRefresh: [false],
+    updateServiceWorker: vi.fn(),
+  })),
 }));
+
+// Mock de window.matchMedia (absent de jsdom)
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
 ```
+
+Le fichier complet ajoute également la neutralisation des avertissements
+React `not wrapped in act(...)` (`beforeAll` / `afterAll` autour de
+`console.error`).
 
 ### 10.3 Tests unitaires — exemple composant
 
@@ -1673,80 +1739,65 @@ Toutes les pages sont chargées en `lazy()` avec `Suspense`. La page Dashboard e
 
 ### 12.1 Pipeline GitHub Actions
 
+Aucun job n'est écrit à la main dans ce dépôt : les workflows sont des
+**appelants minces** qui délèguent à des _reusable workflows_ du dépôt famille
+`mister-guiiug/dev-wpa-config`, épinglés sur le tag majeur `@v3`. Le bénéfice :
+une seule définition de pipeline pour toutes les PWA `miss-*` / `mister-*`.
+
 ```yaml
 # .github/workflows/ci.yml
 name: CI
 
 on:
-  push:
-    branches: [main, develop]
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
 
 jobs:
-  quality:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '22', cache: 'npm' }
-      - run: npm ci
-      - run: npm run type-check
-      - run: npm run lint
-      - run: npm run format:check
-
-  test:
-    runs-on: ubuntu-latest
-    needs: quality
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '22', cache: 'npm' }
-      - run: npm ci
-      - run: npm test -- --coverage
-      - uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: coverage/
-
-  e2e:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '22', cache: 'npm' }
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run build
-      - run: npm run test:e2e
-        env:
-          VITE_CONVEX_URL: ${{ secrets.CONVEX_URL_TEST }}
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_KEY_TEST }}
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: e2e
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '22', cache: 'npm' }
-      - run: npm ci
-      - run: npm run build
-        env:
-          VITE_CONVEX_URL: ${{ secrets.CONVEX_URL_PROD }}
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_KEY_PROD }}
-      - name: Deploy Convex functions
-        run: npx convex deploy --prod
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-      - name: Deploy frontend (GitHub Pages)
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+  ci:
+    uses: mister-guiiug/dev-wpa-config/.github/workflows/pwa-ci.yml@v3
+    secrets: inherit
+    with:
+      run-e2e: false
 ```
+
+Le reusable `pwa-ci.yml@v3` définit deux jobs actifs sur ce dépôt — plus un job
+E2E optionnel, ici désactivé (Node 22 par défaut, `actions/checkout@v5` +
+action composite `setup-pwa@v3` pour l'install) :
+
+| Job                 | Contenu                                                                                                           |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `verify-lockfile`   | Échoue avec un message clair si `package-lock.json` est désynchronisé de `package.json` (bindings natifs oubliés) |
+| `quality`           | `npm run format:check` → `lint` → `type-check` → `test` → `build`, séquentiellement dans un seul job              |
+| `e2e` _(optionnel)_ | Playwright ; **désactivé ici** via `run-e2e: false`                                                               |
+
+Points à retenir :
+
+- **La CI n'a pas d'étape de couverture dédiée.** La couverture est produite par
+  le script `test` du projet (`vitest run --coverage`), et ce sont les
+  `thresholds` de `vitest.config.ts` (§ 10.2) qui font échouer la CI en cas de
+  régression. Il n'y a **ni upload d'artefact `coverage/`, ni publication
+  Codecov** — le rapport HTML/lcov reste local.
+- **Le levier de configuration est `package.json`.** Le reusable appelle
+  `npm run <script>` ; changer ce que fait la CI (options Vitest, cible de
+  build…) se fait dans les scripts npm, pas dans les fichiers de workflow.
+- Les E2E Playwright ne tournent pas sur ce dépôt en CI (`run-e2e: false`) ;
+  elles restent lançables en local via `npm run test:e2e`.
+
+Les autres workflows suivent le même schéma de délégation :
+
+| Fichier            | Reusable / rôle                                                                                | Déclencheur           |
+| ------------------ | ---------------------------------------------------------------------------------------------- | --------------------- |
+| `ci.yml`           | `pwa-ci.yml@v3`                                                                                | PR et push sur `main` |
+| `deploy.yml`       | `pwa-deploy.yml@v3` (`use-base-path: true` pour GitHub Pages)                                  | Push sur `main`       |
+| `lighthouse.yml`   | `pwa-lighthouse.yml@v3` — Lighthouse CI sur le build statique, piloté par `.lighthouserc.json` | PR                    |
+| `cleanup-runs.yml` | Local — purge l'historique Actions, ne conserve que N runs par workflow                        | Manuel                |
 
 ### 12.2 Environnements
 
@@ -1828,19 +1879,19 @@ jobs:
 
 ### 14.2 V1 — Phase 1 (Convex + Clerk)
 
-| Tâche                               | Détail                                   |
-| ----------------------------------- | ---------------------------------------- |
-| Déploiement Convex + schéma complet | `convex/schema.ts`                       |
-| Authentification Clerk              | Rôles Admin / Coach / Parent             |
-| Adapter Convex branché              | `src/adapters/convex/`                   |
-| Sync mode live → Convex             | Remplace le stockage local               |
-| Notifications in-app                | Table `notifications` + query réactive   |
-| Scheduled functions (rappels J-1)   | `convex/scheduled.ts` + crons            |
-| Sondages de présence                | Module complet                           |
-| Logistique des déplacements         | Point de RDV + covoiturage               |
-| Flux iCal                           | Action HTTP Convex + génération RFC 5545 |
-| Tests Vitest 3 > 70% couverture     | Composants critiques                     |
-| Pipeline CI/CD GitHub Actions       | Complet                                  |
+| Tâche                                  | Détail                                   |
+| -------------------------------------- | ---------------------------------------- |
+| Déploiement Convex + schéma complet    | `convex/schema.ts`                       |
+| Authentification Clerk                 | Rôles Admin / Coach / Parent             |
+| Adapter Convex branché                 | `src/adapters/convex/`                   |
+| Sync mode live → Convex                | Remplace le stockage local               |
+| Notifications in-app                   | Table `notifications` + query réactive   |
+| Scheduled functions (rappels J-1)      | `convex/scheduled.ts` + crons            |
+| Sondages de présence                   | Module complet                           |
+| Logistique des déplacements            | Point de RDV + covoiturage               |
+| Flux iCal                              | Action HTTP Convex + génération RFC 5545 |
+| Tests Vitest 4 (seuils ~70% appliqués) | Cliquet anti-régression en CI (§ 10.2)   |
+| Pipeline CI/CD GitHub Actions          | Complet                                  |
 
 ### 14.3 V2 — Évolutions futures
 
