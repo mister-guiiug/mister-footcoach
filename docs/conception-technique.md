@@ -1,8 +1,8 @@
 # Document de Conception Technique — Mister Footcoach
 
-**Version :** 1.0  
-**Date :** 05/05/2026  
-**Statut :** Brouillon — en attente de validation  
+**Version :** 2.0  
+**Date :** 11/08/2026  
+**Statut :** Aligné sur le code du dépôt  
 **Application :** Mister Footcoach — PWA de gestion d'équipes jeunes de football  
 **Référence :** Spécifications fonctionnelles v1.2
 
@@ -13,10 +13,10 @@
 1. [Vue d'ensemble de l'architecture](#1-vue-densemble-de-larchitecture)
 2. [Stack technique](#2-stack-technique)
 3. [Structure du projet](#3-structure-du-projet)
-4. [Backend principal — Convex](#4-backend-principal--convex)
-5. [Couche d'abstraction backend (Adapter Pattern)](#5-couche-dabstraction-backend-adapter-pattern)
+4. [Backend Supabase (Postgres)](#4-backend-supabase-postgres)
+5. [Sélection du backend et état applicatif](#5-sélection-du-backend-et-état-applicatif)
 6. [Architecture frontend](#6-architecture-frontend)
-7. [PWA et stratégie offline](#7-pwa-et-stratégie-offline)
+7. [PWA et stratégie hors-ligne](#7-pwa-et-stratégie-hors-ligne)
 8. [Authentification et autorisation](#8-authentification-et-autorisation)
 9. [Sécurité](#9-sécurité)
 10. [Tests](#10-tests)
@@ -40,56 +40,54 @@
 │   │  (smartphone)  │   │  (smartphone)  │   │  (desktop)   │  │
 │   └───────┬────────┘   └───────┬────────┘   └──────┬───────┘  │
 │           └───────────────────┼───────────────────┘           │
-│                    PWA React 19 (Vite 6)                        │
+│                    PWA React 19 (Vite 8)                        │
 │                    Tailwind CSS v4 · Lucide React               │
 │                    React Router v7 · Vitest 4                   │
+│           Bundle statique servi par GitHub Pages                │
 └───────────────────────────────┬─────────────────────────────────┘
-                                │ HTTPS / WebSocket
-┌───────────────────────────────▼─────────────────────────────────┐
-│                    COUCHE ADAPTER                                │
-│         BackendAdapter (interface TypeScript commune)            │
-│                                                                 │
-│   ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │
-│   │  ConvexAdapter│  │SupabaseAdapter│  │  FirebaseAdapter     │ │
-│   │  (défaut)    │  │  (opt. V2)   │  │  (opt. V2)           │ │
-│   └──────┬───────┘  └──────────────┘  └──────────────────────┘ │
-└──────────┼──────────────────────────────────────────────────────┘
-           │
-┌──────────▼──────────────────────────────────────────────────────┐
-│                      CONVEX BACKEND                             │
-│                                                                 │
-│   ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐   │
-│   │  Queries    │  │  Mutations  │  │  Actions            │   │
-│   │  (real-time)│  │  (écriture) │  │  (HTTP, externe)    │   │
-│   └─────────────┘  └─────────────┘  └─────────────────────┘   │
-│                                                                 │
-│   ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐   │
-│   │  Scheduled  │  │  File       │  │  Convex Auth /      │   │
-│   │  Functions  │  │  Storage    │  │  Clerk              │   │
-│   └─────────────┘  └─────────────┘  └─────────────────────┘   │
-│                                                                 │
-│   ┌─────────────────────────────────────────────────────────┐  │
-│   │                 Convex Database                         │  │
-│   │  (document store réactif, consistance transactionnelle) │  │
-│   └─────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-
-                    SERVICES TIERS (V1+)
-         ┌───────────────┐  ┌──────────────────┐
-         │  Clerk (Auth) │  │  Push (Web Push) │
-         └───────────────┘  └──────────────────┘
+                                │ VITE_BACKEND
+              ┌─────────────────┴──────────────────┐
+              │                                    │
+   ┌──────────▼───────────┐          ┌─────────────▼──────────────┐
+   │  'local'  (défaut)   │          │  'supabase'                │
+   │                      │          │                            │
+   │  AppProvider         │          │  SupabaseAppProvider       │
+   │  useReducer          │          │  même reducer, hydraté     │
+   │  + localStorage      │          │  depuis Postgres           │
+   │  (données mock)      │          │  + persistAction (écriture)│
+   └──────────────────────┘          └─────────────┬──────────────┘
+                                                   │ HTTPS + WebSocket
+                                     ┌─────────────▼──────────────┐
+                                     │   SUPABASE (Frankfurt, UE) │
+                                     │                            │
+                                     │   ┌────────────────────┐   │
+                                     │   │  Postgres + RLS    │   │
+                                     │   │  (24 tables, §4.1) │   │
+                                     │   └────────────────────┘   │
+                                     │   ┌────────────────────┐   │
+                                     │   │  Realtime          │   │
+                                     │   │  (postgres_changes)│   │
+                                     │   └────────────────────┘   │
+                                     │   ┌────────────────────┐   │
+                                     │   │  Auth (email/mdp)  │   │
+                                     │   └────────────────────┘   │
+                                     └────────────────────────────┘
 ```
+
+Il n'y a **pas de code serveur écrit par le projet** : toute la logique métier
+vit dans le client, et la sécurité est déléguée aux politiques RLS de Postgres
+(§ 4.5). Le seul artefact déployé est un bundle statique.
 
 ### 1.2 Principes directeurs
 
-| Principe                    | Décision                                                                                                         |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Réactivité temps réel**   | Convex comme backend principal — les queries sont des abonnements réactifs nativement                            |
-| **Offline-first**           | IndexedDB + Service Worker pour le mode match live (§7)                                                          |
-| **Isolation du backend**    | Pattern Adapter pour permettre de substituer Convex par Supabase ou Firebase sans toucher au code des composants |
-| **Type safety end-to-end**  | TypeScript strict de bout en bout — le schéma Convex génère les types frontend automatiquement                   |
-| **Mobile-first**            | PWA installable, interface conçue pour smartphone, interactions tactiles                                         |
-| **Zéro sur-ingénierie MVP** | Le MVP utilise le stockage local (localStorage/IndexedDB) sans backend, l'adapter Convex s'active en V1          |
+| Principe                      | Décision                                                                                                                |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Sécurité côté serveur**     | Toutes les tables sont protégées par des politiques RLS Postgres — jamais par le client (§ 4.5)                         |
+| **Réactivité temps réel**     | Abonnement `postgres_changes` sur toutes les tables ; l'état est réhydraté (debouncé 300 ms) à chaque changement        |
+| **Isolation du backend**      | Les pages ne consomment que les hooks de `src/store/AppContext` ; le backend est un détail d'implémentation du provider |
+| **Un seul modèle de données** | Le schéma SQL utilise des colonnes camelCase quotées pour se mapper 1:1 sur les types de `src/types/index.ts`           |
+| **Mobile-first**              | PWA installable, interface conçue pour smartphone, interactions tactiles                                                |
+| **Zéro sur-ingénierie MVP**   | Le mode `local` (défaut) tourne sur `localStorage` + données mock, sans aucune configuration                            |
 
 ---
 
@@ -97,100 +95,104 @@
 
 ### 2.1 Vue synthétique
 
-| Domaine           | Technologie         | Version | Rôle                                |
-| ----------------- | ------------------- | ------- | ----------------------------------- |
-| Bundler           | **Vite**            | 6.x     | Build, dev server, HMR              |
-| Framework UI      | **React**           | 19.x    | Rendu, Concurrent Mode, hooks       |
-| Langage           | **TypeScript**      | 6.x     | Type safety strict                  |
-| Style             | **Tailwind CSS**    | 4.x     | Utility-first, tokens CSS natifs    |
-| Icônes            | **Lucide React**    | latest  | Bibliothèque d'icônes SVG           |
-| Routing           | **React Router**    | 7.x     | SPA routing, loaders, actions       |
-| Backend principal | **Convex**          | latest  | BaaS réactif, DB, fonctions serveur |
-| Auth              | **Clerk**           | latest  | Gestion des sessions, rôles         |
-| Tests unitaires   | **Vitest**          | 3.x     | Tests React + TypeScript            |
-| Tests E2E         | **Playwright**      | latest  | Tests navigateur PWA                |
-| PWA               | **vite-plugin-pwa** | latest  | Manifest, Service Worker (Workbox)  |
-| Offline store     | **Dexie.js**        | latest  | Wrapper IndexedDB typé              |
+Versions telles que déclarées dans `package.json` (plages `^`) :
 
-### 2.2 Alternatives backend (optionnelles)
+| Domaine         | Technologie                       | Version | Rôle                                                     |
+| --------------- | --------------------------------- | ------- | -------------------------------------------------------- |
+| Bundler         | **Vite**                          | 8.x     | Build, dev server, HMR                                   |
+| Framework UI    | **React**                         | 19.x    | Rendu, hooks                                             |
+| Langage         | **TypeScript**                    | ~6.0    | Type safety strict                                       |
+| Style           | **Tailwind CSS**                  | 4.x     | Utility-first, tokens CSS natifs                         |
+| Icônes          | **Lucide React**                  | 1.x     | Bibliothèque d'icônes SVG                                |
+| Routing         | **React Router**                  | 7.x     | SPA routing (`BrowserRouter`)                            |
+| Backend         | **Supabase**                      | 2.x     | Postgres + RLS + Realtime + Auth                         |
+| Tests unitaires | **Vitest**                        | 4.x     | Tests React + TypeScript                                 |
+| Tests E2E       | **Playwright**                    | 1.x     | Tests navigateur PWA + audit a11y (`axe-core`)           |
+| PWA             | **vite-plugin-pwa**               | 1.x     | Manifest, Service Worker (Workbox)                       |
+| Web Vitals      | **web-vitals**                    | 4.x     | Mesure LCP / CLS / INP / FCP / TTFB                      |
+| Config partagée | **@mister-guiiug/dev-wpa-config** | 3.x     | ESLint, Prettier, Vitest, Playwright, i18n, CSP, PWA, CI |
 
-| Backend      | Package                 | Activation              |
-| ------------ | ----------------------- | ----------------------- |
-| **Supabase** | `@supabase/supabase-js` | `VITE_BACKEND=supabase` |
-| **Firebase** | `firebase`              | `VITE_BACKEND=firebase` |
+Une part notable de la configuration (lint, format, base Vitest, Playwright,
+i18n, `ErrorBoundary`, observabilité Sentry, plugins Vite CSP/SEO, workflows CI)
+vient du paquet famille `@mister-guiiug/dev-wpa-config`, partagé entre toutes
+les PWA `miss-*` / `mister-*`.
 
-Les deux restent des dépendances optionnelles (`devDependencies`) jusqu'à activation explicite.
+### 2.2 Backends disponibles
 
-### 2.3 Choix de Convex — justification
+Le backend est choisi à la compilation via `VITE_BACKEND` (`src/backend/config.ts`) :
 
-Convex est retenu comme backend principal pour les raisons suivantes :
+| Valeur               | Stockage                           | Authentification | Usage                            |
+| -------------------- | ---------------------------------- | ---------------- | -------------------------------- |
+| `local` **(défaut)** | `localStorage` + données mock      | Aucune           | Dev, tests, démo hors-ligne, e2e |
+| `supabase`           | Postgres hébergé en UE (Frankfurt) | Supabase Auth    | Déploiement réel                 |
 
-| Besoin fonctionnel                   | Ce que Convex apporte                                                    |
-| ------------------------------------ | ------------------------------------------------------------------------ |
-| Score live visible par les parents   | Queries réactives WebSocket nativement — zéro polling                    |
-| Sondages avec réponses en temps réel | Mise à jour instantanée du tableau de bord coach                         |
-| Mode match offline                   | Mutations mises en file d'attente côté client, rejouées à la reconnexion |
-| Rappels de séance (J-1)              | Scheduled functions natives                                              |
-| Type safety backend ↔ frontend       | Génération automatique des types depuis le schéma                        |
-| Notifications in-app                 | Mutations sur table `notifications` + query réactive                     |
-| Simplicité opérationnelle            | PaaS managé — pas d'infra à gérer                                        |
+Toute valeur autre que `supabase` retombe sur `local` :
+
+```typescript
+// src/backend/config.ts
+export const BACKEND: 'local' | 'supabase' =
+  import.meta.env.VITE_BACKEND === 'supabase' ? 'supabase' : 'local';
+```
+
+Il n'existe **pas** d'adapter Firebase, ni de dépendance `firebase`.
+
+### 2.3 Choix de Supabase — justification
+
+| Besoin fonctionnel                   | Ce que Supabase apporte                                                     |
+| ------------------------------------ | --------------------------------------------------------------------------- |
+| Données de mineurs (RGPD)            | Hébergement UE au choix de la région — Frankfurt `eu-central-1`             |
+| Cloisonnement admin / coach / parent | Row Level Security en base, donc inviolable depuis un bundle public         |
+| Score live visible par les parents   | Realtime `postgres_changes` sur les tables — pas de polling                 |
+| Bundle 100 % statique (GitHub Pages) | La clé `anon` est publiable : c'est la RLS qui protège, pas le client       |
+| Modèle relationnel                   | Jointures, contraintes et index SQL natifs, adaptés aux stats multi-tables  |
+| Simplicité opérationnelle            | PaaS managé — pas d'infra à gérer, migrations SQL versionnées dans le dépôt |
 
 ---
 
 ## 3. Structure du projet
 
+Les tests unitaires sont **colocalisés** avec le code (`Foo.tsx` +
+`Foo.test.tsx`), et non regroupés dans un dossier `__tests__`.
+
 ```
 mister-footcoach/
 │
-├── convex/                          # Backend Convex (déployé séparément)
-│   ├── schema.ts                    # Schéma de données (source de vérité des types)
-│   ├── auth.config.ts               # Configuration Clerk
-│   ├── _generated/                  # Types auto-générés — ne pas éditer
-│   ├── lib/
-│   │   ├── permissions.ts           # Helpers de vérification des rôles
-│   │   └── validators.ts            # Validateurs réutilisables
-│   ├── teams.ts                     # Queries/mutations équipes
-│   ├── players.ts                   # Queries/mutations joueurs
-│   ├── matches.ts                   # Queries/mutations matchs
-│   ├── matchEvents.ts               # Mutations événements live
-│   ├── trainings.ts                 # Queries/mutations entraînements
-│   ├── exercises.ts                 # Bibliothèque d'exercices
-│   ├── lineups.ts                   # Compositions
-│   ├── tournaments.ts               # Tournois
-│   ├── surveys.ts                   # Sondages
-│   ├── logistics.ts                 # Covoiturage, point de RDV
-│   ├── attendances.ts               # Assiduité
-│   ├── unavailabilities.ts          # Indisponibilités
-│   ├── injuries.ts                  # Suivi blessures
-│   ├── notifications.ts             # Notifications in-app
-│   ├── ical.ts                      # Génération flux iCal
-│   └── scheduled.ts                 # Fonctions planifiées (rappels)
+├── supabase/
+│   └── migrations/
+│       ├── 0001_schema.sql          # 24 tables + 21 index (source de vérité)
+│       ├── 0002_rls.sql             # Row Level Security + fonctions d'aide
+│       └── 0003_seed.sql            # Jeu de données minimal
 │
 ├── src/
-│   ├── main.tsx                     # Point d'entrée
-│   ├── App.tsx                      # Routeur principal
+│   ├── main.tsx                     # Point d'entrée — chaîne de providers
+│   ├── App.tsx                      # Routeur (18 routes, pages en lazy())
 │   ├── index.css                    # Tokens Tailwind CSS v4
+│   ├── links.ts
 │   ├── vite-env.d.ts
 │   │
-│   ├── adapters/                    # Couche d'abstraction backend
-│   │   ├── types.ts                 # Interfaces TypeScript communes
-│   │   ├── index.ts                 # Factory — sélection selon VITE_BACKEND
-│   │   ├── convex/                  # Adapter Convex (défaut)
-│   │   │   ├── index.ts
-│   │   │   ├── teams.hooks.ts
-│   │   │   ├── players.hooks.ts
-│   │   │   ├── matches.hooks.ts
-│   │   │   └── ...
-│   │   ├── supabase/                # Adapter Supabase (opt.)
-│   │   │   └── index.ts
-│   │   └── firebase/                # Adapter Firebase (opt.)
-│   │       └── index.ts
+│   ├── backend/
+│   │   ├── config.ts                # BACKEND = 'local' | 'supabase'
+│   │   └── tables.ts                # Mapping tables Postgres ↔ AppState, chargement
+│   │
+│   ├── lib/
+│   │   └── supabase.ts              # Client supabase-js (créé paresseusement)
+│   │
+│   ├── auth/
+│   │   ├── AuthContext.tsx          # Session Supabase, signIn / signOut
+│   │   ├── AuthGate.tsx             # Exige une session en mode supabase
+│   │   └── LoginPage.tsx            # Écran de connexion e-mail / mot de passe
+│   │
+│   ├── store/
+│   │   ├── AppContext.tsx           # Reducer + AppProvider local + hooks métier
+│   │   ├── SupabaseAppProvider.tsx  # Même reducer, hydraté depuis Postgres
+│   │   └── persistAction.ts         # Action dispatchée → écriture Supabase
 │   │
 │   ├── components/
+│   │   ├── UpdateBanner.tsx         # Invite à recharger quand un SW est prêt
 │   │   ├── layout/
 │   │   │   ├── AppShell.tsx         # Wrapper principal
 │   │   │   ├── TopBar.tsx           # En-tête avec retour et titre
-│   │   │   └── BottomNav.tsx        # Navigation mobile (5 onglets)
+│   │   │   └── BottomNav.tsx        # Navigation mobile (4 onglets + « Plus »)
 │   │   ├── ui/                      # Composants atomiques réutilisables
 │   │   │   ├── Badge.tsx
 │   │   │   ├── Button.tsx
@@ -198,836 +200,458 @@ mister-footcoach/
 │   │   │   ├── Dialog.tsx
 │   │   │   ├── EmptyState.tsx
 │   │   │   ├── Input.tsx
-│   │   │   └── Spinner.tsx
-│   │   └── features/                # Composants métier
-│   │       ├── players/
-│   │       ├── matches/
-│   │       ├── live/                # Mode match en temps réel
-│   │       ├── trainings/
-│   │       ├── lineup/              # Simulateur de composition
-│   │       ├── tournaments/
-│   │       ├── surveys/             # Sondages de présence
-│   │       └── logistics/           # Point de RDV, covoiturage
+│   │   │   ├── Spinner.tsx
+│   │   │   └── Toast.tsx
+│   │   └── features/                # Dialogues et sections métier
+│   │       ├── contacts/  exercises/  logistics/  matches/
+│   │       └── players/   surveys/    tournaments/ trainings/
 │   │
-│   ├── hooks/
-│   │   ├── useOfflineQueue.ts       # File d'attente hors-ligne
-│   │   ├── useOnlineStatus.ts       # Détection connectivité
-│   │   └── useNotifications.ts      # Centre de notifications
+│   ├── pages/                       # 18 pages (Dashboard, Teams, Matches,
+│   │                                # MatchLive, Trainings, Lineup, Tournaments,
+│   │                                # Surveys, Stats, Exercises, Contacts,
+│   │                                # Notifications, Settings, détails…)
 │   │
-│   ├── offline/
-│   │   ├── db.ts                    # Dexie.js — schéma IndexedDB
-│   │   ├── queue.ts                 # Queue de mutations offline
-│   │   └── sync.ts                  # Stratégie de synchronisation
-│   │
-│   ├── pages/
-│   │   ├── DashboardPage.tsx
-│   │   ├── TeamsPage.tsx
-│   │   ├── TeamDetailPage.tsx
-│   │   ├── PlayerDetailPage.tsx
-│   │   ├── MatchesPage.tsx
-│   │   ├── MatchDetailPage.tsx
-│   │   ├── MatchLivePage.tsx        # Mode match live
-│   │   ├── TrainingsPage.tsx
-│   │   ├── LineupPage.tsx
-│   │   ├── TournamentsPage.tsx
-│   │   ├── SurveysPage.tsx
-│   │   └── SettingsPage.tsx
-│   │
-│   ├── store/
-│   │   └── uiStore.ts               # État UI local (Zustand léger ou useState)
+│   ├── i18n/
+│   │   ├── index.ts                 # createI18n famille — locales fr / en
+│   │   └── messages.ts              # Catalogue de traductions
 │   │
 │   ├── theme/
-│   │   └── ThemeContext.tsx          # Clair / Sombre / Système
+│   │   └── ThemeContext.tsx         # Clair / Sombre / Système
+│   │
+│   ├── constants/
+│   │   └── session.ts               # CURRENT_USER_ID (MVP local)
+│   │
+│   ├── data/
+│   │   ├── mock.ts                  # Jeu de données du mode local
+│   │   └── federation.ts            # Flux fédération simulé
 │   │
 │   ├── types/
-│   │   └── index.ts                 # Types domaine (miroir du schéma Convex)
+│   │   └── index.ts                 # Types domaine (miroir du schéma SQL)
 │   │
-│   └── utils/
-│       ├── date.ts
-│       ├── positions.ts             # Référentiel postes foot à 8
-│       └── ical.ts                  # Formatage iCal côté client
+│   ├── test/
+│   │   ├── setup.ts                 # Setup Vitest (§ 10.2)
+│   │   └── pwa-mock.ts
+│   │
+│   └── utils/                       # date, id, download, ical, lineup, maps,
+│                                    # notifications, recurrence, rgpd, stats,
+│                                    # surveyStatus, tournament, federation
+│
+├── scripts/
+│   ├── supabase-setup.mjs           # Création projet + push des migrations
+│   └── generate-icons.mjs
 │
 ├── public/
 │   ├── logo.svg
-│   ├── pwa-192x192.png
-│   └── pwa-512x512.png
+│   └── screenshots/                 # Captures du manifest PWA
 │
-├── e2e/                             # Tests Playwright
+├── e2e/
+│   └── a11y.spec.ts                 # Playwright + axe-core
+│
 ├── docs/
 │   ├── spec.md
 │   ├── specs-fonctionnelles.md
+│   ├── supabase.md                  # Procédure d'installation du backend
 │   └── conception-technique.md      # Ce document
 │
+├── .github/workflows/               # Appelants minces → dev-wpa-config (§ 12.1)
 ├── index.html
 ├── vite.config.ts
 ├── vitest.config.ts
-├── tailwind.config.ts               # Vide en v4 — config dans index.css
-├── tsconfig.json
+├── playwright.config.ts
+├── tsconfig.json                    # + tsconfig.app.json / tsconfig.node.json
 └── package.json
 ```
 
+> Il n'y a **ni dossier `convex/`, ni `src/adapters/`, ni `src/offline/`** :
+> ceux décrits dans la v1 de ce document n'ont jamais été créés. `src/hooks/`
+> existe mais ne contient qu'un `.gitkeep` — les hooks métier vivent dans
+> `src/store/AppContext.tsx`. Tailwind v4 ne nécessite aucun
+> `tailwind.config.ts` (§ 6.4).
+
 ---
 
-## 4. Backend principal — Convex
+## 4. Backend Supabase (Postgres)
 
-### 4.1 Schéma de données (`convex/schema.ts`)
+Le backend n'est **pas** du code applicatif : c'est un schéma Postgres, un jeu
+de politiques RLS et l'API REST/Realtime générée par Supabase. Les trois
+migrations de `supabase/migrations/` constituent la totalité du backend
+versionné. La procédure d'installation (création du projet, application des
+migrations, rattachement du compte auth) est décrite dans
+[`docs/supabase.md`](./supabase.md).
 
-Le schéma est la **source de vérité unique** pour les types TypeScript. Toute modification du schéma régénère automatiquement les types dans `convex/_generated/`.
+### 4.1 Schéma de données (`supabase/migrations/0001_schema.sql`)
 
-```typescript
-// convex/schema.ts
-import { defineSchema, defineTable } from 'convex/server';
-import { v } from 'convex/values';
+24 tables et 21 index. Deux partis pris structurent le schéma :
 
-export default defineSchema({
-  // ── Clubs & Saisons ─────────────────────────────────────────
-  clubs: defineTable({
-    name: v.string(),
-    logoStorageId: v.optional(v.id('_storage')),
-  }),
+- **Colonnes en camelCase quotées** — le schéma reflète 1:1 les types de
+  `src/types/index.ts`, donc un `select *` se mappe directement sur les types
+  du domaine, sans couche de conversion.
+- **Ids et dates en `text`** — conforme au modèle de l'app (ids string générés
+  côté client, dates ISO).
 
-  seasons: defineTable({
-    clubId: v.id('clubs'),
-    name: v.string(), // "2025-2026"
-    startDate: v.string(), // ISO date
-    endDate: v.string(),
-    active: v.boolean(),
-  }).index('by_club', ['clubId']),
+```sql
+-- supabase/migrations/0001_schema.sql (extrait)
 
-  // ── Équipes ──────────────────────────────────────────────────
-  teams: defineTable({
-    clubId: v.id('clubs'),
-    seasonId: v.id('seasons'),
-    name: v.string(),
-    category: v.string(), // "U13", "U11"
-    coachId: v.id('users'),
-    adjointCoachId: v.optional(v.id('users')),
-    color: v.optional(v.string()),
-  })
-    .index('by_season', ['seasonId'])
-    .index('by_coach', ['coachId']),
-
-  // ── Joueurs ──────────────────────────────────────────────────
-  players: defineTable({
-    firstName: v.string(),
-    lastName: v.string(),
-    dateOfBirth: v.string(),
-    primaryTeamId: v.id('teams'),
-    secondaryTeamId: v.optional(v.id('teams')),
-    preferredPosition: v.string(),
-    appetences: v.optional(v.record(v.string(), v.number())), // Position → 1..5
-    number: v.optional(v.number()),
-    active: v.boolean(),
-    photoStorageId: v.optional(v.id('_storage')),
-  })
-    .index('by_primary_team', ['primaryTeamId'])
-    .index('by_secondary_team', ['secondaryTeamId']),
-
-  // ── Indisponibilités ─────────────────────────────────────────
-  unavailabilities: defineTable({
-    playerId: v.id('players'),
-    startDate: v.string(),
-    endDate: v.optional(v.string()),
-    motif: v.union(
-      v.literal('blessure'),
-      v.literal('maladie'),
-      v.literal('vacances'),
-      v.literal('suspension'),
-      v.literal('personnel'),
-      v.literal('autre')
-    ),
-    declaredBy: v.id('users'),
-    note: v.optional(v.string()),
-    injuryId: v.optional(v.id('injuries')),
-  }).index('by_player', ['playerId']),
-
-  // ── Blessures ────────────────────────────────────────────────
-  injuries: defineTable({
-    playerId: v.id('players'),
-    zone: v.string(),
-    nature: v.string(),
-    startDate: v.string(),
-    estimatedReturnDate: v.optional(v.string()),
-    actualReturnDate: v.optional(v.string()),
-    status: v.union(
-      v.literal('en_reeduc'),
-      v.literal('reprise_progressive'),
-      v.literal('apte')
-    ),
-    noteCoach: v.optional(v.string()),
-  }).index('by_player', ['playerId']),
-
-  // ── Matchs ───────────────────────────────────────────────────
-  matches: defineTable({
-    teamId: v.id('teams'),
-    seasonId: v.id('seasons'),
-    tournamentId: v.optional(v.id('tournaments')),
-    tournamentGroupId: v.optional(v.id('tournamentGroups')),
-    date: v.string(),
-    time: v.string(),
-    location: v.string(),
-    address: v.string(),
-    isHome: v.boolean(),
-    opponent: v.string(),
-    status: v.union(
-      v.literal('previsionnel'),
-      v.literal('engage'),
-      v.literal('saison'),
-      v.literal('tournoi'),
-      v.literal('annule')
-    ),
-    phase: v.string(),
-    scoreHome: v.optional(v.number()),
-    scoreAway: v.optional(v.number()),
-    note: v.optional(v.string()),
-    liveActive: v.boolean(),
-    // Point de RDV
-    meetingAddress: v.optional(v.string()),
-    meetingTime: v.optional(v.string()),
-    meetingNote: v.optional(v.string()),
-  })
-    .index('by_team', ['teamId'])
-    .index('by_season', ['seasonId'])
-    .index('by_date', ['date']),
-
-  // ── Événements match live ────────────────────────────────────
-  matchEvents: defineTable({
-    matchId: v.id('matches'),
-    type: v.union(
-      v.literal('but'),
-      v.literal('but_csc'),
-      v.literal('carton_jaune'),
-      v.literal('carton_rouge'),
-      v.literal('remplacement'),
-      v.literal('blessure_live'),
-      v.literal('arret_mi_temps')
-    ),
-    minute: v.optional(v.number()),
-    playerId: v.optional(v.id('players')),
-    player2Id: v.optional(v.id('players')),
-    note: v.optional(v.string()),
-  })
-    .index('by_match', ['matchId'])
-    .index('by_match_type', ['matchId', 'type']),
-
-  // ── Entraînements ────────────────────────────────────────────
-  trainings: defineTable({
-    teamId: v.id('teams'),
-    date: v.string(),
-    time: v.string(),
-    duration: v.number(),
-    type: v.union(v.literal('regulier'), v.literal('exceptionnel')),
-    cancelled: v.boolean(),
-    theme: v.optional(v.string()),
-    note: v.optional(v.string()),
-    seriesId: v.optional(v.string()), // UUID commun aux occurrences d'une série
-  })
-    .index('by_team', ['teamId'])
-    .index('by_date', ['date']),
-
-  // ── Blocs de séance ──────────────────────────────────────────
-  trainingBlocks: defineTable({
-    trainingId: v.id('trainings'),
-    order: v.number(),
-    duration: v.number(),
-    title: v.string(),
-    description: v.optional(v.string()),
-    exerciseId: v.optional(v.id('exercises')),
-    exerciseTitleSnapshot: v.optional(v.string()), // dénormalisé
-  }).index('by_training', ['trainingId']),
-
-  // ── Bibliothèque d'exercices ─────────────────────────────────
-  exercises: defineTable({
-    clubId: v.id('clubs'),
-    title: v.string(),
-    description: v.optional(v.string()),
-    category: v.union(
-      v.literal('echauffement'),
-      v.literal('technique'),
-      v.literal('physique'),
-      v.literal('tactique'),
-      v.literal('jeu'),
-      v.literal('retour_au_calme')
-    ),
-    suggestedDuration: v.optional(v.number()),
-    tags: v.array(v.string()),
-    createdBy: v.id('users'),
-  })
-    .index('by_club', ['clubId'])
-    .index('by_category', ['category']),
-
-  // ── Assiduité ────────────────────────────────────────────────
-  attendances: defineTable({
-    sessionType: v.union(v.literal('match'), v.literal('training')),
-    sessionId: v.string(),
-    playerId: v.id('players'),
-    status: v.union(
-      v.literal('present'),
-      v.literal('absent'),
-      v.literal('excuse')
-    ),
-    note: v.optional(v.string()),
-    recordedBy: v.id('users'),
-  })
-    .index('by_session', ['sessionType', 'sessionId'])
-    .index('by_player', ['playerId']),
-
-  // ── Historique des postes ────────────────────────────────────
-  positionHistory: defineTable({
-    playerId: v.id('players'),
-    matchId: v.id('matches'),
-    period: v.string(),
-    position: v.string(),
-    minute: v.optional(v.number()),
-  }).index('by_player', ['playerId']),
-
-  // ── Compositions ────────────────────────────────────────────
-  lineups: defineTable({
-    teamId: v.id('teams'),
-    matchId: v.optional(v.id('matches')),
-    name: v.string(),
-    formation: v.string(),
-    slots: v.array(
-      v.object({
-        position: v.string(),
-        playerId: v.optional(v.id('players')),
-        x: v.number(),
-        y: v.number(),
-      })
-    ),
-    substituteIds: v.array(v.id('players')),
-  }).index('by_team', ['teamId']),
-
-  // ── Tournois ────────────────────────────────────────────────
-  tournaments: defineTable({
-    clubId: v.id('clubs'),
-    seasonId: v.id('seasons'),
-    name: v.string(),
-    dateStart: v.string(),
-    dateEnd: v.optional(v.string()),
-    location: v.string(),
-    address: v.string(),
-    organizer: v.string(),
-    isOrganizedByClub: v.boolean(),
-    teamIds: v.array(v.id('teams')),
-    format: v.union(
-      v.literal('poules'),
-      v.literal('elimination_directe'),
-      v.literal('poules_finale')
-    ),
-    status: v.union(
-      v.literal('planifie'),
-      v.literal('en_cours'),
-      v.literal('termine')
-    ),
-  }).index('by_season', ['seasonId']),
-
-  tournamentGroups: defineTable({
-    tournamentId: v.id('tournaments'),
-    name: v.string(),
-    type: v.union(v.literal('poule'), v.literal('elimination')),
-    order: v.number(),
-  }).index('by_tournament', ['tournamentId']),
-
-  // ── Covoiturage ──────────────────────────────────────────────
-  carpoolOffers: defineTable({
-    matchId: v.id('matches'),
-    offeredBy: v.id('users'),
-    seats: v.number(),
-    departureLocation: v.optional(v.string()),
-    departureTime: v.optional(v.string()),
-    playerIds: v.array(v.id('players')),
-    note: v.optional(v.string()),
-  }).index('by_match', ['matchId']),
-
-  // ── Sondages de présence ─────────────────────────────────────
-  surveys: defineTable({
-    teamId: v.id('teams'),
-    sessionType: v.union(
-      v.literal('match'),
-      v.literal('training'),
-      v.literal('tournament'),
-      v.literal('libre')
-    ),
-    sessionId: v.optional(v.string()),
-    question: v.string(),
-    deadline: v.string(),
-    status: v.union(
-      v.literal('ouvert'),
-      v.literal('ferme'),
-      v.literal('archive')
-    ),
-    sendNotification: v.boolean(),
-    createdBy: v.id('users'),
-  }).index('by_team', ['teamId']),
-
-  surveyResponses: defineTable({
-    surveyId: v.id('surveys'),
-    playerId: v.id('players'),
-    // Intention du joueur (renseignée par le parent au nom du joueur en V1)
-    intentionJoueur: v.optional(
-      v.union(v.literal('present'), v.literal('absent'), v.literal('incertain'))
-    ),
-    dateIntentionJoueur: v.optional(v.string()),
-    // Confirmation officielle du parent (valeur retenue)
-    confirmationParent: v.optional(
-      v.union(v.literal('present'), v.literal('absent'), v.literal('incertain'))
-    ),
-    dateConfirmationParent: v.optional(v.string()),
-    parentUserId: v.optional(v.id('users')),
-    note: v.optional(v.string()),
-  })
-    .index('by_survey', ['surveyId'])
-    .index('by_player_survey', ['playerId', 'surveyId']),
-
-  // ── Notifications in-app ────────────────────────────────────
-  notifications: defineTable({
-    userId: v.id('users'),
-    type: v.string(),
-    message: v.string(),
-    read: v.boolean(),
-    relatedId: v.optional(v.string()),
-    relatedType: v.optional(v.string()),
-  })
-    .index('by_user', ['userId'])
-    .index('by_user_unread', ['userId', 'read']),
-
-  // ── Tokens iCal ─────────────────────────────────────────────
-  icalTokens: defineTable({
-    userId: v.id('users'),
-    fluxType: v.union(
-      v.literal('equipe'),
-      v.literal('joueur'),
-      v.literal('personnel')
-    ),
-    targetId: v.optional(v.string()),
-    token: v.string(),
-    active: v.boolean(),
-  })
-    .index('by_user', ['userId'])
-    .index('by_token', ['token']),
-
-  // ── Contacts & Filiation ────────────────────────────────────
-  contacts: defineTable({
-    firstName: v.string(),
-    lastName: v.string(),
-    phone: v.string(),
-    email: v.string(),
-    type: v.string(), // père, mère, tuteur…
-    playerIds: v.array(v.id('players')),
-    userId: v.optional(v.id('users')),
-    consentDate: v.optional(v.string()),
-    consentVersion: v.optional(v.string()),
-  }).index('by_email', ['email']),
-});
-```
-
-### 4.2 Queries — exemple
-
-```typescript
-// convex/players.ts
-import { query } from './_generated/server';
-import { v } from 'convex/values';
-import { requireCoachOfTeam } from './lib/permissions';
-
-export const listByTeam = query({
-  args: { teamId: v.id('teams') },
-  handler: async (ctx, { teamId }) => {
-    await requireCoachOfTeam(ctx, teamId);
-    return ctx.db
-      .query('players')
-      .withIndex('by_primary_team', q => q.eq('primaryTeamId', teamId))
-      .filter(q => q.eq(q.field('active'), true))
-      .collect();
-  },
-});
-
-export const getWithAvailability = query({
-  args: { teamId: v.id('teams'), matchDate: v.string() },
-  handler: async (ctx, { teamId, matchDate }) => {
-    await requireCoachOfTeam(ctx, teamId);
-    const players = await ctx.db
-      .query('players')
-      .withIndex('by_primary_team', q => q.eq('primaryTeamId', teamId))
-      .filter(q => q.eq(q.field('active'), true))
-      .collect();
-
-    // Pour chaque joueur, vérifier les indisponibilités actives à la date du match
-    return Promise.all(
-      players.map(async player => {
-        const unavailability = await ctx.db
-          .query('unavailabilities')
-          .withIndex('by_player', q => q.eq('playerId', player._id))
-          .filter(q =>
-            q.and(
-              q.lte(q.field('startDate'), matchDate),
-              q.or(
-                q.eq(q.field('endDate'), undefined),
-                q.gte(q.field('endDate'), matchDate)
-              )
-            )
-          )
-          .first();
-        return { ...player, unavailability: unavailability ?? null };
-      })
-    );
-  },
-});
-```
-
-### 4.3 Mutations — exemple
-
-```typescript
-// convex/matchEvents.ts
-import { mutation } from './_generated/server';
-import { v } from 'convex/values';
-import { requireCoachOfTeam } from './lib/permissions';
-
-export const addEvent = mutation({
-  args: {
-    matchId: v.id('matches'),
-    type: v.string(),
-    minute: v.optional(v.number()),
-    playerId: v.optional(v.id('players')),
-    player2Id: v.optional(v.id('players')),
-    note: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const match = await ctx.db.get(args.matchId);
-    if (!match) throw new Error('Match introuvable');
-    if (!match.liveActive) throw new Error('Mode live non actif');
-    await requireCoachOfTeam(ctx, match.teamId);
-
-    const eventId = await ctx.db.insert('matchEvents', args);
-
-    // Effets de bord selon le type d'événement
-    if (args.type === 'but') {
-      await ctx.db.patch(args.matchId, {
-        scoreHome: (match.scoreHome ?? 0) + (match.isHome ? 1 : 0),
-        scoreAway: (match.scoreAway ?? 0) + (!match.isHome ? 1 : 0),
-      });
-    }
-
-    if (args.type === 'remplacement' && args.playerId && args.player2Id) {
-      // Alimenter l'historique des postes pour les deux joueurs
-      await ctx.db.insert('positionHistory', {
-        playerId: args.player2Id, // joueur sortant
-        matchId: args.matchId,
-        period: 'remplacement_sortant',
-        position: '?', // à enrichir avec le poste de la compo
-        minute: args.minute,
-      });
-    }
-
-    return eventId;
-  },
-});
-```
-
-### 4.4 Scheduled Functions — rappels J-1
-
-```typescript
-// convex/scheduled.ts
-import { internalAction, internalMutation } from './_generated/server';
-import { internal } from './_generated/api';
-import { v } from 'convex/values';
-
-// Appelé chaque jour à 8h (cron configuré dans convex/crons.ts)
-export const sendDayBeforeReminders = internalAction({
-  handler: async ctx => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
-    // Récupérer matchs et entraînements du lendemain
-    const matches = await ctx.runQuery(internal.matches.getByDate, {
-      date: tomorrowStr,
-    });
-    const trainings = await ctx.runQuery(internal.trainings.getByDate, {
-      date: tomorrowStr,
-    });
-
-    for (const event of [...matches, ...trainings]) {
-      await ctx.runMutation(internal.notifications.createForTeam, {
-        teamId: event.teamId,
-        type: 'rappel_veille',
-        message: `Rappel : ${event.type === 'match' ? 'match' : 'entraînement'} demain à ${event.time}`,
-        relatedId: event._id,
-        relatedType: event.type,
-        rolesTarget: ['parent'],
-      });
-    }
-  },
-});
-
-// convex/crons.ts
-import { cronJobs } from 'convex/server';
-import { internal } from './_generated/api';
-
-const crons = cronJobs();
-crons.daily(
-  'rappels J-1',
-  { hourUTC: 6, minuteUTC: 0 }, // 8h Paris (UTC+2 en été)
-  internal.scheduled.sendDayBeforeReminders
+-- ── Users (app profile linked to auth.users) ─────────────────────────
+create table if not exists users (
+  id text primary key,
+  "authId" uuid unique,
+  email text not null,
+  "firstName" text not null,
+  "lastName" text not null,
+  roles text[] not null default '{}',
+  "teamIds" text[] not null default '{}',
+  "contactId" text
 );
-export default crons;
+
+-- ── Players ──────────────────────────────────────────────────────────
+create table if not exists players (
+  id text primary key,
+  "firstName" text not null,
+  "lastName" text not null,
+  "dateOfBirth" text not null,
+  "primaryTeamId" text references teams(id) on delete cascade,
+  "secondaryTeamId" text references teams(id) on delete set null,
+  "preferredPosition" text not null,
+  appetences jsonb not null default '{}',
+  number integer,
+  active boolean not null default true,
+  "photoStorageId" text
+);
+create index if not exists players_by_primary_team on players("primaryTeamId");
+create index if not exists players_by_secondary_team on players("secondaryTeamId");
+
+-- ── Live match events ────────────────────────────────────────────────
+create table if not exists match_events (
+  id text primary key,
+  "matchId" text references matches(id) on delete cascade,
+  type text not null,
+  minute integer,
+  "playerId" text,
+  "player2Id" text,
+  note text
+);
+create index if not exists match_events_by_match on match_events("matchId");
 ```
 
-### 4.5 Vérification des permissions
+Les tables couvrent : `clubs`, `seasons`, `users`, `teams`, `players`,
+`contacts`, `matches`, `match_events`, `trainings`, `training_blocks`,
+`exercises`, `attendances`, `lineups`, `position_history`, `tournaments`,
+`tournament_groups`, `carpool_offers`, `surveys`, `survey_responses`,
+`notifications`, `notification_preferences`, `club_settings`,
+`unavailabilities`, `injuries`.
+
+> La colonne `players."photoStorageId"` existe dans le schéma mais **Supabase
+> Storage n'est pas encore branché** : aucun upload ni URL signée n'est
+> implémenté côté client (cf. § 11.4).
+
+### 4.2 Lecture — hydratation complète
+
+Il n'y a pas de query par écran. Le provider charge **l'intégralité de l'état**
+en une passe (un `select *` par table, en parallèle), puis le maintient à jour
+par temps réel. C'est volontaire : le volume de données d'un club tient
+largement en mémoire, et le reste de l'app travaille sur un état unique.
 
 ```typescript
-// convex/lib/permissions.ts
-import { QueryCtx, MutationCtx } from '../_generated/server';
-import { Id } from '../_generated/dataModel';
+// src/backend/tables.ts (extrait)
+/** AppData array keys ↔ Postgres table names. */
+export const ARRAY_TABLES: { table: string; key: keyof AppState }[] = [
+  { table: 'teams', key: 'teams' },
+  { table: 'players', key: 'players' },
+  { table: 'matches', key: 'matches' },
+  { table: 'match_events', key: 'matchEvents' },
+  // … 20 entrées au total
+];
 
-export async function requireCoachOfTeam(
-  ctx: QueryCtx | MutationCtx,
-  teamId: Id<'teams'>
-) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error('Non authentifié');
+export async function loadAllFromSupabase(): Promise<AppState> {
+  const sb = getSupabase();
+  const state: AppState = { ...EMPTY_APP_STATE };
+  const mutable = state as unknown as Record<string, unknown>;
 
-  const user = await ctx.db
-    .query('users')
-    .withIndex('by_clerk_id', q => q.eq('clerkId', identity.subject))
-    .unique();
+  const results = await Promise.all(
+    ARRAY_TABLES.map(t => sb.from(t.table).select('*'))
+  );
+  ARRAY_TABLES.forEach((t, i) => {
+    mutable[t.key as string] = results[i]?.data ?? [];
+  });
 
-  if (!user) throw new Error('Utilisateur inconnu');
+  // Singletons : saison active, réglages club, préférences de notification
+  const { data: seasons } = await sb.from('seasons').select('*');
+  const seasonRows = (seasons ?? []) as Season[];
+  state.season =
+    seasonRows.find(s => s.active) ?? seasonRows[0] ?? EMPTY_APP_STATE.season;
+  // …
 
-  const isAdmin = user.roles.includes('admin');
-  if (isAdmin) return user;
-
-  const isCoachOfTeam =
-    user.roles.includes('coach') && user.teamIds.includes(teamId);
-  if (!isCoachOfTeam) throw new Error('Accès refusé');
-
-  return user;
-}
-
-export async function requireParentOfPlayer(
-  ctx: QueryCtx | MutationCtx,
-  playerId: Id<'players'>
-) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error('Non authentifié');
-
-  const contact = await ctx.db
-    .query('contacts')
-    .filter(q =>
-      q.and(
-        q.eq(q.field('userId'), identity.subject),
-        q.neq(q.field('playerIds'), [])
-      )
-    )
-    .first();
-
-  if (!contact?.playerIds.includes(playerId)) {
-    throw new Error('Accès refusé');
-  }
-  return contact;
+  state.selectedTeamId = state.teams[0]?.id ?? '';
+  return state;
 }
 ```
+
+Une réhydratation ne doit pas faire perdre le contexte du coach :
+`reconcileSelectedTeam` réinjecte l'équipe sélectionnée si elle existe toujours
+dans les données fraîches.
+
+### 4.3 Écriture — traduction des actions
+
+Le frontend ne connaît que des actions de reducer. `persistAction` traduit
+chaque action en l'écriture Supabase équivalente (`upsert`, `insert`, `update`,
+`delete`).
+
+```typescript
+// src/store/persistAction.ts (extrait)
+/**
+ * Awaits a Supabase query and throws on error. supabase-js resolves (does not
+ * reject) on RLS denials and constraint violations, returning `{ error }` — so
+ * without this check, failed writes would be swallowed silently.
+ */
+async function run(query: PromiseLike<{ error: unknown }>): Promise<void> {
+  const { error } = await query;
+  if (error) {
+    /* … */ throw new Error(message);
+  }
+}
+
+export async function persistAction(
+  action: AppAction,
+  state: AppState
+): Promise<void> {
+  switch (action.type) {
+    case 'ADD_PLAYER':
+    case 'UPDATE_PLAYER':
+      await upsert('players', action.player as unknown as Row);
+      return;
+    case 'ADD_MATCH_EVENT':
+      await insert('match_events', action.event as unknown as Row);
+      return;
+    case 'SET_MATCH_LIVE':
+      await patch('matches', action.matchId, { liveActive: action.active });
+      return;
+    // …
+    // Local-only actions — nothing to persist.
+    case 'SET_SELECTED_TEAM':
+    case 'HYDRATE':
+    case 'RESET_TO_MOCK':
+      return;
+  }
+}
+```
+
+Deux points importants :
+
+- **`supabase-js` ne rejette pas** en cas de refus RLS ou de violation de
+  contrainte : il résout avec `{ error }`. Le helper `run` transforme ce cas en
+  exception, sans quoi une écriture refusée disparaîtrait silencieusement.
+- Les effets de bord métier (mise à jour du score sur un but, historique des
+  postes lors d'un remplacement) sont calculés par le **reducer côté client**,
+  puis persistés comme des actions distinctes — il n'y a pas de transaction
+  serveur qui les regroupe.
+
+### 4.4 Temps réel et cohérence
+
+`SupabaseAppProvider` s'abonne à `postgres_changes` sur **toutes** les tables via
+un unique canal, et déclenche une réhydratation complète debouncée à 300 ms.
+
+```typescript
+// src/store/SupabaseAppProvider.tsx (extrait)
+const sb = getSupabase();
+const channel = sb.channel('app-changes');
+for (const table of ALL_TABLES) {
+  channel.on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table },
+    () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void reload(), 300);
+    }
+  );
+}
+channel.subscribe();
+```
+
+Les écritures sont **optimistes** : l'action est appliquée localement par le
+reducer, puis persistée. En cas d'échec (refus RLS typiquement), l'état est
+resynchronisé sur la vérité serveur et l'utilisateur est averti par un toast —
+plutôt que de laisser une modification fantôme disparaître au rafraîchissement
+suivant.
+
+```typescript
+const dispatch = useCallback(
+  (action: AppAction) => {
+    localDispatch(action);
+    void persistAction(action, stateRef.current).catch((e: unknown) => {
+      console.error('Supabase persist failed', action.type, e);
+      toast.show(t('errors.saveFailed'), 'error');
+      void reload();
+    });
+  },
+  [reload, toast, t]
+);
+```
+
+> **Pas de fonctions planifiées.** Les rappels J-1 décrits dans les
+> spécifications ne sont pas implémentés : il n'y a ni cron, ni Edge Function,
+> ni `pg_cron`. Les notifications sont créées côté client par l'action `NOTIFY`,
+> qui insère une ligne par destinataire éligible dans `notifications`.
+
+### 4.5 Vérification des permissions (RLS)
+
+Toute l'autorisation est en base. C'est ce qui rend publiable la clé `anon`
+embarquée dans un bundle statique : un client modifié ne peut pas outrepasser
+les politiques.
+
+Le lien entre la session Supabase et le profil applicatif est la colonne
+`users."authId" = auth.uid()`. Des fonctions `security definer` (qui
+court-circuitent la RLS pour éviter la récursion) résolvent le rôle et les
+rattachements :
+
+```sql
+-- supabase/migrations/0002_rls.sql (extrait)
+create or replace function app_current_user_id()
+returns text language sql stable security definer set search_path = public as $$
+  select id from users where "authId" = auth.uid() limit 1
+$$;
+
+create or replace function app_is_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce(
+    (select 'admin' = any(roles) from users where "authId" = auth.uid()), false)
+$$;
+
+create or replace function app_can_manage_team(tid text)
+returns boolean language sql stable security definer set search_path = public as $$
+  select app_is_admin() or tid = any(app_coach_team_ids())
+$$;
+```
+
+Les politiques s'expriment ensuite en une ligne par table :
+
+```sql
+-- Données rattachées à un joueur
+create policy players_read on players for select to authenticated
+  using (app_can_access_player(id));
+create policy players_write on players for all to authenticated
+  using (app_can_manage_team("primaryTeamId"))
+  with check (app_can_manage_team("primaryTeamId"));
+
+-- Blessures : coach/admin uniquement (RG-BLESS-04 — les parents ne voient
+-- jamais le détail).
+create policy injuries_manage on injuries for all to authenticated
+  using (app_can_manage_player("playerId"))
+  with check (app_can_manage_player("playerId"));
+
+-- Indisponibilités : un parent peut déclarer pour son enfant.
+create policy unavailabilities_write on unavailabilities for all to authenticated
+  using (
+    app_can_manage_player("playerId")
+    or "playerId" = any(app_parent_player_ids())
+  );
+```
+
+Le modèle de rôles est : **admin** (tout), **coach** (ses équipes via
+`users."teamIds"`), **parent** (ses enfants via `contacts."playerIds"`).
 
 ---
 
-## 5. Couche d'abstraction backend (Adapter Pattern)
+## 5. Sélection du backend et état applicatif
 
 ### 5.1 Principe
 
-L'objectif est que les composants React et les pages n'importent **jamais** directement les primitives Convex, Supabase ou Firebase. Ils consomment uniquement des hooks à travers la couche adapter.
+Il n'y a **pas de couche adapter** avec une interface `BackendAdapter` et des
+implémentations interchangeables. L'isolation se fait plus simplement : les
+pages et composants ne consomment que les **hooks de `src/store/AppContext`**
+(`usePlayers`, `useMatches`, `useTournamentGroups`, `useNotifications`…) et le
+`dispatch` d'actions. Le backend est un détail d'implémentation du provider qui
+enveloppe l'application.
 
 ```
 Composant React
-    │ import { usePlayers } from "@/adapters"
+    │ import { usePlayers, useAppContext } from '../store/AppContext'
     ▼
-src/adapters/index.ts          ← sélectionne selon VITE_BACKEND
+AppContext (state + dispatch)
     │
-    ├── convex/players.hooks.ts   ← useQuery(api.players.listByTeam)
-    ├── supabase/players.hooks.ts ← useEffect + supabase.from("players")
-    └── firebase/players.hooks.ts ← onSnapshot(collection("players"))
+    ├── BACKEND === 'local'    → AppProvider
+    │                            useReducer + persistance localStorage
+    │
+    └── BACKEND === 'supabase' → SupabaseAppProvider
+                                 même reducer, hydraté depuis Postgres,
+                                 realtime + persistAction
 ```
 
-Chaque adapter exporte exactement les **mêmes hooks avec les mêmes signatures**.
+Le point clé : **le reducer est partagé** entre les deux modes. Seules
+l'hydratation initiale et la persistance changent. C'est ce qui permet aux
+tests de tourner intégralement en mode `local` tout en couvrant la logique
+métier utilisée en production.
 
-### 5.2 Interfaces communes (`src/adapters/types.ts`)
+### 5.2 Types du domaine (`src/types/index.ts`)
 
-```typescript
-// src/adapters/types.ts
-import type { Id } from '@/types/convex';
+Les types domaine sont écrits à la main et servent de contrat commun aux deux
+modes ; le schéma SQL les reflète colonne par colonne (§ 4.1). Il n'y a aucune
+génération de types depuis le backend.
 
-// ── Types domaine ────────────────────────────────────────────
-export interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  primaryTeamId: string;
-  secondaryTeamId?: string;
-  preferredPosition: Position;
-  appetences?: Partial<Record<Position, number>>;
-  number?: number;
-  active: boolean;
-  unavailability?: Unavailability | null; // enrichi à la query
-}
+### 5.3 Chaîne de providers (`src/main.tsx`)
 
-export interface UseQueryResult<T> {
-  data: T | undefined;
-  isLoading: boolean;
-  error: Error | null;
-}
+L'ordre de montage est significatif : l'authentification encadre l'état
+applicatif, pour qu'aucune requête Supabase ne parte avant qu'une session
+existe.
 
-// ── Interfaces des hooks ─────────────────────────────────────
-export interface PlayersAdapter {
-  usePlayers(teamId: string): UseQueryResult<Player[]>;
-  usePlayersWithAvailability(
-    teamId: string,
-    matchDate: string
-  ): UseQueryResult<(Player & { unavailability: Unavailability | null })[]>;
-  useCreatePlayer(): {
-    mutate: (data: CreatePlayerData) => Promise<string>;
-    isLoading: boolean;
-  };
-  useUpdatePlayer(): {
-    mutate: (id: string, data: Partial<Player>) => Promise<void>;
-    isLoading: boolean;
-  };
-}
-
-export interface MatchesAdapter {
-  useMatches(teamId: string): UseQueryResult<Match[]>;
-  useMatch(matchId: string): UseQueryResult<Match>;
-  useMatchEvents(matchId: string): UseQueryResult<MatchEvent[]>;
-  useAddMatchEvent(): {
-    mutate: (data: CreateMatchEventData) => Promise<string>;
-    isLoading: boolean;
-  };
-  useUpdateMatchScore(): {
-    mutate: (
-      matchId: string,
-      scoreHome: number,
-      scoreAway: number
-    ) => Promise<void>;
-  };
-}
-
-export interface SurveysAdapter {
-  useSurveys(teamId: string): UseQueryResult<Survey[]>;
-  useSurveyResponses(surveyId: string): UseQueryResult<SurveyResponse[]>;
-  useRespondToSurvey(): {
-    mutate: (data: SurveyResponseData) => Promise<void>;
-    isLoading: boolean;
-  };
-}
-
-// Interface complète du backend
-export interface BackendAdapter {
-  players: PlayersAdapter;
-  matches: MatchesAdapter;
-  surveys: SurveysAdapter;
-  // ... teams, trainings, lineups, tournaments, logistics, notifications
-}
+```tsx
+// src/main.tsx (extrait)
+<ErrorBoundary onError={/* … */}>
+  <I18nProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <AuthGate>
+            <AppProvider>
+              <App />
+            </AppProvider>
+          </AuthGate>
+        </AuthProvider>
+      </ToastProvider>
+    </ThemeProvider>
+  </I18nProvider>
+</ErrorBoundary>
 ```
 
-### 5.3 Adapter Convex (`src/adapters/convex/`)
+`AppProvider` (dans `src/store/AppContext.tsx`) délègue à `SupabaseAppProvider`
+quand `BACKEND === 'supabase'` ; sinon il gère lui-même l'état local et sa
+persistance dans `localStorage` (clé `mister-footcoach-data`), initialisé
+depuis `src/data/mock.ts`.
 
-```typescript
-// src/adapters/convex/players.hooks.ts
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '@convex/_generated/api';
-import type { PlayersAdapter } from '../types';
-
-export const convexPlayersAdapter: PlayersAdapter = {
-  usePlayers(teamId) {
-    const data = useQuery(api.players.listByTeam, { teamId: teamId as any });
-    return {
-      data: data?.map(normalizePlayer),
-      isLoading: data === undefined,
-      error: null,
-    };
-  },
-
-  usePlayersWithAvailability(teamId, matchDate) {
-    const data = useQuery(api.players.getWithAvailability, {
-      teamId: teamId as any,
-      matchDate,
-    });
-    return {
-      data: data?.map(normalizePlayerWithAvailability),
-      isLoading: data === undefined,
-      error: null,
-    };
-  },
-
-  useCreatePlayer() {
-    const mutate = useMutation(api.players.create);
-    return {
-      mutate: async data => {
-        const id = await mutate(data);
-        return id;
-      },
-      isLoading: false,
-    };
-  },
-
-  useUpdatePlayer() {
-    const mutate = useMutation(api.players.update);
-    return {
-      mutate: async (id, data) => {
-        await mutate({ id: id as any, ...data });
-      },
-      isLoading: false,
-    };
-  },
-};
-```
-
-### 5.4 Factory et sélection (`src/adapters/index.ts`)
-
-```typescript
-// src/adapters/index.ts
-import type { BackendAdapter } from './types';
-
-const backend = import.meta.env.VITE_BACKEND ?? 'convex';
-
-async function loadAdapter(): Promise<BackendAdapter> {
-  switch (backend) {
-    case 'supabase': {
-      const mod = await import('./supabase');
-      return mod.supabaseAdapter;
-    }
-    case 'firebase': {
-      const mod = await import('./firebase');
-      return mod.firebaseAdapter;
-    }
-    default: {
-      const mod = await import('./convex');
-      return mod.convexAdapter;
-    }
-  }
-}
-
-// Hooks réexportés — point d'entrée unique pour les composants
-export { usePlayers, usePlayersWithAvailability } from './convex/players.hooks';
-// (remplacés dynamiquement selon VITE_BACKEND grâce au tree-shaking Vite)
-```
-
-### 5.5 Activation Supabase ou Firebase
+### 5.4 Activation de Supabase
 
 ```bash
-# .env.local pour activer Supabase
+# .env.local
 VITE_BACKEND=supabase
-VITE_SUPABASE_URL=https://xxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGci...
-
-# .env.local pour activer Firebase
-VITE_BACKEND=firebase
-VITE_FIREBASE_API_KEY=AIza...
-VITE_FIREBASE_PROJECT_ID=mister-footcoach
+VITE_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+VITE_SUPABASE_ANON_KEY=YOUR-ANON-KEY
 ```
 
-> L'adapter Supabase utilise les subscriptions PostgreSQL de Supabase (`supabase.channel(...).on(...)`).  
-> L'adapter Firebase utilise `onSnapshot` de Firestore.  
-> Dans les deux cas, la signature des hooks exportés est identique à l'adapter Convex.
+Le client est créé **paresseusement** et mis en cache, pour qu'une app en mode
+`local` ne construise jamais de client et ne dépende d'aucune variable
+d'environnement :
+
+```typescript
+// src/lib/supabase.ts
+export function getSupabase(): SupabaseClient {
+  if (client) return client;
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
+    throw new Error(
+      'Supabase non configuré : définissez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.'
+    );
+  }
+  client = createClient(url, anonKey, {
+    auth: { persistSession: true, autoRefreshToken: true },
+  });
+  return client;
+}
+```
+
+Les étapes complètes (création du projet en région Frankfurt, application des
+trois migrations, rattachement du compte auth au profil `users`) sont dans
+[`docs/supabase.md`](./supabase.md).
 
 ---
 
@@ -1035,64 +659,60 @@ VITE_FIREBASE_PROJECT_ID=mister-footcoach
 
 ### 6.1 React 19 — patterns utilisés
 
-| Pattern            | Usage                                                      |
-| ------------------ | ---------------------------------------------------------- |
-| `useTransition`    | Transitions non-bloquantes lors du chargement des pages    |
-| `useDeferredValue` | Recherche dans la liste des joueurs / exercices            |
-| `use(promise)`     | Chargement de données dans les composants avec Suspense    |
-| `useOptimistic`    | Mises à jour optimistes (assiduité, sondages)              |
-| Server Components  | **Non utilisés** — PWA offline-first exige un rendu client |
+L'application reste volontairement sur des primitives simples. Les hooks
+concurrents de React 19 ne sont **pas** utilisés à ce jour :
+
+| Pattern             | État                                                                     |
+| ------------------- | ------------------------------------------------------------------------ |
+| `useReducer`        | **Utilisé** — état applicatif global unique (`src/store/AppContext.tsx`) |
+| `lazy` + `Suspense` | **Utilisé** — les 18 pages sont chargées à la demande (§ 6.2)            |
+| `useTransition`     | Non utilisé                                                              |
+| `useDeferredValue`  | Non utilisé                                                              |
+| `useOptimistic`     | Non utilisé — l'optimisme est géré dans `SupabaseAppProvider` (§ 4.4)    |
+| `use(promise)`      | Non utilisé                                                              |
+| Server Components   | **Non applicables** — SPA statique, rendu 100 % client                   |
+
+La mémoïsation est également très localisée : un seul `useMemo` dans tout le
+code applicatif (`LineupPage`), plus quelques `useCallback` dans `Toast` et
+`SupabaseAppProvider`. Aucun `memo()` de composant. C'est un choix assumé tant
+que les volumes restent ceux d'un club.
 
 ### 6.2 Routing (`src/App.tsx`)
 
+18 routes, toutes protégées en amont par `AuthGate` (§ 8) plutôt que par un
+composant `ProtectedRoute` par route. Le `basename` est dérivé de `BASE_URL`,
+sans quoi l'app ne rendrait rien hors GitHub Pages.
+
 ```tsx
 // src/App.tsx
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
-import { AppShell } from './components/layout/AppShell';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { Spinner } from './components/ui/Spinner';
-
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const TeamsPage = lazy(() => import('./pages/TeamsPage'));
-const TeamDetailPage = lazy(() => import('./pages/TeamDetailPage'));
-const PlayerDetailPage = lazy(() => import('./pages/PlayerDetailPage'));
-const MatchesPage = lazy(() => import('./pages/MatchesPage'));
-const MatchDetailPage = lazy(() => import('./pages/MatchDetailPage'));
-const MatchLivePage = lazy(() => import('./pages/MatchLivePage'));
-const TrainingsPage = lazy(() => import('./pages/TrainingsPage'));
-const LineupPage = lazy(() => import('./pages/LineupPage'));
-const TournamentsPage = lazy(() => import('./pages/TournamentsPage'));
-const SurveysPage = lazy(() => import('./pages/SurveysPage'));
-const SettingsPage = lazy(() => import('./pages/SettingsPage'));
-
 export default function App() {
   return (
-    <BrowserRouter basename="/mister-footcoach">
+    // Basename dérivé de `BASE_URL` (donc de `VITE_BASE_PATH`) : `/mister-footcoach/`
+    // pour GitHub Pages, `/` quand `dist/` est servi à la racine (Lighthouse CI,
+    // e2e Playwright). En dur, l'app ne rendait rien hors GitHub Pages.
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Suspense fallback={<Spinner fullscreen />}>
         <Routes>
-          {/* Routes publiques */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/consent" element={<ConsentPage />} />
-
-          {/* Routes protégées */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<AppShell />}>
-              <Route index element={<DashboardPage />} />
-              <Route path="equipes" element={<TeamsPage />} />
-              <Route path="equipes/:id" element={<TeamDetailPage />} />
-              <Route path="joueurs/:id" element={<PlayerDetailPage />} />
-              <Route path="matchs" element={<MatchesPage />} />
-              <Route path="matchs/:id" element={<MatchDetailPage />} />
-              <Route path="matchs/:id/live" element={<MatchLivePage />} />
-              <Route path="entrainements" element={<TrainingsPage />} />
-              <Route path="compositions" element={<LineupPage />} />
-              <Route path="tournois" element={<TournamentsPage />} />
-              <Route path="sondages" element={<SurveysPage />} />
-              <Route path="parametres" element={<SettingsPage />} />
-            </Route>
+          <Route element={<AppShell />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="equipes" element={<TeamsPage />} />
+            <Route path="equipes/:id" element={<TeamDetailPage />} />
+            <Route path="joueurs/:id" element={<PlayerDetailPage />} />
+            <Route path="matchs" element={<MatchesPage />} />
+            <Route path="matchs/:id" element={<MatchDetailPage />} />
+            <Route path="matchs/:id/live" element={<MatchLivePage />} />
+            <Route path="entrainements" element={<TrainingsPage />} />
+            <Route path="entrainements/:id" element={<TrainingDetailPage />} />
+            <Route path="compositions" element={<LineupPage />} />
+            <Route path="tournois" element={<TournamentsPage />} />
+            <Route path="tournois/:id" element={<TournamentDetailPage />} />
+            <Route path="sondages" element={<SurveysPage />} />
+            <Route path="statistiques" element={<StatsPage />} />
+            <Route path="exercices" element={<ExercisesPage />} />
+            <Route path="contacts" element={<ContactsPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="parametres" element={<SettingsPage />} />
           </Route>
-
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
@@ -1101,27 +721,40 @@ export default function App() {
 }
 ```
 
+Il n'y a **pas de route `/login`** : l'écran de connexion est rendu par
+`AuthGate` en amont du routeur (§ 8.3).
+
 ### 6.3 Navigation mobile (BottomNav)
+
+Quatre onglets principaux, plus un bouton « Plus » qui ouvre un drawer :
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│  🏠 Accueil  │  👥 Équipes  │  📅 Matchs  │  🏋 Entraîn.  │  ⚙️ Plus  │
+│  Accueil  │  Équipes  │  Matchs  │  Entraîn.  │  ⋯ Plus   │
 └────────────────────────────────────────────────────────────┘
 ```
 
-L'onglet **Plus** ouvre un drawer avec : Tournois, Sondages, Compositions, Paramètres.
+Le drawer **Plus** contient : Tournois, Sondages, Compositions, Statistiques,
+Exercices, Contacts, Paramètres. Les libellés passent tous par `t()` (i18n
+fr/en) et les icônes viennent de Lucide.
 
 ### 6.4 Tailwind CSS v4
 
-Tailwind v4 abandonne `tailwind.config.js`. La configuration se fait entièrement dans `index.css` via la directive `@theme`.
+Tailwind v4 abandonne `tailwind.config.js`. La configuration se fait entièrement
+dans `index.css`, qui importe d'abord le preset famille puis déclare les tokens
+sémantiques du projet.
 
 ```css
-/* src/index.css */
+/* src/index.css (extrait) */
 @import 'tailwindcss';
+@import '@mister-guiiug/dev-wpa-config/tailwind-preset.css';
 
+/* Thème manuel : classe `dark` sur <html> (voir ThemeContext + script dans index.html). */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Tokens sémantiques */
+/*
+ * Tokens sémantiques : une seule source pour clair/sombre.
+ */
 html {
   --canvas: #f9fafb;
   --surface: #ffffff;
@@ -1130,254 +763,201 @@ html {
   --fg-heading: #1f2937;
   --fg-muted: #4b5563;
   --fg-faint: #9ca3af;
+  --divide: #f3f4f6;
+  --divide-strong: #e5e7eb;
   --border-ui: #e5e7eb;
   --border-ui-strong: #d1d5db;
-  /* Accent primaire — vert football */
+
+  /* Accent primaire (vert football) */
   --primary: #16a34a;
   --primary-hover: #15803d;
   --primary-subtle: #dcfce7;
   --primary-fg: #ffffff;
-  /* Statuts */
-  --status-present: #16a34a;
-  --status-absent: #dc2626;
-  --status-excuse: #d97706;
-  --status-unknown: #9ca3af;
+  --on-primary: #14532d;
 }
 
 html.dark {
   --canvas: #0f172a;
   --surface: #1e293b;
-  --surface-muted: #0f2d1a;
-  --fg: #f1f5f9;
-  --fg-heading: #f8fafc;
-  --fg-muted: #94a3b8;
-  --fg-faint: #64748b;
-  --border-ui: #334155;
-  --primary: #22c55e;
-  --primary-hover: #16a34a;
+  /* … même jeu de tokens, valeurs sombres … */
 }
 
 @theme inline {
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
   --color-fg: var(--fg);
   --color-fg-muted: var(--fg-muted);
-  --color-primary: var(--primary);
+  --color-divide: var(--divide);
   --color-border-ui: var(--border-ui);
+  /* … */
 }
 ```
 
+Le basculement clair / sombre / système est piloté par
+`src/theme/ThemeContext.tsx`, qui pose la classe `dark` sur `<html>` ; un script
+inline dans `index.html` applique le thème avant le premier rendu pour éviter le
+flash (son hash SHA-256 est repris dans la CSP, § 9.1).
+
 ---
 
-## 7. PWA et stratégie offline
+## 7. PWA et stratégie hors-ligne
 
 ### 7.1 Configuration Vite PWA
 
 ```typescript
 // vite.config.ts (extrait)
 VitePWA({
-  registerType: "prompt",
-  strategies: "generateSW",
+  registerType: 'prompt',
   workbox: {
-    globPatterns: ["**/*.{js,css,html,svg,png,woff2,webmanifest}"],
-    // Stratégie réseau → cache pour les assets statiques
+    globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webmanifest}'],
     runtimeCaching: [
       {
-        urlPattern: /^https:\/\/.*\.convex\.cloud\/.*/i,
-        handler: "NetworkFirst",
+        urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+        handler: 'CacheFirst',
         options: {
-          cacheName: "convex-api",
-          networkTimeoutSeconds: 3,
-          expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
+          cacheName: 'google-fonts',
+          expiration: { maxEntries: 16, maxAgeSeconds: 60 * 60 * 24 * 365 },
+          cacheableResponse: { statuses: [0, 200] },
         },
       },
     ],
   },
+  includeAssets: ['favicon.ico', 'pwa-192x192.png', 'pwa-512x512.png', 'logo.svg'],
+  manifest: {
+    name: 'Mister Footcoach',
+    short_name: 'Footcoach',
+    start_url: basePath,
+    scope: basePath,
+    theme_color: '#16a34a',
+    background_color: '#ffffff',
+    display: 'standalone',
+    icons: [/* 192, 512, 512 maskable */],
+    screenshots: [/* mobile 824×1830, wide 2560×1600 */],
+  },
 }),
 ```
 
-### 7.2 Stratégie offline pour le mode match live
+`registerType: 'prompt'` : la mise à jour n'est jamais appliquée dans le dos de
+l'utilisateur, un bandeau propose de recharger (`UpdateBanner`, qui consomme
+`useRegisterSW` de `virtual:pwa-register/react`).
 
-Le mode match live est le seul flux qui doit fonctionner **entièrement hors-ligne**. La stratégie est la suivante :
+La seule règle de `runtimeCaching` concerne les Google Fonts. **Les appels
+Supabase ne sont pas mis en cache** par le service worker.
 
-```
-┌─────────────────────────────────────────────────────────┐
-│               MODE MATCH LIVE — FLUX OFFLINE            │
-│                                                         │
-│  Coach tape "But"                                       │
-│       │                                                 │
-│       ▼                                                 │
-│  useOfflineQueue.enqueue(addMatchEvent, args)           │
-│       │                                                 │
-│       ├── [En ligne]  ──▶ Convex mutation directe       │
-│       │                   Résultat immédiat             │
-│       │                                                 │
-│       └── [Hors-ligne] ─▶ Stockage IndexedDB           │
-│                           (Dexie.js, table "queue")     │
-│                           Affichage optimiste local     │
-│                                ↓                        │
-│                           Background Sync SW            │
-│                                ↓                        │
-│                    [Reconnexion réseau]                  │
-│                                ↓                        │
-│                    Replay des mutations en file          │
-│                    dans l'ordre d'insertion              │
-│                    Résolution des conflits              │
-└─────────────────────────────────────────────────────────┘
-```
+### 7.2 Ce qui fonctionne hors-ligne — et ce qui ne fonctionne pas
 
-### 7.3 Schéma IndexedDB (`src/offline/db.ts`)
+| Cas                                           | Comportement réel                                                            |
+| --------------------------------------------- | ---------------------------------------------------------------------------- |
+| Mode `local` (défaut), app déjà installée     | **Entièrement hors-ligne** — coquille précachée, données dans `localStorage` |
+| Mode `supabase`, réseau coupé                 | La coquille se charge, mais l'hydratation échoue et les écritures échouent   |
+| Mode match live sans réseau (mode `supabase`) | **Non couvert** — pas de file d'attente ni de rejeu                          |
 
-```typescript
-// src/offline/db.ts
-import Dexie, { type Table } from 'dexie';
+> **Il n'y a pas de couche offline dédiée.** Ni Dexie.js, ni IndexedDB, ni
+> `useOfflineQueue`, ni Background Sync : le dossier `src/offline/` et les hooks
+> décrits dans la v1 de ce document n'existent pas. La persistance hors-ligne se
+> limite au `localStorage` du mode `local` et au précache Workbox de la coquille
+> applicative.
 
-export interface OfflineQueueEntry {
-  id?: number;
-  functionName: string; // "matchEvents:addEvent"
-  args: unknown;
-  createdAt: number; // timestamp ms
-  retryCount: number;
-  status: 'pending' | 'retrying' | 'failed';
-}
+En mode `supabase`, une écriture qui échoue (réseau ou refus RLS) est
+resynchronisée sur la vérité serveur et signalée par un toast (§ 4.4) — c'est le
+seul mécanisme de récupération d'erreur. Une file d'attente hors-ligne pour le
+mode match live reste un écart connu avec les spécifications (§ 14.2).
 
-export interface LocalMatchState {
-  matchId: string;
-  scoreHome: number;
-  scoreAway: number;
-  events: LocalMatchEvent[];
-  synced: boolean;
-  lastUpdated: number;
-}
+### 7.3 Indicateur de connectivité
 
-class OfflineDB extends Dexie {
-  queue!: Table<OfflineQueueEntry>;
-  matchStates!: Table<LocalMatchState>;
-
-  constructor() {
-    super('mister-footcoach-offline');
-    this.version(1).stores({
-      queue: '++id, status, createdAt',
-      matchStates: 'matchId, synced',
-    });
-  }
-}
-
-export const db = new OfflineDB();
-```
-
-### 7.4 Hook `useOfflineQueue`
-
-```typescript
-// src/hooks/useOfflineQueue.ts
-import { useMutation } from 'convex/react';
-import { useOnlineStatus } from './useOnlineStatus';
-import { db } from '@/offline/db';
-
-export function useOfflineQueue() {
-  const isOnline = useOnlineStatus();
-
-  async function enqueue<T>(
-    convexMutation: ReturnType<typeof useMutation>,
-    args: T,
-    optimisticUpdate?: () => void
-  ) {
-    // 1. Mise à jour optimiste immédiate
-    optimisticUpdate?.();
-
-    if (isOnline) {
-      // 2a. En ligne : appel direct
-      return convexMutation(args);
-    } else {
-      // 2b. Hors-ligne : mise en file IndexedDB
-      await db.queue.add({
-        functionName: convexMutation.name,
-        args,
-        createdAt: Date.now(),
-        retryCount: 0,
-        status: 'pending',
-      });
-    }
-  }
-
-  return { enqueue };
-}
-```
-
-### 7.5 Indicateur de connectivité
-
-L'application affiche un bandeau discret en cas de connexion offline, et une icône ✅ / 📴 dans la TopBar pendant le mode live.
+Non implémenté : il n'existe ni bandeau hors-ligne, ni indicateur de
+connectivité dans la `TopBar`.
 
 ---
 
 ## 8. Authentification et autorisation
 
-### 8.1 Choix : Clerk + Convex Auth
+### 8.1 Choix : Supabase Auth
 
-**Clerk** est utilisé comme fournisseur d'identité. Son intégration avec Convex est native via `@clerk/clerk-react` et le provider Convex.
+L'authentification est celle de Supabase (e-mail + mot de passe), et non un
+fournisseur d'identité tiers. Il n'y a **pas de Clerk** dans le projet.
 
 ```
-Utilisateur → Clerk (login / JWT) → Convex (vérification JWT) → Accès données
+Utilisateur → Supabase Auth (JWT) → Postgres (auth.uid())
+                                     → users."authId" → rôle + rattachements
+                                     → politiques RLS (§ 4.5)
 ```
 
-### 8.2 Configuration
+Le rôle n'est pas porté par un claim du JWT : il est résolu **en base**, en
+joignant `auth.uid()` sur `users."authId"`. C'est la même source de vérité pour
+l'app et pour les politiques RLS.
 
-```typescript
-// src/main.tsx
-import { ClerkProvider, useAuth } from "@clerk/clerk-react";
-import { ConvexProviderWithClerk } from "convex/react-clerk";
-import { ConvexReactClient } from "convex/react";
-
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
-
-createRoot(document.getElementById("root")!).render(
-  <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-    <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
-    </ConvexProviderWithClerk>
-  </ClerkProvider>,
-);
-```
-
-### 8.3 Rôles et claims
-
-Les rôles (`admin`, `coach`, `parent`) sont stockés dans les **publicMetadata** Clerk, propagés dans le JWT Convex.
-
-```typescript
-// convex/auth.config.ts
-export default {
-  providers: [
-    {
-      domain: 'https://clerk.mister-footcoach.com',
-      applicationID: 'convex',
-    },
-  ],
-};
-```
-
-```typescript
-// Dans une mutation Convex
-const identity = await ctx.auth.getUserIdentity();
-const roles = (identity?.publicMetadata?.roles as string[]) ?? [];
-```
-
-### 8.4 Composant `ProtectedRoute`
+### 8.2 Client et session (`src/auth/AuthContext.tsx`)
 
 ```tsx
-// src/components/auth/ProtectedRoute.tsx
-import { useConvexAuth } from 'convex/react';
-import { Navigate, Outlet } from 'react-router-dom';
-import { Spinner } from '@/components/ui/Spinner';
+// src/auth/AuthContext.tsx (extrait)
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(BACKEND === 'supabase');
 
-export function ProtectedRoute() {
-  const { isLoading, isAuthenticated } = useConvexAuth();
-  if (isLoading) return <Spinner fullscreen />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <Outlet />;
+  useEffect(() => {
+    if (BACKEND !== 'supabase') return;
+    const sb = getSupabase();
+    sb.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setLoading(false);
+    });
+    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  async function signIn(email: string, password: string) {
+    const { error } = await getSupabase().auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { error: error?.message };
+  }
+  // signOut …
 }
 ```
+
+La session est persistée et rafraîchie automatiquement
+(`persistSession: true, autoRefreshToken: true`, § 5.4). En mode `local`, le
+provider est inerte : aucun client Supabase n'est créé.
+
+### 8.3 Portail d'entrée (`AuthGate`)
+
+Plutôt qu'un `ProtectedRoute` par route, un seul composant encadre toute
+l'application, en amont du routeur (§ 5.3) :
+
+```tsx
+// src/auth/AuthGate.tsx
+export function AuthGate({ children }: { children: ReactNode }) {
+  const { session, loading } = useAuth();
+
+  if (BACKEND !== 'supabase') return <>{children}</>;
+  if (loading) return <Spinner fullscreen />;
+  if (!session) return <LoginPage />;
+  return <>{children}</>;
+}
+```
+
+En mode `local` c'est un passe-plat transparent — ce qui permet aux tests et aux
+e2e de tourner sans authentification.
+
+### 8.4 Rôles
+
+Les rôles (`admin`, `coach`, `parent`) sont stockés dans la colonne
+`users.roles` (`text[]`), et les rattachements dans `users."teamIds"` (coach) ou
+`contacts."playerIds"` (parent). Ils sont consommés :
+
+- **côté serveur** par les fonctions `app_is_admin()`, `app_coach_team_ids()`,
+  `app_parent_player_ids()` et les politiques RLS (§ 4.5) — c'est là que se joue
+  la sécurité ;
+- **côté client** uniquement pour l'affichage.
+
+> En mode `local`, l'utilisateur courant est figé :
+> `CURRENT_USER_ID = 'u1'` (`src/constants/session.ts`), le coach de l'équipe
+> « U13 A » du jeu de données mock. Il n'y a pas encore de résolution du profil
+> `users` à partir de la session Supabase côté client : `useCurrentUser()` lit
+> cette constante dans les deux modes.
 
 ---
 
@@ -1385,29 +965,60 @@ export function ProtectedRoute() {
 
 ### 9.1 Règles par couche
 
-| Couche           | Mesure                                                                        |
-| ---------------- | ----------------------------------------------------------------------------- |
-| Transport        | HTTPS obligatoire (Convex Cloud + Clerk)                                      |
-| Authentification | JWT Clerk vérifié par Convex à chaque requête                                 |
-| Autorisation     | Vérification dans chaque query/mutation Convex (pas de confiance côté client) |
-| Données mineurs  | Cloisonnement par rôle — `requireCoachOfTeam` / `requireParentOfPlayer`       |
-| XSS              | React échappe nativement — pas de `dangerouslySetInnerHTML`                   |
-| CSRF             | Sans objet — API non-cookie (Bearer JWT)                                      |
-| Token iCal       | Token aléatoire 32 octets (crypto.getRandomValues), stocké hashé              |
-| Fichiers         | Accès aux photos via signed URL Convex Storage (expiration 1h)                |
+| Couche           | Mesure                                                                                  |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| Transport        | HTTPS obligatoire (GitHub Pages + Supabase)                                             |
+| Authentification | Supabase Auth (e-mail + mot de passe), JWT porté par `supabase-js`                      |
+| Autorisation     | Row Level Security Postgres sur les 24 tables — aucune confiance côté client (§ 4.5)    |
+| Données mineurs  | Cloisonnement par rôle en base : `app_can_access_player()` / `app_can_manage_team()`    |
+| Résidence        | Projet Supabase en région Frankfurt (`eu-central-1`) — données hébergées dans l'UE      |
+| Clé `anon`       | Publique par conception : embarquée dans le bundle statique, sans pouvoir hors RLS      |
+| CSP              | Durcie au build (`cspPlugin`) — `script-src` par hash SHA-256, `frame-ancestors 'none'` |
+| XSS              | React échappe nativement — pas de `dangerouslySetInnerHTML`                             |
+| Supply chain     | Lockfile vérifié en CI ; dépendances suivies par Renovate                               |
+
+La CSP autorise explicitement le backend, et rien d'autre :
+
+```typescript
+// vite.config.ts (extrait)
+cspPlugin({
+  dev: command === 'serve',
+  connectSrc: ["'self'", 'https://*.supabase.co', 'wss://*.supabase.co'],
+  extraDirectives: { 'frame-ancestors': "'none'" },
+}),
+```
+
+**Non implémenté à ce jour :** le flux iCal est généré côté client
+(`src/utils/ical.ts`, téléchargement d'un fichier `.ics`) — il n'y a ni URL
+d'abonnement, ni token à protéger. Les photos de joueurs ne sont pas stockées
+(§ 11.4), donc aucune URL signée n'est en jeu.
 
 ### 9.2 Variables d'environnement
 
-```bash
-# .env — valeurs publiques (exposées au frontend)
-VITE_CONVEX_URL=https://xxx.convex.cloud
-VITE_CLERK_PUBLISHABLE_KEY=pk_live_...
-VITE_BACKEND=convex
+Toutes les variables du frontend sont **publiques** par construction : elles
+sont inlinées dans le bundle statique. Il n'existe aucun secret côté serveur,
+puisqu'il n'y a pas de serveur applicatif.
 
-# Variables Convex (backend uniquement — jamais dans VITE_)
-CLERK_SECRET_KEY=sk_live_...
-PUSH_VAPID_PRIVATE_KEY=...
+```bash
+# .env.local
+# "local" (localStorage, défaut) ou "supabase"
+VITE_BACKEND=local
+
+# Projet Supabase (région Frankfurt / eu-central-1). Valeurs publiques,
+# safe dans le bundle statique : la sécurité est assurée côté serveur (RLS).
+# VITE_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+# VITE_SUPABASE_ANON_KEY=YOUR-ANON-KEY
+
+# Base URL (GitHub Pages)
+VITE_PUBLIC_SITE_ORIGIN=https://mister-guiiug.github.io
+
+# Optionnel : monitoring d'erreurs Sentry. Vide = désactivé (no-op).
+VITE_SENTRY_DSN=
 ```
+
+Le token d'accès Supabase utilisé par la CLI (`SUPABASE_ACCESS_TOKEN`) et le
+mot de passe de la base ne transitent **jamais** par le dépôt : ils restent dans
+le terminal de l'opérateur (cf. [`docs/supabase.md`](./supabase.md)).
 
 ---
 
@@ -1420,17 +1031,21 @@ PUSH_VAPID_PRIVATE_KEY=...
 │  Pyramide de tests                                  │
 │                                                     │
 │              ┌───────────┐                          │
-│              │    E2E    │  Playwright (5–10 scénar │
-│              │Playwright │  ios critiques)          │
+│              │    E2E    │  Playwright + axe-core   │
+│              │  @a11y    │  (1 spec, hors CI)       │
 │           ┌──┴───────────┴──┐                       │
-│           │   Intégration   │  Vitest + MSW          │
-│           │  (hooks+store)  │  (adapters mockés)     │
+│           │  Pages & store  │  Vitest + Testing Lib │
+│           │  (mode local)   │  (reducer, providers) │
 │        ┌──┴─────────────────┴──┐                    │
 │        │  Unitaires (Vitest 4) │  Composants, utils  │
 │        │  + Testing Library    │  logique métier      │
 │        └────────────────────── ┘                    │
 └─────────────────────────────────────────────────────┘
 ```
+
+53 fichiers de test, **colocalisés** avec le code qu'ils couvrent. Tout tourne
+en mode `local` : aucun test n'atteint Supabase, et il n'y a **pas de MSW** —
+les rares dépendances externes sont mockées avec `vi.mock` (§ 10.2).
 
 ### 10.2 Configuration Vitest 4
 
@@ -1541,197 +1156,170 @@ Le fichier complet ajoute également la neutralisation des avertissements
 React `not wrapped in act(...)` (`beforeAll` / `afterAll` autour de
 `console.error`).
 
-### 10.3 Tests unitaires — exemple composant
+### 10.3 Tests unitaires — exemple logique métier
+
+Le gros de la couverture porte sur les utilitaires purs de `src/utils/`, qui
+concentrent les règles de gestion. Exemple sur la résolution du statut d'un
+sondage (intention du joueur vs confirmation du tuteur) :
 
 ```typescript
-// src/components/features/surveys/__tests__/SurveyResponseForm.test.tsx
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
-import { SurveyResponseForm } from "../SurveyResponseForm";
+// src/utils/surveyStatus.test.ts (extrait)
+import { describe, it, expect } from 'vitest';
+import { retainedStatus } from './surveyStatus';
+import type { SurveyResponse } from '../types';
 
-describe("SurveyResponseForm", () => {
-  it("affiche les deux champs : intention joueur et confirmation parent", () => {
-    render(
-      <SurveyResponseForm
-        playerName="Lucas"
-        onSubmit={vi.fn()}
-      />,
-    );
-    expect(screen.getByText(/ce que dit lucas/i)).toBeInTheDocument();
-    expect(screen.getByText(/votre confirmation officielle/i)).toBeInTheDocument();
+function resp(p: Partial<SurveyResponse>): SurveyResponse {
+  return { id: 'r', surveyId: 's', playerId: 'p', ...p };
+}
+
+describe('retainedStatus', () => {
+  it('uses the parent confirmation as the official value', () => {
+    const s = retainedStatus(resp({ confirmationParent: 'absent' }));
+    expect(s.value).toBe('absent');
+    expect(s.confirmed).toBe(true);
   });
 
-  it("soumet avec les deux valeurs", async () => {
-    const onSubmit = vi.fn();
-    render(<SurveyResponseForm playerName="Lucas" onSubmit={onSubmit} />);
-
-    fireEvent.click(screen.getByRole("radio", { name: /présent.*lucas/i }));
-    fireEvent.click(screen.getByRole("radio", { name: /absent.*confirmation/i }));
-    fireEvent.click(screen.getByRole("button", { name: /valider/i }));
-
-    expect(onSubmit).toHaveBeenCalledWith({
-      intentionJoueur: "present",
-      confirmationParent: "absent",
-    });
+  it('falls back to the unconfirmed player intention', () => {
+    const s = retainedStatus(resp({ intentionJoueur: 'present' }));
+    expect(s.value).toBe('present');
+    expect(s.confirmed).toBe(false);
   });
 
-  it("signale une divergence quand intention ≠ confirmation", () => {
-    render(
-      <SurveyResponseForm
-        playerName="Lucas"
-        initialIntention="present"
-        initialConfirmation="absent"
-        onSubmit={vi.fn()}
-      />,
+  it('flags divergence between intention and confirmation', () => {
+    const s = retainedStatus(
+      resp({ intentionJoueur: 'present', confirmationParent: 'absent' })
     );
-    expect(screen.getByText(/réponses différentes/i)).toBeInTheDocument();
+    expect(s.divergence).toBe(true);
+    expect(s.value).toBe('absent'); // parent prevails
   });
 });
 ```
 
-### 10.4 Tests des fonctions Convex
+### 10.4 Tests de l'état applicatif
 
-```typescript
-// convex/players.test.ts  (avec convex-test)
-import { convexTest } from 'convex-test';
-import { expect, test } from 'vitest';
-import schema from './schema';
-import { api } from './_generated/api';
+Il n'y a pas de fonctions serveur à tester : la logique métier est dans le
+reducer et les hooks de `src/store/AppContext.tsx`, couverts par
+`AppContext.test.tsx` et `AppContext.actions.test.tsx`. La traduction
+action → écriture Supabase est testée séparément dans `persistAction.test.ts`
+avec un client `supabase-js` mocké, et le mapping tables ↔ état dans
+`src/backend/tables.test.ts`.
 
-test('listByTeam ne renvoie que les joueurs actifs', async () => {
-  const t = convexTest(schema);
-
-  await t.run(async ctx => {
-    const clubId = await ctx.db.insert('clubs', { name: 'FC Test' });
-    const seasonId = await ctx.db.insert('seasons', {
-      clubId,
-      name: '2025-2026',
-      startDate: '2025-08-01',
-      endDate: '2026-06-30',
-      active: true,
-    });
-    const teamId = await ctx.db.insert('teams', {
-      clubId,
-      seasonId,
-      name: 'U13A',
-      category: 'U13',
-      coachId: 'user1' as any,
-      color: '#16a34a',
-    });
-
-    await ctx.db.insert('players', {
-      firstName: 'Lucas',
-      lastName: 'D',
-      dateOfBirth: '2012-03-15',
-      primaryTeamId: teamId,
-      preferredPosition: 'AT',
-      active: true,
-    });
-    await ctx.db.insert('players', {
-      firstName: 'Emma',
-      lastName: 'R',
-      dateOfBirth: '2012-06-20',
-      primaryTeamId: teamId,
-      preferredPosition: 'GK',
-      active: false, // inactif
-    });
-  });
-
-  const players = await t.query(api.players.listByTeam, { teamId: '...' });
-  expect(players).toHaveLength(1);
-  expect(players[0].firstName).toBe('Lucas');
-});
-```
+Les pages sont testées en rendu réel (Testing Library) avec le provider local
+et les données de `src/data/mock.ts` — ce qui exerce le même reducer que celui
+utilisé en mode `supabase`.
 
 ### 10.5 Tests E2E Playwright
 
+Une seule suite existe aujourd'hui : un audit d'accessibilité axe-core sur la
+page d'accueil.
+
 ```typescript
-// e2e/survey-response.spec.ts
+// e2e/a11y.spec.ts
+// Suite a11y minimale (axe-core + Playwright) — template dev-wpa-config.
+// Le tag @a11y permet de filtrer : `playwright test --grep @a11y`.
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import { expectNoA11yViolations } from '@mister-guiiug/dev-wpa-config/playwright-a11y';
 
-test('un parent peut répondre à un sondage et voir la divergence', async ({
-  page,
-}) => {
-  await page.goto('/mister-footcoach');
-  // Login comme parent
-  await page.fill('[data-testid="email"]', 'parent@test.com');
-  await page.fill('[data-testid="password"]', 'test1234');
-  await page.click('[data-testid="login-btn"]');
-
-  await page.click('[aria-label="Sondages"]');
-  await expect(
-    page.locator('[data-testid="survey-card"]').first()
-  ).toBeVisible();
-  await page.click('[data-testid="survey-card"]');
-
-  // Sélectionner intention joueur = Présent
-  await page.click('[data-testid="intention-present"]');
-  // Sélectionner confirmation parent = Absent
-  await page.click('[data-testid="confirmation-absent"]');
-
-  // Avertissement de divergence
-  await expect(
-    page.locator('[data-testid="divergence-warning"]')
-  ).toBeVisible();
-
-  await page.click('[data-testid="submit-response"]');
-  await expect(page.locator('[data-testid="response-saved"]')).toBeVisible();
+test.describe('@a11y accessibilité', () => {
+  test("page d'accueil sans violation WCAG A/AA", async ({ page }) => {
+    await page.goto('/');
+    await expectNoA11yViolations(page, AxeBuilder, expect);
+  });
 });
 ```
+
+La configuration vient de la factory famille `definePwaPlaywrightConfig`, avec
+`preview: true` : les e2e s'exécutent contre un **build de production** servi par
+`vite preview` (service worker, minification et cache réels), avec
+`VITE_BASE_PATH=/` pour neutraliser le base path GitHub Pages.
+
+```bash
+npm run test:e2e
+```
+
+> Ces tests **ne tournent pas en CI** (`run-e2e: false`, § 12.1). Les scénarios
+> fonctionnels de bout en bout (sondages, mode live, connexion) restent à
+> écrire.
 
 ---
 
 ## 11. Performance et optimisation
 
-### 11.1 Stratégies Vite 6
+### 11.1 Découpage des chunks (Vite 8)
 
 ```typescript
-// vite.config.ts — découpage des chunks
-rollupOptions: {
-  output: {
-    manualChunks(id) {
-      if (id.includes("node_modules")) {
-        const norm = id.replace(/\\/g, "/");
-        if (norm.includes("/react-dom/") || norm.includes("/react/")) return "react";
-        if (norm.includes("/react-router")) return "router";
-        if (norm.includes("/convex/"))      return "convex";
-        if (norm.includes("/lucide-react/")) return "lucide";
-        if (norm.includes("/dexie/"))        return "dexie";
-        if (norm.includes("/@clerk/"))       return "clerk";
-        return "vendor";
-      }
+// vite.config.ts (extrait)
+build: {
+  sourcemap: true,
+  chunkSizeWarningLimit: 900,
+  rollupOptions: {
+    output: {
+      manualChunks(id) {
+        if (!id.includes('node_modules')) return;
+        const norm = id.replace(/\\/g, '/');
+        if (
+          norm.includes('/react-dom/') ||
+          norm.includes('/node_modules/react/') ||
+          norm.includes('/scheduler/')
+        ) {
+          return 'react-vendor';
+        }
+        if (norm.includes('/react-router')) return 'router';
+        if (norm.includes('/lucide-react/')) return 'lucide';
+        if (norm.includes('/tailwindcss/')) return 'tailwind';
+        return 'vendor';
+      },
     },
   },
 },
 ```
 
+L'analyse du bundle est disponible à la demande via
+`npm run build:analyze` (`ANALYZE=1` active `rollup-plugin-visualizer`, qui écrit
+`dist/stats.html`).
+
 ### 11.2 Lazy loading des pages
 
-Toutes les pages sont chargées en `lazy()` avec `Suspense`. La page Dashboard est la seule pré-chargée.
+Les 18 pages sont chargées en `lazy()` derrière un `Suspense` unique dont le
+fallback est un `Spinner` plein écran (§ 6.2). Aucune page n'est pré-chargée —
+y compris le Dashboard, qui est simplement la première route résolue.
 
-### 11.3 Optimisations React 19
+### 11.3 Optimisations React
 
-| Technique          | Où                                                                                        |
-| ------------------ | ----------------------------------------------------------------------------------------- |
-| `useDeferredValue` | Filtrage de la liste des joueurs / exercices                                              |
-| `useTransition`    | Navigation entre onglets, soumission de formulaires longs                                 |
-| `useOptimistic`    | Basculement présent/absent dans la feuille d'assiduité                                    |
-| Mémoïsation        | `useMemo` sur calculs de classement de tournoi, `memo()` sur les lignes de listes longues |
+Volontairement minimales à ce stade (cf. § 6.1) : un seul `useMemo` dans
+`LineupPage`, quelques `useCallback` dans `Toast` et `SupabaseAppProvider`,
+aucun `memo()` de composant et aucun hook concurrent. Les listes manipulées
+(effectif d'une équipe, calendrier d'une saison) restent de l'ordre de la
+dizaine à la centaine d'éléments.
+
+Le principal levier de performance appliqué est ailleurs : découpage des chunks
+(§ 11.1), chargement paresseux des pages (§ 11.2) et précache Workbox (§ 7.1).
 
 ### 11.4 Images
 
-- Photos de joueurs : stockées dans Convex Storage, servies via signed URL
-- Redimensionnement côté client avant upload (canvas API) : max 400×400px, qualité 80%
-- Placeholder : initiales du joueur générées en CSS, aucun appel réseau en offline
+- **Photos de joueurs : non implémentées.** Les colonnes `photoStorageId` /
+  `logoStorageId` existent dans le schéma, mais aucun upload, aucun
+  redimensionnement et aucun bucket Supabase Storage ne sont branchés.
+- Icônes PWA et captures du manifest générées hors build
+  (`scripts/generate-icons.mjs`, `sharp`).
+- Les avatars affichés sont des placeholders CSS — aucun appel réseau.
 
 ### 11.5 Métriques cibles
 
-| Métrique                       | Cible                             |
-| ------------------------------ | --------------------------------- |
-| LCP (Largest Contentful Paint) | < 2.5s sur 4G                     |
-| FID / INP                      | < 100ms                           |
-| Bundle initial (gzippé)        | < 150 Ko                          |
-| Time To Interactive offline    | < 1s (service worker + IndexedDB) |
+Les seuils sont vérifiés à chaque PR par Lighthouse CI (§ 12.1), piloté par
+`.lighthouserc.json`.
+
+| Métrique                             | Cible                          |
+| ------------------------------------ | ------------------------------ |
+| LCP (Largest Contentful Paint)       | < 2.5s sur 4G                  |
+| INP                                  | < 100ms                        |
+| Bundle initial (gzippé)              | < 150 Ko                       |
+| Chargement de la coquille hors-ligne | < 1s (précache service worker) |
+
+Les Web Vitals sont mesurés à l'exécution par `web-vitals` dans `src/main.tsx`
+(`onCLS`, `onFCP`, `onINP`, `onLCP`, `onTTFB`), aujourd'hui simplement loggés en
+console — aucun endpoint de collecte n'est branché.
 
 ---
 
@@ -1801,55 +1389,95 @@ Les autres workflows suivent le même schéma de délégation :
 
 ### 12.2 Environnements
 
-| Environnement   | Backend                           | Déclencheur      |
-| --------------- | --------------------------------- | ---------------- |
-| **development** | Convex local (`npx convex dev`)   | `npm run dev`    |
-| **preview**     | Convex projet `staging`           | PR ouverte       |
-| **production**  | Convex projet `prod` + Clerk prod | Merge sur `main` |
+| Environnement   | Backend                                          | Déclencheur                     |
+| --------------- | ------------------------------------------------ | ------------------------------- |
+| **development** | `local` par défaut, ou Supabase via `.env.local` | `npm run dev`                   |
+| **CI**          | `local` (aucune variable requise)                | PR et push sur `main`           |
+| **production**  | Supabase (projet Frankfurt) si configuré         | Merge sur `main` → GitHub Pages |
+
+Il n'y a **pas d'environnement de preview** : aucun déploiement par PR, et un
+seul projet Supabase. Le build de production est publié sur GitHub Pages avec
+`VITE_BASE_PATH=/mister-footcoach/` (§ 12.1).
 
 ---
 
 ## 13. Décisions d'architecture (ADR)
 
-### ADR-001 — Convex comme backend principal
+### ADR-001 — Supabase comme backend
 
-**Décision :** Convex est choisi comme backend par défaut.
+**Décision :** Supabase (Postgres managé, région Frankfurt) est le backend de
+production. Convex, envisagé dans la v1 de ce document, n'a jamais été
+implémenté et la dépendance a été retirée.
 
-**Contexte :** Le mode match live nécessite que le score soit visible en temps réel par les parents. Les sondages nécessitent une mise à jour immédiate du tableau de bord coach. Deux options auraient requis une infrastructure supplémentaire (WebSocket custom, polling).
+**Contexte :** L'application manipule des données de mineurs, ce qui impose une
+résidence UE explicite. Elle est distribuée comme un bundle statique sur GitHub
+Pages, donc toute clé embarquée est publique : la sécurité doit être imposée par
+le serveur. Le mode match live et les sondages demandent une propagation temps
+réel.
 
-**Conséquences :** La réactivité temps réel est gratuite. Le modèle de données est contraint par le document store de Convex (pas de jointures SQL). Les queries complexes (statistiques multi-tables) sont réalisées en JavaScript dans les fonctions serveur.
+**Conséquences :** La Row Level Security rend la clé `anon` publiable sans
+risque (§ 4.5). Le modèle relationnel offre jointures, contraintes et index.
+Le temps réel passe par `postgres_changes`, avec une granularité plus grossière
+que des queries réactives : on réhydrate tout l'état plutôt que de merger ligne
+à ligne (§ 4.4). En contrepartie, il n'y a **pas de code serveur** — donc pas de
+transaction métier côté serveur, et pas de tâches planifiées natives.
 
-**Alternative rejetée :** REST + polling toutes les 5s — trop de latence pour le live, charge réseau inutile.
-
----
-
-### ADR-002 — Pattern Adapter pour le backend
-
-**Décision :** Une interface TypeScript commune masque le backend réel. Le choix du backend se fait via une variable d'environnement.
-
-**Contexte :** Le client peut souhaiter migrer vers Supabase (données relationnelles, coûts) ou Firebase (familiarité Google). Changer de backend ne doit pas entraîner de réécriture du frontend.
-
-**Conséquences :** Les composants sont plus simples et testables (mock facile). Un léger coût d'abstraction existe pour les features avancées spécifiques à Convex (ex. transactions). Les adapters Supabase/Firebase restent des dépendances optionnelles.
-
----
-
-### ADR-003 — Offline-first pour le mode live uniquement
-
-**Décision :** Seul le flux "mode match live" implémente une stratégie offline complète (IndexedDB + queue). Le reste de l'application est Network-First.
-
-**Contexte :** Un coach au bord d'un terrain peut avoir une connexion intermittente. Les autres flux (calendrier, statistiques) peuvent afficher un état stale sans impact critique.
-
-**Conséquences :** La complexité de Dexie.js est limitée à un seul module. La synchronisation offline→online reste simple (append-only pour les events de match).
+**Alternative rejetée :** REST + polling — latence inadaptée au mode live.
 
 ---
 
-### ADR-004 — Clerk pour l'authentification
+### ADR-002 — Un provider par backend, pas de couche adapter
 
-**Décision :** Clerk est utilisé plutôt que Convex Auth natif ou Supabase Auth.
+**Décision :** L'isolation du backend passe par deux implémentations de provider
+partageant le **même reducer**, sélectionnées par `VITE_BACKEND`. Il n'y a pas
+d'interface `BackendAdapter` ni de hooks dupliqués par backend.
 
-**Contexte :** Clerk offre une UI d'authentification prête à l'emploi, la gestion des rôles via `publicMetadata`, et une intégration officielle Convex. Il supporte OAuth (Google, Apple) utile pour les parents.
+**Contexte :** La v1 de ce document décrivait un pattern Adapter avec trois
+implémentations (Convex, Supabase, Firebase) et une interface de hooks commune.
+Avec un seul backend réel et un état applicatif global unique, cette
+indirection coûtait plus qu'elle ne rapportait.
 
-**Conséquences :** Dépendance à un service tiers payant. En cas de migration de backend, Clerk reste utilisable (provider OAuth standard). Le coût du plan gratuit couvre le MVP.
+**Conséquences :** Les composants n'importent que `src/store/AppContext` et
+ignorent le backend. La logique métier, étant dans le reducer, est testée une
+seule fois et couvre les deux modes. Ajouter un backend signifierait écrire un
+nouveau provider plus un nouveau `persistAction` — pas réimplémenter des
+dizaines de hooks. L'inconvénient est que la stratégie de chargement est figée :
+tout l'état est chargé d'un bloc (§ 4.2).
+
+---
+
+### ADR-003 — Pas de couche offline dédiée
+
+**Décision :** Aucune file d'attente hors-ligne ni base IndexedDB. Le hors-ligne
+se limite au précache Workbox de la coquille et, en mode `local`, à
+`localStorage`.
+
+**Contexte :** La v1 prévoyait Dexie.js + une queue de mutations rejouées à la
+reconnexion pour le mode match live. Cela n'a pas été implémenté, et le mode
+`local` couvre déjà le besoin de démonstration hors-ligne.
+
+**Conséquences :** En mode `supabase`, une coupure réseau pendant un match fait
+échouer les écritures — signalées par un toast, avec resynchronisation sur la
+vérité serveur (§ 4.4), mais sans rejeu. C'est la principale limite fonctionnelle
+connue de l'architecture actuelle (§ 14.3).
+
+---
+
+### ADR-004 — Supabase Auth pour l'authentification
+
+**Décision :** L'authentification est celle de Supabase (e-mail + mot de passe).
+Clerk, envisagé en v1, n'a pas été retenu.
+
+**Contexte :** Le rôle doit être résolu au même endroit que les décisions
+d'autorisation, c'est-à-dire en base, pour que les politiques RLS puissent s'y
+appuyer. Un fournisseur d'identité tiers aurait ajouté une dépendance payante et
+un second référentiel de rôles à synchroniser.
+
+**Conséquences :** Aucun coût ni dépendance supplémentaire ; le rôle vit dans
+`users.roles` et sert à la fois à l'UI et aux politiques RLS (§ 8.4). En
+contrepartie, il n'y a pas d'UI d'authentification prête à l'emploi (l'écran de
+connexion est écrit à la main) et pas d'OAuth Google/Apple, qui resterait à
+activer côté Supabase si le besoin apparaît.
 
 ---
 
@@ -1865,45 +1493,50 @@ Les autres workflows suivent le même schéma de délégation :
 
 ## 14. Roadmap technique
 
-### 14.1 MVP — Phase 0 (données locales, pas de backend)
+### 14.1 Fait
 
-| Tâche                                          | Détail                                  |
-| ---------------------------------------------- | --------------------------------------- |
-| Squelette Vite 6 + React 19 + Tailwind v4      | ✅ Existant                             |
-| Types TypeScript domaine                       | `src/types/index.ts`                    |
-| Adapter `localStorage` (sans authentification) | Remplace Convex en dev isolé            |
-| Pages Dashboard, Équipes, Joueurs, Matchs      | Données mockées                         |
-| Simulateur de composition                      | Terrain interactif, formations foot à 8 |
-| Mode match live (offline uniquement)           | IndexedDB, pas de sync                  |
-| PWA installable                                | Manifest + SW Workbox                   |
+| Tâche                                     | Détail                                                        |
+| ----------------------------------------- | ------------------------------------------------------------- |
+| Squelette Vite 8 + React 19 + Tailwind v4 | Configuration héritée de `@mister-guiiug/dev-wpa-config`      |
+| Types TypeScript domaine                  | `src/types/index.ts`                                          |
+| Mode `local` (`localStorage` + mock)      | Défaut ; sert au dev, aux tests et à la démo hors-ligne       |
+| 18 pages métier                           | Dashboard, équipes, joueurs, matchs, entraînements, tournois… |
+| Simulateur de composition                 | Terrain interactif, formations foot à 8 (`LineupPage`)        |
+| Mode match live                           | Événements, score, historique des postes (en ligne)           |
+| Sondages de présence                      | Intention joueur / confirmation tuteur, divergences           |
+| Logistique des déplacements               | Point de RDV + covoiturage                                    |
+| Flux iCal                                 | Génération RFC 5545 **côté client** (`src/utils/ical.ts`)     |
+| Backend Supabase                          | Schéma, RLS, seed, realtime, persistance (§ 4)                |
+| Authentification                          | Supabase Auth + `AuthGate`, rôles admin / coach / parent      |
+| Notifications in-app                      | Table `notifications` + préférences par utilisateur           |
+| i18n                                      | Français / anglais (`src/i18n`)                               |
+| Thème clair / sombre / système            | `ThemeContext` + anti-FOUC inline                             |
+| PWA installable                           | Manifest + SW Workbox, bandeau de mise à jour                 |
+| Tests Vitest 4                            | 53 fichiers, seuils de couverture en cliquet (§ 10.2)         |
+| CI/CD                                     | Déléguée au reusable famille + Lighthouse CI (§ 12.1)         |
 
-### 14.2 V1 — Phase 1 (Convex + Clerk)
+### 14.2 Écarts connus avec les spécifications
 
-| Tâche                                  | Détail                                   |
-| -------------------------------------- | ---------------------------------------- |
-| Déploiement Convex + schéma complet    | `convex/schema.ts`                       |
-| Authentification Clerk                 | Rôles Admin / Coach / Parent             |
-| Adapter Convex branché                 | `src/adapters/convex/`                   |
-| Sync mode live → Convex                | Remplace le stockage local               |
-| Notifications in-app                   | Table `notifications` + query réactive   |
-| Scheduled functions (rappels J-1)      | `convex/scheduled.ts` + crons            |
-| Sondages de présence                   | Module complet                           |
-| Logistique des déplacements            | Point de RDV + covoiturage               |
-| Flux iCal                              | Action HTTP Convex + génération RFC 5545 |
-| Tests Vitest 4 (seuils ~70% appliqués) | Cliquet anti-régression en CI (§ 10.2)   |
-| Pipeline CI/CD GitHub Actions          | Complet                                  |
+| Manque                         | Détail                                                                     |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| Rappels J-1                    | Aucune tâche planifiée : ni cron, ni Edge Function, ni `pg_cron` (§ 4.4)   |
+| File d'attente hors-ligne      | Le mode live ne survit pas à une coupure réseau en mode `supabase` (§ 7.2) |
+| Photos de joueurs              | Colonnes présentes, Supabase Storage non branché (§ 11.4)                  |
+| Profil utilisateur côté client | `useCurrentUser()` lit encore `CURRENT_USER_ID` figé (§ 8.4)               |
+| E2E fonctionnels               | Une seule spec a11y, non exécutée en CI (§ 10.5)                           |
+| Indicateur de connectivité     | Non implémenté (§ 7.3)                                                     |
 
-### 14.3 V2 — Évolutions futures
+### 14.3 Évolutions futures
 
-| Tâche                   | Détail                                |
-| ----------------------- | ------------------------------------- |
-| Notifications Push PWA  | VAPID + Web Push API                  |
-| Intégration fédération  | Action Convex → API externe           |
-| Compte joueur           | Saisie intention sondage en direct    |
-| Adapter Supabase (opt.) | Pour les clients préférant PostgreSQL |
-| Export PDF              | jsPDF côté client ou action Convex    |
-| Analyse bundle          | `rollup-plugin-visualizer` en CI      |
+| Tâche                         | Détail                                               |
+| ----------------------------- | ---------------------------------------------------- |
+| Notifications Push PWA        | VAPID + Web Push API                                 |
+| Intégration fédération réelle | Remplace le flux simulé de `src/data/federation.ts`  |
+| Compte joueur                 | Saisie de l'intention de sondage en direct           |
+| Export PDF                    | jsPDF côté client                                    |
+| Merge realtime ligne à ligne  | Éviter la réhydratation complète à chaque changement |
 
 ---
 
-_Document v1.0 — 05/05/2026 — à réviser après validation de la stack avec l'équipe._
+_Document v2.0 — 11/08/2026 — aligné sur le code du dépôt. À réviser à chaque
+changement structurant de la stack._
