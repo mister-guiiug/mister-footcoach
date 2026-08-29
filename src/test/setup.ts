@@ -16,14 +16,6 @@ Object.defineProperty(window.navigator, 'language', {
   configurable: true,
 });
 
-// Mock virtual:pwa-register/react used by UpdateBanner
-vi.mock('virtual:pwa-register/react', () => ({
-  useRegisterSW: vi.fn(() => ({
-    needRefresh: [false],
-    updateServiceWorker: vi.fn(),
-  })),
-}));
-
 // Mock window.matchMedia (not available in jsdom)
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

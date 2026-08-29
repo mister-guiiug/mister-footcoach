@@ -1,29 +1,41 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { UseUpdatePrompt } from '@mister-guiiug/dev-wpa-config/react/use-update-prompt';
 import { I18nProvider } from '../i18n';
 import { UpdateBanner } from './UpdateBanner';
 
-// Mock local à CE fichier : le setup partagé (vitest-setup dev-wpa-config)
-// enregistre aussi un mock de ce module, mais en simple fonction — pas un
-// spy pilotable. Le vi.mock du fichier de test reprend la main.
-vi.mock('virtual:pwa-register/react', () => ({
-  useRegisterSW: vi.fn(() => ({
-    needRefresh: [false],
-    updateServiceWorker: vi.fn(),
-  })),
+// Mock local à CE fichier : l'état et l'application de la mise à jour sont
+// délégués au hook du socle (testé chez lui) ; on pilote ses retours pour
+// vérifier le rendu du bandeau et le câblage du bouton.
+const { useUpdatePrompt } = vi.hoisted(() => ({
+  useUpdatePrompt: vi.fn<() => UseUpdatePrompt>(),
+}));
+vi.mock('@mister-guiiug/dev-wpa-config/react/use-update-prompt', () => ({
+  useUpdatePrompt,
 }));
 
-const { useRegisterSW } = await vi.importMock<
-  typeof import('virtual:pwa-register/react')
->('virtual:pwa-register/react');
+function prompt(overrides: Partial<UseUpdatePrompt> = {}): UseUpdatePrompt {
+  return {
+    needRefresh: false,
+    offlineReady: false,
+    visible: false,
+    updating: false,
+    update: vi.fn().mockResolvedValue('activated'),
+    forceUpdate: vi.fn().mockResolvedValue('activated'),
+    dismiss: vi.fn(),
+    snooze: vi.fn(),
+    ...overrides,
+  };
+}
 
 describe('UpdateBanner', () => {
-  it('renders nothing when needRefresh is false', () => {
-    (useRegisterSW as ReturnType<typeof vi.fn>).mockReturnValue({
-      needRefresh: [false],
-      updateServiceWorker: vi.fn(),
-    });
+  beforeEach(() => {
+    useUpdatePrompt.mockReset();
+  });
+
+  it('renders nothing when no update is visible', () => {
+    useUpdatePrompt.mockReturnValue(prompt());
     const { container } = render(
       <I18nProvider>
         <UpdateBanner />
@@ -32,11 +44,8 @@ describe('UpdateBanner', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('renders the banner when needRefresh is true', () => {
-    (useRegisterSW as ReturnType<typeof vi.fn>).mockReturnValue({
-      needRefresh: [true],
-      updateServiceWorker: vi.fn(),
-    });
+  it('renders the banner when an update is visible', () => {
+    useUpdatePrompt.mockReturnValue(prompt({ visible: true }));
     render(
       <I18nProvider>
         <UpdateBanner />
@@ -48,18 +57,27 @@ describe('UpdateBanner', () => {
     ).toBeInTheDocument();
   });
 
-  it('calls updateServiceWorker(true) when button is clicked', async () => {
-    const updateServiceWorker = vi.fn();
-    (useRegisterSW as ReturnType<typeof vi.fn>).mockReturnValue({
-      needRefresh: [true],
-      updateServiceWorker,
-    });
+  it('injects registerSW from virtual:pwa-register into the hook', () => {
+    useUpdatePrompt.mockReturnValue(prompt());
+    render(
+      <I18nProvider>
+        <UpdateBanner />
+      </I18nProvider>
+    );
+    expect(useUpdatePrompt).toHaveBeenCalledWith(
+      expect.objectContaining({ registerSW: expect.any(Function) })
+    );
+  });
+
+  it('applies the update when the button is clicked', async () => {
+    const update = vi.fn().mockResolvedValue('activated');
+    useUpdatePrompt.mockReturnValue(prompt({ visible: true, update }));
     render(
       <I18nProvider>
         <UpdateBanner />
       </I18nProvider>
     );
     await userEvent.click(screen.getByRole('button', { name: 'Actualiser' }));
-    expect(updateServiceWorker).toHaveBeenCalledWith(true);
+    expect(update).toHaveBeenCalledTimes(1);
   });
 });

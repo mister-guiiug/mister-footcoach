@@ -20,7 +20,7 @@ import {
   today,
 } from '../utils/date';
 import { matchEvent, trainingEvent, buildICal } from '../utils/ical';
-import { downloadFile } from '../utils/download';
+import { downloadText } from '@mister-guiiug/dev-wpa-config/download';
 import { useI18n } from '../i18n';
 
 export default function TeamDetailPage() {
@@ -41,9 +41,9 @@ export default function TeamDetailPage() {
       ...matches.map(m => matchEvent(m, tournamentName(m.tournamentId))),
       ...trainings.map(trainingEvent),
     ];
-    downloadFile(
-      `${team?.name ?? 'equipe'}.ics`,
+    downloadText(
       buildICal(events, `${team?.name ?? 'Équipe'} — Mister Footcoach`),
+      `${team?.name ?? 'equipe'}.ics`,
       'text/calendar'
     );
   }
