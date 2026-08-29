@@ -32,7 +32,7 @@ import {
 } from '../utils/date';
 import { computePlayerStats } from '../utils/stats';
 import { buildPlayerExport, exportToJson } from '../utils/rgpd';
-import { downloadFile } from '../utils/download';
+import { downloadText } from '@mister-guiiug/dev-wpa-config/download';
 import { useI18n } from '../i18n';
 
 export default function PlayerDetailPage() {
@@ -187,8 +187,7 @@ export default function PlayerDetailPage() {
         variant="ghost"
         className="w-full"
         onClick={() =>
-          downloadFile(
-            `${player.firstName}-${player.lastName}-rgpd.json`,
+          downloadText(
             exportToJson(
               buildPlayerExport(player.id, {
                 players: state.players,
@@ -200,6 +199,7 @@ export default function PlayerDetailPage() {
                 surveyResponses: state.surveyResponses,
               })
             ),
+            `${player.firstName}-${player.lastName}-rgpd.json`,
             'application/json'
           )
         }
