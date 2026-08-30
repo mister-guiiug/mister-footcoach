@@ -64,11 +64,20 @@ export default defineConfig({
       // (−9 dont −9), lines 1275/1741 → 1264/1730 (−11 dont −11). La suite
       // gagne au passage 4 tests (10 sur la barre contre 6), dont l'onglet
       // courant sous basename — le cas qui ne casse qu'en production.
+      // Remonté (+0,03 à +0,04 pt) au remplacement du dernier `window.alert`
+      // (refus de suppression, RG-CONTACT-03) par le mode MONO-ACTION du
+      // `ConfirmDialog` du socle. L'appel natif était hors du DOM : le test ne
+      // pouvait qu'espionner « ça a sonné » ; le texte du refus et sa prise
+      // d'acte sont désormais assertés. Mesures au 2026-08-31 : statements
+      // 1397/1921 → 1399/1923, branches 1175/1598 → 1177/1600, functions
+      // 517/748 → 518/749, lines 1264/1730 → 1266/1732. Les unités ajoutées
+      // sont TOUTES couvertes — le nombre d'unités NON couvertes ne bouge pas
+      // (statements 524, branches 423, functions 231, lines 466).
       thresholds: {
-        statements: 72.72,
-        branches: 73.52,
-        functions: 69.11,
-        lines: 73.06,
+        statements: 72.75,
+        branches: 73.56,
+        functions: 69.15,
+        lines: 73.09,
       },
     },
   },

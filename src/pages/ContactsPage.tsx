@@ -20,6 +20,10 @@ export default function ContactsPage() {
   // synchrone ; la boîte du socle est déclarative — c'est cet état qui porte
   // « quoi supprimer », et sa présence ouvre la boîte.
   const [pendingDelete, setPendingDelete] = useState<Contact | null>(null);
+  // Le refus de suppression (RG-CONTACT-03), même schéma : `window.alert` était
+  // synchrone, l'alerte du socle est déclarative — c'est cet état qui porte le
+  // message, et sa présence ouvre la boîte.
+  const [blockedReason, setBlockedReason] = useState<string | null>(null);
 
   const playerName = (id: string) => {
     const p = state.players.find(x => x.id === id);
@@ -41,7 +45,7 @@ export default function ContactsPage() {
 
   function remove(contact: Contact) {
     if (!canDelete(contact)) {
-      window.alert(t('contacts.deleteImpossible'));
+      setBlockedReason(t('contacts.deleteImpossible'));
       return;
     }
     setPendingDelete(contact);
@@ -85,6 +89,20 @@ export default function ContactsPage() {
             setPendingDelete(null);
           }}
           onCancel={() => setPendingDelete(null)}
+        />
+      )}
+
+      {blockedReason && (
+        // Mono-action (`cancelLabel={null}`) : rien à confirmer ni à annuler,
+        // il n'y a qu'à prendre acte — Échap et le voile valent « OK ».
+        // `confirmLabel` est explicite : l'app est bilingue et ne monte pas de
+        // `LabelsProvider`, le défaut du socle resterait figé en français.
+        <ConfirmDialog
+          open
+          cancelLabel={null}
+          title={blockedReason}
+          confirmLabel={t('common.ok')}
+          onConfirm={() => setBlockedReason(null)}
         />
       )}
 

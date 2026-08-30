@@ -21,6 +21,9 @@ export const messages = {
       cancel: 'Annuler',
       close: 'Fermer',
       confirm: 'Confirmer',
+      // Prise d'acte d'une alerte : le bouton ne confirme rien, il referme.
+      // Même mot dans les deux langues, et le même que le défaut du socle.
+      ok: 'OK',
       declare: 'Déclarer',
       propose: 'Proposer',
       remove: 'Retirer',
@@ -693,6 +696,7 @@ export const messages = {
       cancel: 'Cancel',
       close: 'Close',
       confirm: 'Confirm',
+      ok: 'OK',
       declare: 'Declare',
       propose: 'Offer',
       remove: 'Remove',
