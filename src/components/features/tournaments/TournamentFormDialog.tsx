@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Dialog } from '../../ui/Dialog';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Select, Textarea } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { useTeams, useAppContext } from '../../../store/AppContext';
 import type { Tournament, TournamentFormat } from '../../../types';
 import { genId } from '../../../utils/id';
@@ -110,7 +110,7 @@ export function TournamentFormDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t(
@@ -242,6 +242,6 @@ export function TournamentFormDialog({
 
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Dialog } from '../../ui/Dialog';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Select, Textarea } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import {
   useTeams,
   useMatches,
@@ -112,7 +112,7 @@ export function SurveyFormDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t('surveys.form.title')}
@@ -216,6 +216,6 @@ export function SurveyFormDialog({
           {t('surveys.form.notifyFamilies')}
         </label>
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

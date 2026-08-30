@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Dialog } from '../../ui/Dialog';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Select, Textarea } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import {
   useTeams,
   useClubSettings,
@@ -154,7 +154,7 @@ export function MatchFormDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t(isEdit ? 'matches.form.editTitle' : 'matches.form.newTitle')}
@@ -269,6 +269,6 @@ export function MatchFormDialog({
 
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

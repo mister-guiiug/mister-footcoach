@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '@mister-guiiug/dev-wpa-config/tailwind-preset.css';
+@import '@mister-guiiug/dev-wpa-config/components.css';
 
 /* Thème manuel : classe `dark` sur <html> (voir ThemeContext + script dans index.html). */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -48,6 +49,44 @@ html.dark {
   --on-primary: #dcfce7;
 }
 
+/*
+ * Contrat des composants partagés : les 15 jetons `--dwc-*` de
+ * `components.css` branchés UNE FOIS sur les tokens de l'app. Les jetons qui
+ * pointent une variable redéfinie par `html.dark` suivent le thème tout
+ * seuls ; seuls les écarts voulus sont repris dans le bloc sombre plus bas.
+ */
+html {
+  --dwc-surface: var(--surface);
+  --dwc-surface-2: var(--surface-muted);
+  --dwc-text: var(--fg);
+  --dwc-text-soft: var(--fg-muted);
+  --dwc-border: var(--border-ui);
+  /* Le pourtour d'un CONTRÔLE (champ, bouton secondaire), pas un filet :
+     WCAG 1.4.11 demande 3:1 — `--border-ui-strong` (#d1d5db, 1,5:1) ne les
+     tient pas, `--fg-muted` oui (7,6:1 clair, 4,6:1 sombre). */
+  --dwc-border-strong: var(--fg-muted);
+  --dwc-primary: var(--primary);
+  --dwc-primary-contrast: var(--primary-fg);
+  --dwc-primary-soft: var(--primary-subtle);
+  /* Tons d'état alignés sur les verts/ambres/rouges que le kit local posait
+     en dur (green-700/amber-700/red-600). Une seule valeur par ton : les
+     pastilles du socle DÉRIVENT leur encre en la mélangeant à `--dwc-text`
+     (donc lisible en sombre sans variante 400), et les aplats (bouton danger,
+     liseré des toasts) utilisaient déjà la même couleur dans les deux modes. */
+  --dwc-success: #15803d;
+  --dwc-warning: #b45309;
+  --dwc-danger: #dc2626;
+  /* L'info de l'app, c'est sa couleur primaire (toast info du kit local). */
+  --dwc-info: var(--primary);
+  /* rounded-xl (boutons/champs : 0,7×) et panneaux plus amples (1,6×). */
+  --dwc-radius: 1rem;
+  --dwc-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+html.dark {
+  --dwc-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.45);
+}
+
 @theme inline {
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
@@ -93,33 +132,22 @@ body {
   flex-direction: column;
 }
 
-/* Écran de secours du composant partagé ErrorBoundary (dev-wpa-config).
-   Sans variable de thème : doit rester lisible même si le CSS applicatif
-   n'est pas chargé. */
-[data-dwc='error-boundary'] {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 2rem;
-  text-align: center;
-}
+/* L'écran de secours de l'ErrorBoundary partagé est désormais habillé par
+   `components.css` (3.22.0) : la variante « montée à la racine »
+   (`:where(#root) > [data-dwc='error-boundary']`) couvre exactement le bloc
+   que ce fichier recopiait. */
 
-[data-dwc='error-boundary-title'] {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-[data-dwc='error-boundary-reset'] {
-  border: 1px solid currentColor;
-  border-radius: 0.75rem;
-  padding: 0.6rem 1.2rem;
-  font-weight: 600;
-  cursor: pointer;
-  background: transparent;
-  color: inherit;
+/* Fermeture de la feuille au clic sur le fond — vérifié dans un vrai
+   navigateur : le composant `Sheet` n'écoute que son conteneur
+   (`event.target === event.currentTarget`), or son voile est un ENFANT qui
+   recouvre tout le conteneur ; la cible d'un clic « dans le fond » est donc
+   toujours le voile, jamais le conteneur, et la feuille ne se fermait pas
+   (le Dialog local, lui, fermait). Rendre le voile transparent aux
+   événements fait retomber la cible sur le conteneur : le clic sur le fond
+   ferme, et un glisser terminé hors du panneau ne ferme toujours pas
+   (mousedown parti du panneau). */
+[data-dwc='sheet-backdrop'] {
+  pointer-events: none;
 }
 
 /* Famille — grille « Nos autres applications » (composant partagé FamilyApps).

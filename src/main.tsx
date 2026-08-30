@@ -27,7 +27,14 @@ onTTFB(console.log);
 import { AppProvider } from './store/AppContext.tsx';
 import { AuthProvider } from './auth/AuthContext.tsx';
 import { AuthGate } from './auth/AuthGate.tsx';
-import { ToastProvider } from './components/ui/Toast.tsx';
+import { ToastProvider } from '@mister-guiiug/dev-wpa-config/react/toast';
+import { IconsProvider } from '@mister-guiiug/dev-wpa-config/react/icons-context';
+import { lucideIconSet } from '@mister-guiiug/dev-wpa-config/react/icons-lucide';
+import { X } from 'lucide-react';
+
+/* La croix « fermer » des composants du socle (Toast, Sheet) reste celle de
+   lucide, comme partout ailleurs dans l'app : un seul langage visuel. */
+const socleIcons = lucideIconSet({ close: X });
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -38,15 +45,17 @@ createRoot(document.getElementById('root')!).render(
     >
       <I18nProvider>
         <ThemeProvider>
-          <ToastProvider>
-            <AuthProvider>
-              <AuthGate>
-                <AppProvider>
-                  <App />
-                </AppProvider>
-              </AuthGate>
-            </AuthProvider>
-          </ToastProvider>
+          <IconsProvider icons={socleIcons}>
+            <ToastProvider>
+              <AuthProvider>
+                <AuthGate>
+                  <AppProvider>
+                    <App />
+                  </AppProvider>
+                </AuthGate>
+              </AuthProvider>
+            </ToastProvider>
+          </IconsProvider>
         </ThemeProvider>
       </I18nProvider>
     </ErrorBoundary>

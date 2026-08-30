@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Dialog } from '../../ui/Dialog';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Textarea } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { useAppContext } from '../../../store/AppContext';
 import type { Match } from '../../../types';
 import { useI18n } from '../../../i18n';
@@ -61,7 +61,7 @@ export function MeetingPointDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t('meeting.title')}
@@ -98,6 +98,6 @@ export function MeetingPointDialog({
           rows={2}
         />
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

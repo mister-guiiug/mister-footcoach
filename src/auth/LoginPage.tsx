@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
-import { Button } from '../components/ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { useAuth } from './AuthContext';
 import { useI18n } from '../i18n';
 

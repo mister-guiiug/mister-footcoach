@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Dialog } from '../../ui/Dialog';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Select } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { useTeams, useAppContext } from '../../../store/AppContext';
 import { POSITION_LABELS, type Player, type Position } from '../../../types';
 import { genId } from '../../../utils/id';
@@ -74,7 +74,7 @@ export function PlayerFormDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t(isEdit ? 'players.form.editTitle' : 'players.form.newTitle')}
@@ -160,6 +160,6 @@ export function PlayerFormDialog({
 
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

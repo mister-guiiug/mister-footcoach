@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Dialog } from '../../ui/Dialog';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Select, Textarea } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { useAppContext } from '../../../store/AppContext';
 import {
   UNAVAILABILITY_MOTIF_LABELS,
@@ -62,7 +62,7 @@ export function UnavailabilityFormDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t('unavailability.title')}
@@ -111,6 +111,6 @@ export function UnavailabilityFormDialog({
           rows={2}
         />
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

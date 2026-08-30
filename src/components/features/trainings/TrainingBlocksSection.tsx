@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { Card, CardHeader } from '../../ui/Card';
-import { Button } from '../../ui/Button';
-import { Dialog } from '../../ui/Dialog';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Select, Textarea } from '../../ui/Input';
 import {
   useTrainingBlocks,
@@ -194,7 +194,7 @@ function BlockFormDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t('trainingBlocks.dialogTitle')}
@@ -245,6 +245,6 @@ function BlockFormDialog({
         />
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

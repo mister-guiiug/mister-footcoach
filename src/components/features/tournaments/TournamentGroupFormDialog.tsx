@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Dialog } from '../../ui/Dialog';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Select } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { useAppContext } from '../../../store/AppContext';
 import type { TournamentGroup } from '../../../types';
 import { genId } from '../../../utils/id';
@@ -43,7 +43,7 @@ export function TournamentGroupFormDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t('tournaments.group.title')}
@@ -77,6 +77,6 @@ export function TournamentGroupFormDialog({
         </Select>
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

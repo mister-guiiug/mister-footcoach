@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
 import { useTeams, usePlayers, useAppContext } from '../store/AppContext';
 import { computeTeamStats, computePlayerStats } from '../utils/stats';
 import { useI18n } from '../i18n';
@@ -98,7 +98,7 @@ export default function StatsPage() {
                 <span className="text-fg">
                   {i + 1}. {topScorerName(s.playerId)}
                 </span>
-                <Badge variant="primary">
+                <Badge tone="brand">
                   {t(
                     s.goals > 1 ? 'stats.goalsCountPlural' : 'stats.goalsCount',
                     { count: s.goals }

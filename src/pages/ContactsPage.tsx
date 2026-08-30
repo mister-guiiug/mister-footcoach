@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Phone, Mail, ShieldCheck } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
-import { EmptyState } from '../components/ui/EmptyState';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 import { ContactFormDialog } from '../components/features/contacts/ContactFormDialog';
 import { useContacts, useAppContext } from '../store/AppContext';
 import type { Contact } from '../types';
@@ -90,16 +90,16 @@ export default function ContactsPage() {
                     <h2 className="font-semibold text-fg-heading">
                       {contact.firstName} {contact.lastName}
                     </h2>
-                    <Badge variant="muted">
+                    <Badge tone="muted">
                       {t(`contactType.${contact.type}`)}
                     </Badge>
                     {contact.consentDate ? (
-                      <Badge variant="success">
+                      <Badge tone="success">
                         <ShieldCheck size={11} className="mr-1" />{' '}
                         {t('contacts.consented')}
                       </Badge>
                     ) : (
-                      <Badge variant="warning">
+                      <Badge tone="warning">
                         {t('contacts.consentPending')}
                       </Badge>
                     )}

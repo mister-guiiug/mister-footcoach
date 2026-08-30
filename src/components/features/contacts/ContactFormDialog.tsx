@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Dialog } from '../../ui/Dialog';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Select } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { usePlayers, useAppContext } from '../../../store/AppContext';
 import type { Contact, ContactType } from '../../../types';
 import { genId } from '../../../utils/id';
@@ -101,7 +101,7 @@ export function ContactFormDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t(isEdit ? 'contacts.form.editTitle' : 'contacts.form.newTitle')}
@@ -192,6 +192,6 @@ export function ContactFormDialog({
 
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

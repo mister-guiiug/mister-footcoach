@@ -2,21 +2,21 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { MatchFormDialog } from '../components/features/matches/MatchFormDialog';
 import { useMatches, useTeams } from '../store/AppContext';
 import { type MatchStatus } from '../types';
 import { formatDateFull, isUpcoming } from '../utils/date';
 import { useI18n } from '../i18n';
 
-const statusVariant: Record<
+const statusTone: Record<
   MatchStatus,
-  'primary' | 'success' | 'warning' | 'muted' | 'danger'
+  'brand' | 'success' | 'warning' | 'muted' | 'danger'
 > = {
   previsionnel: 'muted',
   engage: 'warning',
-  saison: 'primary',
+  saison: 'brand',
   tournoi: 'success',
   annule: 'danger',
 };
@@ -141,7 +141,7 @@ export default function MatchesPage() {
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                      <Badge variant={statusVariant[match.status]}>
+                      <Badge tone={statusTone[match.status]}>
                         {t(`matchStatus.${match.status}`)}
                       </Badge>
                       {hasScore && (

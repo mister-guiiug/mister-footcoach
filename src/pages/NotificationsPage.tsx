@@ -1,7 +1,7 @@
 import { Bell, Check, CheckCheck } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { EmptyState } from '../components/ui/EmptyState';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 import {
   useNotifications,
   useCurrentUser,
