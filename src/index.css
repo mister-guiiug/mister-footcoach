@@ -137,19 +137,6 @@ body {
    (`:where(#root) > [data-dwc='error-boundary']`) couvre exactement le bloc
    que ce fichier recopiait. */
 
-/* Fermeture de la feuille au clic sur le fond — vérifié dans un vrai
-   navigateur : le composant `Sheet` n'écoute que son conteneur
-   (`event.target === event.currentTarget`), or son voile est un ENFANT qui
-   recouvre tout le conteneur ; la cible d'un clic « dans le fond » est donc
-   toujours le voile, jamais le conteneur, et la feuille ne se fermait pas
-   (le Dialog local, lui, fermait). Rendre le voile transparent aux
-   événements fait retomber la cible sur le conteneur : le clic sur le fond
-   ferme, et un glisser terminé hors du panneau ne ferme toujours pas
-   (mousedown parti du panneau). */
-[data-dwc='sheet-backdrop'] {
-  pointer-events: none;
-}
-
 /* Famille — grille « Nos autres applications » (composant partagé FamilyApps).
    Attributs [data-dwc="…"] scopés sous .family-apps ; couleurs via les tokens
    de thème (--surface-muted/--fg/--fg-muted/--border-ui/--primary) → le mode
