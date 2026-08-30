@@ -18,8 +18,8 @@ export default defineConfig({
       // point d'entrée (montage React), non testable unitairement.
       exclude: [...coveragePreset.exclude, 'src/main.tsx'],
       // Planchers = couverture réelle EXACTE au 2026-08-30, sans marge :
-      // statements 1420/1958, branches 1177/1616, functions 522/758,
-      // lines 1285/1764 (le `pct` d'istanbul tronque à 2 décimales). Mesures
+      // statements 1432/1967, branches 1182/1616, functions 528/764,
+      // lines 1297/1773 (le `pct` d'istanbul tronque à 2 décimales). Mesures
       // identiques sur Linux (CI) et Windows, d'où la tolérance zéro.
       // Cliquet strict : toute régression casse la CI, et tout gain de
       // couverture doit être répercuté ici. À monter, jamais à baisser pour
@@ -29,11 +29,15 @@ export default defineConfig({
       // (Badge, Button, EmptyState, Toast, Dialog) ont été SUPPRIMÉES au
       // profit du paquet, testé chez lui. Aucune ligne restante n'a perdu
       // de test — le dénominateur a changé, pas la discipline.
+      // Remonté (+0,24 à +0,31 pt) au remplacement des trois `window.confirm`
+      // par le `ConfirmDialog` du socle : les chemins « confirme » et
+      // « annule » sont enfin du DOM, donc testables — celui de la blessure
+      // en direct n'était couvert par rien.
       thresholds: {
-        statements: 72.52,
-        branches: 72.83,
-        functions: 68.86,
-        lines: 72.84,
+        statements: 72.8,
+        branches: 73.14,
+        functions: 69.1,
+        lines: 73.15,
       },
     },
   },

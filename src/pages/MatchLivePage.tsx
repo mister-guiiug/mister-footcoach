@@ -4,6 +4,7 @@ import { Radio, Plus, Minus, X, Play, Pause, RotateCcw } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
+import { ConfirmDialog } from '@mister-guiiug/dev-wpa-config/react/confirm-dialog';
 import {
   useMatch,
   useMatchEvents,
@@ -48,6 +49,11 @@ export default function MatchLivePage() {
   const [scoreHome, setScoreHome] = useState(match?.scoreHome ?? 0);
   const [scoreAway, setScoreAway] = useState(match?.scoreAway ?? 0);
   const [isLive, setIsLive] = useState(match?.liveActive ?? false);
+  // Joueur dont l'ouverture de fiche attend une réponse. `window.confirm`
+  // bloquait `addEvent` le temps du choix ; la boîte du socle ne bloque rien,
+  // et `selectedPlayer` est remis à zéro juste après — d'où la copie de l'id
+  // ici, seule mémoire de « pour qui » la question est posée.
+  const [injuryPlayerId, setInjuryPlayerId] = useState<string | null>(null);
 
   // Chronometer (specs §7.5.4) — drives the event minute automatically.
   const [chronoRunning, setChronoRunning] = useState(false);
@@ -123,11 +129,11 @@ export default function MatchLivePage() {
     }
 
     // Live injury → offer to open the player's file to log it (§7.5.5).
+    // L'offre est POSÉE ici et tranchée plus tard : le reste de `addEvent`
+    // (score, remise à zéro de la sélection) s'exécute sans attendre, comme
+    // avant lorsque le coach répondait « oui ».
     if (selectedEvent === 'blessure_live' && selectedPlayer) {
-      const pid = selectedPlayer;
-      if (window.confirm(t('live.confirmInjury'))) {
-        navigate(`/joueurs/${pid}`);
-      }
+      setInjuryPlayerId(selectedPlayer);
     }
 
     if (selectedEvent === 'but') {
@@ -454,6 +460,21 @@ export default function MatchLivePage() {
       >
         {t('live.closeAndRecord')}
       </Button>
+
+      {injuryPlayerId && (
+        <ConfirmDialog
+          open
+          title={t('live.confirmInjury')}
+          confirmLabel={t('common.confirm')}
+          cancelLabel={t('common.cancel')}
+          onConfirm={() => {
+            const pid = injuryPlayerId;
+            setInjuryPlayerId(null);
+            navigate(`/joueurs/${pid}`);
+          }}
+          onCancel={() => setInjuryPlayerId(null)}
+        />
+      )}
     </div>
   );
 }

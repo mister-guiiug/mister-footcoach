@@ -4,6 +4,7 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
 import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
+import { ConfirmDialog } from '@mister-guiiug/dev-wpa-config/react/confirm-dialog';
 import { ContactFormDialog } from '../components/features/contacts/ContactFormDialog';
 import { useContacts, useAppContext } from '../store/AppContext';
 import type { Contact } from '../types';
@@ -15,6 +16,10 @@ export default function ContactsPage() {
   const { state, dispatch } = useAppContext();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Contact | undefined>();
+  // Le contact dont la suppression attend une réponse. `window.confirm` était
+  // synchrone ; la boîte du socle est déclarative — c'est cet état qui porte
+  // « quoi supprimer », et sa présence ouvre la boîte.
+  const [pendingDelete, setPendingDelete] = useState<Contact | null>(null);
 
   const playerName = (id: string) => {
     const p = state.players.find(x => x.id === id);
@@ -39,15 +44,7 @@ export default function ContactsPage() {
       window.alert(t('contacts.deleteImpossible'));
       return;
     }
-    if (
-      window.confirm(
-        t('contacts.deleteConfirm', {
-          name: `${contact.firstName} ${contact.lastName}`,
-        })
-      )
-    ) {
-      dispatch({ type: 'DELETE_CONTACT', contactId: contact.id });
-    }
+    setPendingDelete(contact);
   }
 
   function openNew() {
@@ -71,6 +68,23 @@ export default function ContactsPage() {
           open
           onClose={() => setFormOpen(false)}
           contact={editing}
+        />
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          open
+          destructive
+          title={t('contacts.deleteConfirm', {
+            name: `${pendingDelete.firstName} ${pendingDelete.lastName}`,
+          })}
+          confirmLabel={t('common.delete')}
+          cancelLabel={t('common.cancel')}
+          onConfirm={() => {
+            dispatch({ type: 'DELETE_CONTACT', contactId: pendingDelete.id });
+            setPendingDelete(null);
+          }}
+          onCancel={() => setPendingDelete(null)}
         />
       )}
 

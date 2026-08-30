@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../test/helpers';
+import { MOCK_DATA } from '../data/mock';
 import SettingsPage from './SettingsPage';
 
 describe('SettingsPage', () => {
@@ -70,21 +71,63 @@ describe('SettingsPage', () => {
     expect(screen.getByText(/Version MVP/)).toBeInTheDocument();
   });
 
-  it('clicking reset with confirm true resets data', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-    renderWithProviders(<SettingsPage />);
-    await userEvent.click(screen.getByText('Réinitialiser les données'));
-    expect(window.confirm).toHaveBeenCalledWith(
-      'Réinitialiser toutes les données de démonstration ?'
+  // ── Réinitialisation : la boîte du socle, pas `window.confirm` ───────
+  // L'ancien test ne pouvait vérifier que « l'appel natif a eu lieu avec ce
+  // texte » : la remise à zéro elle-même n'était jamais observée. On part
+  // ici d'une saison renommée pour VOIR les données d'exemple revenir.
+
+  /** Charge un état où la saison ne porte plus le nom des données d'exemple. */
+  function seedRenamedSeason(): void {
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({
+        ...MOCK_DATA,
+        season: { ...MOCK_DATA.season, name: 'Saison bricolée' },
+        selectedTeamId: MOCK_DATA.teams[0]!.id,
+      })
     );
+  }
+
+  /** Demande la réinitialisation et rend la boîte de confirmation. */
+  async function askReset(): Promise<HTMLElement> {
+    await userEvent.click(
+      screen.getByRole('button', { name: /Réinitialiser les données/ })
+    );
+    return screen.getByRole('alertdialog');
+  }
+
+  it('asks for confirmation before resetting the demo data', async () => {
+    seedRenamedSeason();
+    renderWithProviders(<SettingsPage />);
+    const dialog = await askReset();
+    expect(
+      within(dialog).getByText(
+        'Réinitialiser toutes les données de démonstration ?'
+      )
+    ).toBeInTheDocument();
+    // Rien n'est réinitialisé tant que rien n'est confirmé.
+    expect(screen.getByText('Saison bricolée')).toBeInTheDocument();
   });
 
-  it('clicking reset with confirm false does not reset', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+  it('resets the data once the confirmation is accepted', async () => {
+    seedRenamedSeason();
     renderWithProviders(<SettingsPage />);
-    await userEvent.click(screen.getByText('Réinitialiser les données'));
-    expect(window.confirm).toHaveBeenCalled();
-    // Season should still be there (not changed)
+    const dialog = await askReset();
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Réinitialiser les données' })
+    );
     expect(screen.getByText('2025-2026')).toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('keeps the data when the confirmation is cancelled', async () => {
+    seedRenamedSeason();
+    renderWithProviders(<SettingsPage />);
+    const dialog = await askReset();
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Annuler' })
+    );
+    expect(screen.getByText('Saison bricolée')).toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 });
