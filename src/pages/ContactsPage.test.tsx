@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../test/helpers';
@@ -40,16 +40,28 @@ describe('ContactsPage', () => {
   });
 
   it('blocks deletion of the sole contact of an active player (RG-CONTACT-03)', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
     renderWithProviders(<ContactsPage />);
     // Jean Martin is the only contact of p2/p3 → deletion blocked.
     const card = screen
       .getByText('Jean Martin')
       .closest('div.rounded-2xl') as HTMLElement;
     await userEvent.click(within(card).getByLabelText('Supprimer'));
-    expect(alertSpy).toHaveBeenCalled();
+
+    // Le refus est une alerte du socle, plus un `window.alert` : son texte est
+    // dans le DOM, donc vérifiable — le spy ne disait que « ça a sonné ».
+    const dialog = screen.getByRole('alertdialog');
+    expect(
+      within(dialog).getByText(/^Suppression impossible/)
+    ).toBeInTheDocument();
+    // Mono-action : une seule issue, pas d'« Annuler » à côté.
+    expect(
+      within(dialog).queryByRole('button', { name: 'Annuler' })
+    ).not.toBeInTheDocument();
+
+    // La prise d'acte referme, et le contact est toujours là.
+    await userEvent.click(within(dialog).getByRole('button', { name: 'OK' }));
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     expect(screen.getByText('Jean Martin')).toBeInTheDocument();
-    alertSpy.mockRestore();
   });
 
   // ── Suppression : la boîte du socle, pas `window.confirm` ────────────
