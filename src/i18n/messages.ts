@@ -40,6 +40,9 @@ export const messages = {
       name: 'Mister Footcoach',
     },
     nav: {
+      // Nom du repère de navigation, lu par les lecteurs d'écran : sans lui,
+      // deux `<nav>` de la page sont indiscernables dans leur liste de repères.
+      label: 'Navigation principale',
       home: 'Accueil',
       teams: 'Équipes',
       matches: 'Matchs',
@@ -709,6 +712,7 @@ export const messages = {
       name: 'Mister Footcoach',
     },
     nav: {
+      label: 'Main navigation',
       home: 'Home',
       teams: 'Teams',
       matches: 'Matches',

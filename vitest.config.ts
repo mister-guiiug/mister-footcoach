@@ -51,11 +51,24 @@ export default defineConfig({
       // donc le ratio vers le HAUT. `APP_ID` ajoute la seule ligne neuve, et
       // elle est couverte. Net : statements −9 dont −5 couverts, branches −4
       // dont −2, functions −2 dont −1, lines −8 dont −4.
+      // Rebasé (−0,17 à −0,37 pt) à l'adoption du `BottomNav` du socle. Le
+      // balisage local de la barre (tiroir, voile, bouton « Fermer »,
+      // navigation impérative) a été SUPPRIMÉ au profit du paquet, testé chez
+      // lui ; il ne reste que la liste des onze destinations. Baisse purement
+      // MÉCANIQUE : le dénominateur perd des unités TOUTES couvertes, donc le
+      // ratio cède alors qu'aucun test n'a disparu. La preuve tient dans le
+      // nombre d'unités NON couvertes, rigoureusement identique avant/après :
+      // statements 524, branches 423, functions 231, lines 466. Mesures :
+      // statements 1409/1933 → 1397/1921 (−12 dont −12 couverts), branches
+      // 1185/1608 → 1175/1598 (−10 dont −10), functions 526/757 → 517/748
+      // (−9 dont −9), lines 1275/1741 → 1264/1730 (−11 dont −11). La suite
+      // gagne au passage 4 tests (10 sur la barre contre 6), dont l'onglet
+      // courant sous basename — le cas qui ne casse qu'en production.
       thresholds: {
-        statements: 72.89,
-        branches: 73.69,
-        functions: 69.48,
-        lines: 73.23,
+        statements: 72.72,
+        branches: 73.52,
+        functions: 69.11,
+        lines: 73.06,
       },
     },
   },

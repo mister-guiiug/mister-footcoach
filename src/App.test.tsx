@@ -48,9 +48,14 @@ describe('App', () => {
     expect(await screen.findByRole('main')).toBeInTheDocument();
     // Les liens sont préfixés : prouve que le basename vient bien de BASE_URL
     // (sans ça, le catch-all redirigerait vers '/' et le test passerait à tort).
-    expect(screen.getByRole('link', { name: 'Accueil' })).toHaveAttribute(
-      'href',
-      '/mister-footcoach/'
-    );
+    // Le nom accessible porte en plus le « Page actuelle » masqué visuellement
+    // que pose le BottomNav du socle, d'où la comparaison sur le début du nom.
+    const home = screen.getByRole('link', {
+      name: name => name.startsWith('Accueil'),
+    });
+    expect(home).toHaveAttribute('href', '/mister-footcoach/');
+    // Et l'onglet est bien reconnu comme courant MALGRÉ le préfixe : le socle
+    // compare des chemins débarrassés du basename par `useLocation()`.
+    expect(home).toHaveAttribute('aria-current', 'page');
   });
 });
