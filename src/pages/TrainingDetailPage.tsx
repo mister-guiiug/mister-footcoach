@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Clock, Pencil } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
-import { EmptyState } from '../components/ui/EmptyState';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 import { TrainingFormDialog } from '../components/features/trainings/TrainingFormDialog';
 import { TrainingBlocksSection } from '../components/features/trainings/TrainingBlocksSection';
 import {
@@ -19,13 +19,13 @@ import { type AttendanceStatus } from '../types';
 import { formatDateFull, isUpcoming } from '../utils/date';
 import { useI18n } from '../i18n';
 
-const attendanceVariant: Record<
+const attendanceTone: Record<
   AttendanceStatus,
-  'present' | 'absent' | 'excuse'
+  'success' | 'danger' | 'warning'
 > = {
-  present: 'present',
-  absent: 'absent',
-  excuse: 'excuse',
+  present: 'success',
+  absent: 'danger',
+  excuse: 'warning',
 };
 
 const nextStatus: Record<AttendanceStatus, AttendanceStatus> = {
@@ -113,13 +113,13 @@ export default function TrainingDetailPage() {
         <div className="flex items-center justify-between gap-2 mb-1">
           <div className="flex items-center gap-2">
             {training.cancelled && (
-              <Badge variant="danger">{t('trainings.cancelled')}</Badge>
+              <Badge tone="danger">{t('trainings.cancelled')}</Badge>
             )}
             {training.type === 'exceptionnel' && (
-              <Badge variant="warning">{t('trainings.exceptional')}</Badge>
+              <Badge tone="warning">{t('trainings.exceptional')}</Badge>
             )}
             {training.seriesId && (
-              <Badge variant="primary">{t('trainings.series')}</Badge>
+              <Badge tone="brand">{t('trainings.series')}</Badge>
             )}
           </div>
           <Button
@@ -228,7 +228,7 @@ export default function TrainingDetailPage() {
                   <span className="text-sm text-fg">
                     {player.firstName} {player.lastName}
                   </span>
-                  <Badge variant={attendanceVariant[status]}>
+                  <Badge tone={attendanceTone[status]}>
                     {t(`attendance.${status}`)}
                   </Badge>
                 </button>

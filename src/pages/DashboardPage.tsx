@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom';
 import { Calendar, Dumbbell, Users, ClipboardList, Trophy } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
 import {
   useAppContext,
   useTeams,
@@ -14,13 +14,13 @@ import { formatDateShort, isUpcoming } from '../utils/date';
 import type { MatchStatus } from '../types';
 import { useI18n } from '../i18n';
 
-const statusVariant: Record<
+const statusTone: Record<
   MatchStatus,
-  'primary' | 'success' | 'warning' | 'muted' | 'danger'
+  'brand' | 'success' | 'warning' | 'muted' | 'danger'
 > = {
   previsionnel: 'muted',
   engage: 'warning',
-  saison: 'primary',
+  saison: 'brand',
   tournoi: 'success',
   annule: 'danger',
 };
@@ -112,7 +112,7 @@ export default function DashboardPage() {
                           {match.time}
                         </p>
                       </div>
-                      <Badge variant={statusVariant[match.status]}>
+                      <Badge tone={statusTone[match.status]}>
                         {t(`matchStatus.${match.status}`)}
                       </Badge>
                     </div>
@@ -159,7 +159,7 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       {training.type === 'exceptionnel' && (
-                        <Badge variant="warning">
+                        <Badge tone="warning">
                           {t('dashboard.exceptional')}
                         </Badge>
                       )}

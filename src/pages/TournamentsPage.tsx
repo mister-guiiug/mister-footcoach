@@ -3,21 +3,20 @@ import { Link } from 'react-router-dom';
 import { MapPin, Calendar, Plus, Pencil, ChevronRight } from 'lucide-react';
 import type { Tournament } from '../types';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
-import { EmptyState } from '../components/ui/EmptyState';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 import { TournamentFormDialog } from '../components/features/tournaments/TournamentFormDialog';
 import { useTournaments, useTeams } from '../store/AppContext';
 import { type TournamentStatus } from '../types';
 import { formatDateShort } from '../utils/date';
 import { useI18n } from '../i18n';
 
-const statusVariant: Record<TournamentStatus, 'muted' | 'warning' | 'success'> =
-  {
-    planifie: 'muted',
-    en_cours: 'warning',
-    termine: 'success',
-  };
+const statusTone: Record<TournamentStatus, 'muted' | 'warning' | 'success'> = {
+  planifie: 'muted',
+  en_cours: 'warning',
+  termine: 'success',
+};
 
 export default function TournamentsPage() {
   const { t } = useI18n();
@@ -77,12 +76,12 @@ export default function TournamentsPage() {
                           <ChevronRight size={15} className="text-fg-faint" />
                         </Link>
                         {tournament.isOrganizedByClub && (
-                          <Badge variant="primary">
+                          <Badge tone="brand">
                             {t('tournaments.organizer')}
                           </Badge>
                         )}
                       </div>
-                      <Badge variant={statusVariant[tournament.status]}>
+                      <Badge tone={statusTone[tournament.status]}>
                         {t(`tournamentStatus.${tournament.status}`)}
                       </Badge>
                     </div>

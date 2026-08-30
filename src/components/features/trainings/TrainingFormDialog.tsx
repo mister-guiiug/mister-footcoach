@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Dialog } from '../../ui/Dialog';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Select, Textarea } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { useTeams, useAppContext } from '../../../store/AppContext';
 import { useI18n } from '../../../i18n';
 import type { Training, TrainingType } from '../../../types';
@@ -132,7 +132,7 @@ export function TrainingFormDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t(isEdit ? 'trainings.form.editTitle' : 'trainings.form.newTitle')}
@@ -231,6 +231,6 @@ export function TrainingFormDialog({
           </label>
         )}
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

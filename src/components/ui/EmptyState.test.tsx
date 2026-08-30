@@ -1,8 +1,12 @@
+// Épingle le contrat de l'EmptyState PARTAGÉ (dev-wpa-config/react/empty-state)
+// tel que l'app l'utilise depuis la migration du kit local. Le socle n'a pas de
+// test dédié à ce composant : les comportements que le kit local garantissait
+// restent donc vérifiés ici, contre le composant du paquet.
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { EmptyState } from './EmptyState';
+import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 
-describe('EmptyState', () => {
+describe('EmptyState (socle)', () => {
   it('renders title', () => {
     render(<EmptyState title="Nothing here" />);
     expect(screen.getByText('Nothing here')).toBeInTheDocument();
@@ -14,8 +18,10 @@ describe('EmptyState', () => {
   });
 
   it('does not render description when omitted', () => {
-    render(<EmptyState title="T" />);
-    expect(screen.queryByRole('paragraph')).not.toBeInTheDocument();
+    const { container } = render(<EmptyState title="T" />);
+    expect(
+      container.querySelector('[data-dwc="empty-state-desc"]')
+    ).not.toBeInTheDocument();
   });
 
   it('renders icon when provided', () => {
@@ -25,8 +31,9 @@ describe('EmptyState', () => {
 
   it('does not render icon wrapper when icon is omitted', () => {
     const { container } = render(<EmptyState title="T" />);
-    // no div with mb-3 (the icon wrapper)
-    expect(container.querySelector('.mb-3')).not.toBeInTheDocument();
+    expect(
+      container.querySelector('[data-dwc="empty-state-icon"]')
+    ).not.toBeInTheDocument();
   });
 
   it('renders action when provided', () => {

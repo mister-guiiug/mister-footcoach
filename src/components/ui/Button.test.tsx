@@ -1,9 +1,13 @@
+// Épingle le contrat du Button PARTAGÉ (dev-wpa-config/react/button) tel que
+// l'app l'utilise depuis la migration du kit local (variantes, tailles,
+// chargement). Le socle ne teste pas le blocage du clic pendant `loading` :
+// c'est le comportement que le kit local garantissait, on le garde vérifié ici.
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Button } from './Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 
-describe('Button', () => {
+describe('Button (socle)', () => {
   it('renders children', () => {
     render(<Button>Click me</Button>);
     expect(
@@ -23,13 +27,17 @@ describe('Button', () => {
     expect(screen.getByRole('button')).toBeDisabled();
   });
 
-  it('shows spinner and is disabled when loading=true', () => {
+  it('shows a spinner and announces busy state when loading=true', () => {
     render(<Button loading>Save</Button>);
-    const btn = screen.getByRole('button');
-    expect(btn).toBeDisabled();
-    // spinner svg should be present instead of text
-    expect(btn.querySelector('svg')).toBeInTheDocument();
-    expect(screen.queryByText('Save')).not.toBeInTheDocument();
+    // Écart voulu vs kit local : le libellé RESTE visible à côté du spinner,
+    // et le bouton garde le focus (`aria-disabled`, pas `disabled`).
+    const btn = screen.getByRole('button', { name: 'Save' });
+    expect(btn).toHaveAttribute('aria-busy', 'true');
+    expect(btn).toHaveAttribute('aria-disabled', 'true');
+    expect(btn).not.toBeDisabled();
+    expect(
+      btn.querySelector('[data-dwc="button-spinner"]')
+    ).toBeInTheDocument();
   });
 
   it('does not fire onClick while loading', async () => {
@@ -43,22 +51,35 @@ describe('Button', () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  (['primary', 'secondary', 'ghost', 'danger'] as const).forEach(v => {
-    it(`renders variant "${v}"`, () => {
-      const { container } = render(<Button variant={v}>{v}</Button>);
-      expect(container.firstChild).toBeInTheDocument();
+  (['primary', 'secondary', 'outline', 'ghost', 'danger'] as const).forEach(
+    v => {
+      it(`renders variant "${v}"`, () => {
+        render(<Button variant={v}>{v}</Button>);
+        expect(screen.getByRole('button')).toHaveAttribute('data-variant', v);
+      });
+    }
+  );
+
+  (['sm', 'md', 'lg'] as const).forEach(s => {
+    it(`renders size "${s}"`, () => {
+      render(<Button size={s}>x</Button>);
+      expect(screen.getByRole('button')).toHaveAttribute('data-size', s);
     });
   });
 
-  (['sm', 'md', 'lg', 'icon'] as const).forEach(s => {
-    it(`renders size "${s}"`, () => {
-      const { container } = render(<Button size={s}>x</Button>);
-      expect(container.firstChild).toBeInTheDocument();
-    });
+  it('requires an accessible name in icon-only mode', () => {
+    render(
+      <Button iconOnly aria-label="Fermer">
+        ×
+      </Button>
+    );
+    expect(screen.getByRole('button', { name: 'Fermer' })).toHaveAttribute(
+      'data-icon-only'
+    );
   });
 
   it('accepts extra className', () => {
-    const { container } = render(<Button className="extra">x</Button>);
-    expect(container.firstChild).toHaveClass('extra');
+    render(<Button className="extra">x</Button>);
+    expect(screen.getByRole('button')).toHaveClass('extra');
   });
 });

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { Input } from '../components/ui/Input';
-import { EmptyState } from '../components/ui/EmptyState';
+import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 import { ExerciseFormDialog } from '../components/features/exercises/ExerciseFormDialog';
 import { useExercises, useAppContext } from '../store/AppContext';
 import { type Exercise, type ExerciseCategory } from '../types';
@@ -126,11 +126,11 @@ export default function ExercisesPage() {
                     <h2 className="font-semibold text-fg-heading">
                       {ex.title}
                     </h2>
-                    <Badge variant="primary">
+                    <Badge tone="brand">
                       {t(`exerciseCategory.${ex.category}`)}
                     </Badge>
                     {ex.suggestedDuration && (
-                      <Badge variant="muted">{ex.suggestedDuration} min</Badge>
+                      <Badge tone="muted">{ex.suggestedDuration} min</Badge>
                     )}
                   </div>
                   {ex.description && (

@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AlertTriangle, Plus } from 'lucide-react';
 import { Card, CardHeader } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
-import { EmptyState } from '../components/ui/EmptyState';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 import { SurveyFormDialog } from '../components/features/surveys/SurveyFormDialog';
 import {
   useSurveys,
@@ -30,20 +30,18 @@ import { useI18n } from '../i18n';
 function RetainedBadge({ status }: { status: RetainedStatus }) {
   const { t } = useI18n();
   if (!status.answered)
-    return <Badge variant="muted">{t('surveys.notAnswered')}</Badge>;
+    return <Badge tone="muted">{t('surveys.notAnswered')}</Badge>;
   const label = t(`surveyResponse.${status.value!}`);
   if (!status.confirmed) {
-    return (
-      <Badge variant="muted">{t('surveys.notConfirmed', { label })}</Badge>
-    );
+    return <Badge tone="muted">{t('surveys.notConfirmed', { label })}</Badge>;
   }
-  const variant =
+  const tone =
     status.value === 'present'
-      ? 'present'
+      ? 'success'
       : status.value === 'absent'
-        ? 'absent'
-        : 'excuse';
-  return <Badge variant={variant}>{label}</Badge>;
+        ? 'danger'
+        : 'warning';
+  return <Badge tone={tone}>{label}</Badge>;
 }
 
 function SurveyCard({ survey }: { survey: Survey }) {
@@ -130,7 +128,7 @@ function SurveyCard({ survey }: { survey: Survey }) {
         })}
         action={
           <Badge
-            variant={
+            tone={
               survey.status === 'ouvert'
                 ? 'success'
                 : survey.status === 'ferme'

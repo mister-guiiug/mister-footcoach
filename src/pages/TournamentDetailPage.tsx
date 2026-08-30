@@ -9,9 +9,9 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Card, CardHeader } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
-import { EmptyState } from '../components/ui/EmptyState';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 import { TournamentFormDialog } from '../components/features/tournaments/TournamentFormDialog';
 import { TournamentGroupFormDialog } from '../components/features/tournaments/TournamentGroupFormDialog';
 import { TournamentMatchFormDialog } from '../components/features/tournaments/TournamentMatchFormDialog';
@@ -32,12 +32,11 @@ import { googleMapsUrl, appleMapsUrl } from '../utils/maps';
 import { computeGroupStandings } from '../utils/tournament';
 import { useI18n } from '../i18n';
 
-const statusVariant: Record<TournamentStatus, 'muted' | 'warning' | 'success'> =
-  {
-    planifie: 'muted',
-    en_cours: 'warning',
-    termine: 'success',
-  };
+const statusTone: Record<TournamentStatus, 'muted' | 'warning' | 'success'> = {
+  planifie: 'muted',
+  en_cours: 'warning',
+  termine: 'success',
+};
 
 export default function TournamentDetailPage() {
   const { t } = useI18n();
@@ -101,7 +100,7 @@ export default function TournamentDetailPage() {
               {tournament.name}
             </h1>
             {tournament.isOrganizedByClub && (
-              <Badge variant="primary">{t('tournaments.organizer')}</Badge>
+              <Badge tone="brand">{t('tournaments.organizer')}</Badge>
             )}
           </div>
           <Button
@@ -113,7 +112,7 @@ export default function TournamentDetailPage() {
           </Button>
         </div>
         <div className="mt-1">
-          <Badge variant={statusVariant[tournament.status]}>
+          <Badge tone={statusTone[tournament.status]}>
             {t(`tournamentStatus.${tournament.status}`)}
           </Badge>
         </div>

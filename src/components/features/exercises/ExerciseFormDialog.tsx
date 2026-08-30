@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Dialog } from '../../ui/Dialog';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Select, Textarea } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { useAppContext } from '../../../store/AppContext';
 import { type Exercise, type ExerciseCategory } from '../../../types';
 import { useI18n } from '../../../i18n';
@@ -76,7 +76,7 @@ export function ExerciseFormDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t(isEdit ? 'exercises.form.editTitle' : 'exercises.form.newTitle')}
@@ -132,6 +132,6 @@ export function ExerciseFormDialog({
         />
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

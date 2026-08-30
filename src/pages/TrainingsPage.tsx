@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, Users, Plus } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { TrainingFormDialog } from '../components/features/trainings/TrainingFormDialog';
 import { useTrainings, useTeams } from '../store/AppContext';
 import { formatDateFull, isUpcoming } from '../utils/date';
@@ -125,13 +125,11 @@ export default function TrainingsPage() {
                     </div>
                     <div className="flex flex-col items-end gap-1.5">
                       {training.cancelled && (
-                        <Badge variant="danger">
-                          {t('trainings.cancelled')}
-                        </Badge>
+                        <Badge tone="danger">{t('trainings.cancelled')}</Badge>
                       )}
                       {training.type === 'exceptionnel' &&
                         !training.cancelled && (
-                          <Badge variant="warning">
+                          <Badge tone="warning">
                             {t('trainings.exceptional')}
                           </Badge>
                         )}

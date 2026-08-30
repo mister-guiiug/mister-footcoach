@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Dialog } from '../../ui/Dialog';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input, Select, Textarea } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { useAppContext, useUnavailabilities } from '../../../store/AppContext';
 import {
   INJURY_STATUS_LABELS,
@@ -128,7 +128,7 @@ export function InjuryFormDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t(isEdit ? 'injury.trackTitle' : 'injury.declareTitle')}
@@ -214,6 +214,6 @@ export function InjuryFormDialog({
 
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

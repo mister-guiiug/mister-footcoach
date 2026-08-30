@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Car, Plus, Trash2 } from 'lucide-react';
 import { Card, CardHeader } from '../../ui/Card';
-import { Badge } from '../../ui/Badge';
-import { Button } from '../../ui/Button';
-import { Dialog } from '../../ui/Dialog';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
 import { Input } from '../../ui/Input';
 import {
   useCarpoolOffers,
@@ -84,7 +84,7 @@ export function CarpoolSection({ match }: CarpoolSectionProps) {
                     <p className="text-sm font-medium text-fg">
                       {conductorName(offer.offeredBy)}
                     </p>
-                    <Badge variant={free > 0 ? 'success' : 'muted'}>
+                    <Badge tone={free > 0 ? 'success' : 'muted'}>
                       {t(
                         free > 1
                           ? 'carpool.seatsFreePlural'
@@ -194,7 +194,7 @@ function CarpoolFormDialog({ match, open, onClose }: CarpoolFormDialogProps) {
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onClose={onClose}
       title={t('carpool.proposeTitle')}
@@ -254,6 +254,6 @@ function CarpoolFormDialog({ match, open, onClose }: CarpoolFormDialogProps) {
           </div>
         </div>
       </div>
-    </Dialog>
+    </Sheet>
   );
 }

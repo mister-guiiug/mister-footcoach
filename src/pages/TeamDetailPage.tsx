@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronRight, AlertTriangle, Plus, Download } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { EmptyState } from '../components/ui/EmptyState';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 import { PlayerFormDialog } from '../components/features/players/PlayerFormDialog';
 import {
   useTeam,

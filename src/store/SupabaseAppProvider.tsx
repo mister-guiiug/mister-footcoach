@@ -21,7 +21,7 @@ import {
 } from '../backend/tables';
 import { persistAction } from './persistAction';
 import { Spinner } from '../components/ui/Spinner';
-import { useToast } from '../components/ui/Toast';
+import { useToast } from '@mister-guiiug/dev-wpa-config/react/toast';
 import { useI18n } from '../i18n';
 
 /**
@@ -93,7 +93,8 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       localDispatch(action);
       void persistAction(action, stateRef.current).catch((e: unknown) => {
         console.error('Supabase persist failed', action.type, e);
-        toast.show(t('errors.saveFailed'), 'error');
+        // Socle : une erreur reste affichée jusqu'à fermeture explicite.
+        toast.error(t('errors.saveFailed'));
         void reload();
       });
     },

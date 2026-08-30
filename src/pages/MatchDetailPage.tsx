@@ -10,9 +10,9 @@ import {
   Navigation,
 } from 'lucide-react';
 import { Card, CardHeader } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
-import { EmptyState } from '../components/ui/EmptyState';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 import { MatchFormDialog } from '../components/features/matches/MatchFormDialog';
 import { MeetingPointDialog } from '../components/features/logistics/MeetingPointDialog';
 import { CarpoolSection } from '../components/features/logistics/CarpoolSection';
@@ -28,24 +28,24 @@ import { formatDateFull } from '../utils/date';
 import { googleMapsUrl, appleMapsUrl } from '../utils/maps';
 import { useI18n } from '../i18n';
 
-const statusVariant: Record<
+const statusTone: Record<
   MatchStatus,
-  'primary' | 'success' | 'warning' | 'muted' | 'danger'
+  'brand' | 'success' | 'warning' | 'muted' | 'danger'
 > = {
   previsionnel: 'muted',
   engage: 'warning',
-  saison: 'primary',
+  saison: 'brand',
   tournoi: 'success',
   annule: 'danger',
 };
 
-const attendanceVariant: Record<
+const attendanceTone: Record<
   AttendanceStatus,
-  'present' | 'absent' | 'excuse'
+  'success' | 'danger' | 'warning'
 > = {
-  present: 'present',
-  absent: 'absent',
-  excuse: 'excuse',
+  present: 'success',
+  absent: 'danger',
+  excuse: 'warning',
 };
 
 export default function MatchDetailPage() {
@@ -90,12 +90,12 @@ export default function MatchDetailPage() {
       {/* Header */}
       <div>
         <div className="flex items-center justify-between mb-1">
-          <Badge variant={statusVariant[match.status]}>
+          <Badge tone={statusTone[match.status]}>
             {t(`matchStatus.${match.status}`)}
           </Badge>
           <div className="flex items-center gap-2">
             {match.liveActive && (
-              <Badge variant="danger" className="animate-pulse">
+              <Badge tone="danger" className="animate-pulse">
                 <Radio size={10} className="mr-1" /> {t('matches.live')}
               </Badge>
             )}
@@ -307,7 +307,7 @@ export default function MatchDetailPage() {
                   <span className="text-fg">
                     {player.firstName} {player.lastName}
                   </span>
-                  <Badge variant={attendanceVariant[att.status]}>
+                  <Badge tone={attendanceTone[att.status]}>
                     {t(`attendance.${att.status}`)}
                   </Badge>
                 </div>

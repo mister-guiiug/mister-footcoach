@@ -9,9 +9,9 @@ import {
   Download,
 } from 'lucide-react';
 import { Card, CardHeader } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
-import { EmptyState } from '../components/ui/EmptyState';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 import { PlayerFormDialog } from '../components/features/players/PlayerFormDialog';
 import { UnavailabilityFormDialog } from '../components/features/players/UnavailabilityFormDialog';
 import { InjuryFormDialog } from '../components/features/players/InjuryFormDialog';
@@ -115,7 +115,7 @@ export default function PlayerDetailPage() {
             <h1 className="text-xl font-bold text-fg-heading">
               {player.firstName} {player.lastName}
             </h1>
-            {player.number && <Badge variant="primary">#{player.number}</Badge>}
+            {player.number && <Badge tone="brand">#{player.number}</Badge>}
           </div>
           <p className="text-sm text-fg-muted mt-0.5">
             {t(`position.${player.preferredPosition}`)} ·{' '}

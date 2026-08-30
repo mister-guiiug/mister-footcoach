@@ -13,8 +13,8 @@ import {
 import { FamilyApps } from '@mister-guiiug/dev-wpa-config/react';
 import { REPO_URL, SPONSOR_URL } from '../links';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
+import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { useTheme } from '../theme/ThemeContext';
 import {
   useAppContext,
@@ -297,17 +297,17 @@ export default function SettingsPage() {
         {syncResult && (
           <div className="mt-3 space-y-2 text-sm">
             <div className="flex gap-2">
-              <Badge variant="success">
+              <Badge tone="success">
                 {t('settings.syncUpdated', {
                   count: syncResult.updated.length,
                 })}
               </Badge>
-              <Badge variant="primary">
+              <Badge tone="brand">
                 {t('settings.syncCreated', {
                   count: syncResult.created.length,
                 })}
               </Badge>
-              <Badge variant="warning">
+              <Badge tone="warning">
                 {t(
                   syncResult.conflicts.length > 1
                     ? 'settings.syncConflictPlural'
