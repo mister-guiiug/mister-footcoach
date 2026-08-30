@@ -137,6 +137,18 @@ body {
    (`:where(#root) > [data-dwc='error-boundary']`) couvre exactement le bloc
    que ce fichier recopiait. */
 
+/* Bandeau de mise à jour (composant partagé UpdatePromptBanner). La boîte et
+   les deux boutons sont habillés par `components.css` ; il n'y manque que la
+   hiérarchie entre les actions : le socle les rend identiques, or « Recharger »
+   doit rester l'action évidente devant « Plus tard ». Une seule règle, hors
+   `@layer`, donc gagnante sur le `:where()` du socle. */
+[data-dwc='update-banner-update'] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-fg);
+  font-weight: 500;
+}
+
 /* Famille — grille « Nos autres applications » (composant partagé FamilyApps).
    Attributs [data-dwc="…"] scopés sous .family-apps ; couleurs via les tokens
    de thème (--surface-muted/--fg/--fg-muted/--border-ui/--primary) → le mode

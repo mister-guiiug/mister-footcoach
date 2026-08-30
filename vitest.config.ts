@@ -18,8 +18,8 @@ export default defineConfig({
       // point d'entrée (montage React), non testable unitairement.
       exclude: [...coveragePreset.exclude, 'src/main.tsx'],
       // Planchers = couverture réelle EXACTE au 2026-08-30, sans marge :
-      // statements 1414/1942, branches 1187/1612, functions 527/759,
-      // lines 1279/1749 (le `pct` d'istanbul tronque à 2 décimales). Mesures
+      // statements 1409/1933, branches 1185/1608, functions 526/757,
+      // lines 1275/1741 (le `pct` d'istanbul tronque à 2 décimales). Mesures
       // identiques sur Linux (CI) et Windows, d'où la tolérance zéro.
       // Cliquet strict : toute régression casse la CI, et tout gain de
       // couverture doit être répercuté ici. À monter, jamais à baisser pour
@@ -42,11 +42,20 @@ export default defineConfig({
       // `.ics` réellement téléchargé : branches +0,49 pt, functions +0,33 pt,
       // statements +0,01 pt ; seules les lines cèdent 0,03 pt, et aucune ligne
       // restante n'a perdu de test.
+      // Remonté (+0,05 à +0,11 pt) à l'adoption du catalogue de la famille et
+      // du bandeau de mise à jour du socle. Deux suppressions, aucune perte de
+      // test : `src/links.ts` (6 lignes, 2 couvertes — `appUrl()` n'avait plus
+      // d'appelant) et le balisage local du bandeau (UpdateBanner : 6 → 2
+      // statements, tous couverts). Les 10 statements retirés n'étaient
+      // couverts qu'à 60 % (6/10), sous la moyenne du dépôt : leur départ tire
+      // donc le ratio vers le HAUT. `APP_ID` ajoute la seule ligne neuve, et
+      // elle est couverte. Net : statements −9 dont −5 couverts, branches −4
+      // dont −2, functions −2 dont −1, lines −8 dont −4.
       thresholds: {
-        statements: 72.81,
-        branches: 73.63,
-        functions: 69.43,
-        lines: 73.12,
+        statements: 72.89,
+        branches: 73.69,
+        functions: 69.48,
+        lines: 73.23,
       },
     },
   },

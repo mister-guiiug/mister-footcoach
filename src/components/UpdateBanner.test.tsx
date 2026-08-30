@@ -1,83 +1,105 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { UseUpdatePrompt } from '@mister-guiiug/dev-wpa-config/react/use-update-prompt';
+import type { RegisterSW } from '@mister-guiiug/dev-wpa-config/react/use-update-prompt';
 import { I18nProvider } from '../i18n';
 import { UpdateBanner } from './UpdateBanner';
 
-// Mock local à CE fichier : l'état et l'application de la mise à jour sont
-// délégués au hook du socle (testé chez lui) ; on pilote ses retours pour
-// vérifier le rendu du bandeau et le câblage du bouton.
-const { useUpdatePrompt } = vi.hoisted(() => ({
-  useUpdatePrompt: vi.fn<() => UseUpdatePrompt>(),
-}));
-vi.mock('@mister-guiiug/dev-wpa-config/react/use-update-prompt', () => ({
-  useUpdatePrompt,
+/**
+ * `virtual:pwa-register` n'existe qu'au build Vite ; le setup partagé le
+ * remplace par un `registerSW` inerte, qui ne signale JAMAIS rien. On le
+ * re-mocke ici par un double pilotable : c'est le seul moyen de rejouer ce que
+ * fait un vrai service worker (« une nouvelle version attend »), donc de
+ * prouver que le bandeau peut réellement apparaître — un bandeau muet compile
+ * exactement comme un bandeau qui marche.
+ *
+ * Le getter n'est pas une coquetterie. Le hook du socle mémorise sa connexion
+ * PAR fonction `registerSW` (WeakMap), pour ne pas doubler les écouteurs : un
+ * double unique garderait `needRefresh` à vrai d'un test au suivant. Chaque
+ * test reçoit donc sa propre fonction.
+ */
+const sw = vi.hoisted(() => ({
+  register: null as RegisterSW | null,
+  /** Rappel capté à l'enregistrement, `null` tant que rien n'a enregistré. */
+  onNeedRefresh: null as (() => void) | null,
 }));
 
-function prompt(overrides: Partial<UseUpdatePrompt> = {}): UseUpdatePrompt {
-  return {
-    needRefresh: false,
-    offlineReady: false,
-    visible: false,
-    updating: false,
-    update: vi.fn().mockResolvedValue('activated'),
-    forceUpdate: vi.fn().mockResolvedValue('activated'),
-    dismiss: vi.fn(),
-    snooze: vi.fn(),
-    ...overrides,
-  };
+vi.mock('virtual:pwa-register', () => ({
+  get registerSW() {
+    return sw.register;
+  },
+}));
+
+function mount() {
+  return render(
+    <I18nProvider>
+      <UpdateBanner />
+    </I18nProvider>
+  );
+}
+
+/** Rejoue le signal du service worker : une nouvelle version est prête. */
+function announceUpdate() {
+  expect(sw.onNeedRefresh).toBeTypeOf('function');
+  act(() => sw.onNeedRefresh?.());
 }
 
 describe('UpdateBanner', () => {
   beforeEach(() => {
-    useUpdatePrompt.mockReset();
+    // La locale est persistée : sans ce nettoyage, le dernier test imposerait
+    // l'anglais aux suivants.
+    localStorage.clear();
+    sw.onNeedRefresh = null;
+    sw.register = vi.fn(options => {
+      sw.onNeedRefresh = options?.onNeedRefresh ?? null;
+      return () => Promise.resolve();
+    });
   });
 
-  it('renders nothing when no update is visible', () => {
-    useUpdatePrompt.mockReturnValue(prompt());
-    const { container } = render(
-      <I18nProvider>
-        <UpdateBanner />
-      </I18nProvider>
+  it('injects registerSW into the shared hook', () => {
+    mount();
+    expect(sw.register).toHaveBeenCalledWith(
+      expect.objectContaining({ onNeedRefresh: expect.any(Function) })
     );
-    expect(container.firstChild).toBeNull();
   });
 
-  it('renders the banner when an update is visible', () => {
-    useUpdatePrompt.mockReturnValue(prompt({ visible: true }));
-    render(
-      <I18nProvider>
-        <UpdateBanner />
-      </I18nProvider>
-    );
-    expect(screen.getByText('Mise à jour disponible')).toBeInTheDocument();
+  it('renders nothing while no update has been announced', () => {
+    const { container } = mount();
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('shows the banner when the service worker announces an update', () => {
+    mount();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    announceUpdate();
+
+    const banner = screen.getByRole('status');
+    expect(banner).toHaveAttribute('data-dwc', 'update-banner');
+    expect(banner).toHaveTextContent('Mise à jour disponible');
     expect(
       screen.getByRole('button', { name: 'Actualiser' })
     ).toBeInTheDocument();
   });
 
-  it('injects registerSW from virtual:pwa-register into the hook', () => {
-    useUpdatePrompt.mockReturnValue(prompt());
-    render(
-      <I18nProvider>
-        <UpdateBanner />
-      </I18nProvider>
-    );
-    expect(useUpdatePrompt).toHaveBeenCalledWith(
-      expect.objectContaining({ registerSW: expect.any(Function) })
-    );
+  // Changement observable : l'ancien bandeau local n'avait qu'un bouton, donc
+  // aucune issue autre que recharger. Celui du socle en offre toujours une.
+  it('lets the user set the banner aside', async () => {
+    mount();
+    announceUpdate();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Plus tard' }));
+
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('applies the update when the button is clicked', async () => {
-    const update = vi.fn().mockResolvedValue('activated');
-    useUpdatePrompt.mockReturnValue(prompt({ visible: true, update }));
-    render(
-      <I18nProvider>
-        <UpdateBanner />
-      </I18nProvider>
-    );
-    await userEvent.click(screen.getByRole('button', { name: 'Actualiser' }));
-    expect(update).toHaveBeenCalledTimes(1);
+  it('speaks the language selected in the app', () => {
+    localStorage.setItem('footcoach_locale', 'en');
+    mount();
+    announceUpdate();
+
+    expect(screen.getByRole('status')).toHaveTextContent('Update available');
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Later' })).toBeInTheDocument();
   });
 });
