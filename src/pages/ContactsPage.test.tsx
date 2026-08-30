@@ -52,17 +52,48 @@ describe('ContactsPage', () => {
     alertSpy.mockRestore();
   });
 
-  it('deletes a contact when another remains for the player', async () => {
-    const confirmSpy = vi
-      .spyOn(window, 'confirm')
-      .mockImplementation(() => true);
-    renderWithProviders(<ContactsPage />);
-    // Lucas (p1) has two contacts → Pierre can be removed.
+  // ── Suppression : la boîte du socle, pas `window.confirm` ────────────
+  // L'appel natif était synchrone et hors du DOM : seul le « oui » pouvait
+  // être simulé (en forçant le retour du spy), jamais l'ouverture ni le
+  // refus. Les trois chemins sont désormais des clics ordinaires.
+
+  /** Ouvre la suppression de Pierre Dupont. Lucas (p1) a deux contacts,
+   *  Pierre est donc supprimable (RG-CONTACT-03). */
+  async function askDeletePierre(): Promise<HTMLElement> {
     const card = screen
       .getByText('Pierre Dupont')
       .closest('div.rounded-2xl') as HTMLElement;
     await userEvent.click(within(card).getByLabelText('Supprimer'));
+    return screen.getByRole('alertdialog');
+  }
+
+  it('asks for confirmation before deleting a contact', async () => {
+    renderWithProviders(<ContactsPage />);
+    const dialog = await askDeletePierre();
+    expect(
+      within(dialog).getByText('Supprimer Pierre Dupont ?')
+    ).toBeInTheDocument();
+    // Rien n'est parti tant que rien n'est confirmé.
+    expect(screen.getByText('Pierre Dupont')).toBeInTheDocument();
+  });
+
+  it('deletes the contact once the confirmation is accepted', async () => {
+    renderWithProviders(<ContactsPage />);
+    const dialog = await askDeletePierre();
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Supprimer' })
+    );
     expect(screen.queryByText('Pierre Dupont')).not.toBeInTheDocument();
-    confirmSpy.mockRestore();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('keeps the contact when the confirmation is cancelled', async () => {
+    renderWithProviders(<ContactsPage />);
+    const dialog = await askDeletePierre();
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Annuler' })
+    );
+    expect(screen.getByText('Pierre Dupont')).toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 });

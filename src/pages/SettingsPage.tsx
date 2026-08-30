@@ -15,6 +15,7 @@ import { REPO_URL, SPONSOR_URL } from '../links';
 import { Card } from '../components/ui/Card';
 import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
 import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { ConfirmDialog } from '@mister-guiiug/dev-wpa-config/react/confirm-dialog';
 import { useTheme } from '../theme/ThemeContext';
 import {
   useAppContext,
@@ -47,6 +48,9 @@ export default function SettingsPage() {
   const prefs = useNotificationPreferences();
   const clubSettings = useClubSettings();
   const [syncResult, setSyncResult] = useState<ReconcileResult | null>(null);
+  // Réinitialisation en attente de réponse : `window.confirm` rendait un
+  // booléen tout de suite, la boîte du socle attend un clic.
+  const [resetPending, setResetPending] = useState(false);
 
   function syncFederation() {
     const teamId = state.teams[0]?.id ?? '';
@@ -70,9 +74,7 @@ export default function SettingsPage() {
   }
 
   function resetData() {
-    if (window.confirm(t('settings.resetConfirm'))) {
-      dispatch({ type: 'RESET_TO_MOCK' });
-    }
+    setResetPending(true);
   }
 
   function updatePrefs(patch: Partial<NotificationPreferences>) {
@@ -378,6 +380,21 @@ export default function SettingsPage() {
           {t('settings.resetData')}
         </Button>
       </Card>
+
+      {resetPending && (
+        <ConfirmDialog
+          open
+          destructive
+          title={t('settings.resetConfirm')}
+          confirmLabel={t('settings.resetData')}
+          cancelLabel={t('common.cancel')}
+          onConfirm={() => {
+            dispatch({ type: 'RESET_TO_MOCK' });
+            setResetPending(false);
+          }}
+          onCancel={() => setResetPending(false)}
+        />
+      )}
 
       {/* App info */}
       <Card>
