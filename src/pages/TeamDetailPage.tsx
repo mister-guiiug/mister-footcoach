@@ -19,9 +19,59 @@ import {
   isActiveUnavailability,
   today,
 } from '../utils/date';
-import { matchEvent, trainingEvent, buildICal } from '../utils/ical';
+import {
+  toIcalendar,
+  ICAL_MIME,
+  type IcalEvent,
+} from '@mister-guiiug/dev-wpa-config/ical';
 import { downloadText } from '@mister-guiiug/dev-wpa-config/download';
 import { useI18n } from '../i18n';
+import type { Match, Training } from '../types';
+
+/**
+ * Un match devient un événement d'agenda. Le `STATUS` n'est pas décoratif : un
+ * match annulé RESTE au calendrier, barré, au lieu de disparaître sans que
+ * personne ne comprenne pourquoi (RG-ICAL-04 pour le nom du tournoi).
+ *
+ * `date` + `time` sont recollés en horodatage ISO SANS décalage : c'est une
+ * heure FLOTTANTE, donc un coup d'envoi à 10 h reste à 10 h pour le parent qui
+ * consulte l'agenda depuis un autre fuseau.
+ */
+function matchEvent(match: Match, tournamentName?: string): IcalEvent {
+  const descParts = [`Statut : ${match.status}`, `Phase : ${match.phase}`];
+  if (tournamentName) descParts.push(`Tournoi : ${tournamentName}`);
+  if (match.meetingTime || match.meetingAddress) {
+    descParts.push(
+      `RDV : ${[match.meetingTime, match.meetingAddress].filter(Boolean).join(' — ')}`
+    );
+  }
+  return {
+    uid: `match-${match.id}@mister-footcoach`,
+    summary: `⚽ ${match.isHome ? 'vs' : '@'} ${match.opponent}`,
+    start: `${match.date}T${match.time || '00:00'}`,
+    durationMinutes: 120,
+    location: [match.location, match.address].filter(Boolean).join(', '),
+    description: descParts.join('\n'),
+    status:
+      match.status === 'annule'
+        ? 'CANCELLED'
+        : match.status === 'previsionnel'
+          ? 'TENTATIVE'
+          : 'CONFIRMED',
+  };
+}
+
+/** Un entraînement : sa fin se déduit de sa durée saisie, en minutes. */
+function trainingEvent(training: Training): IcalEvent {
+  return {
+    uid: `training-${training.id}@mister-footcoach`,
+    summary: `🏋 ${training.theme ?? 'Entraînement'}`,
+    start: `${training.date}T${training.time || '00:00'}`,
+    durationMinutes: training.duration,
+    description: training.note,
+    status: training.cancelled ? 'CANCELLED' : 'CONFIRMED',
+  };
+}
 
 export default function TeamDetailPage() {
   const { t } = useI18n();
@@ -42,9 +92,15 @@ export default function TeamDetailPage() {
       ...trainings.map(trainingEvent),
     ];
     downloadText(
-      buildICal(events, `${team?.name ?? 'Équipe'} — Mister Footcoach`),
+      // Pas de `timeZone` : les heures restent FLOTTANTES, sans quoi un
+      // `X-WR-TIMEZONE` ferait reconvertir le 18 h de l'entraînement dans le
+      // fuseau du lecteur — exactement ce qu'on ne veut pas.
+      toIcalendar(events, {
+        name: `${team?.name ?? 'Équipe'} — Mister Footcoach`,
+        prodId: '-//Mister Footcoach//FR',
+      }),
       `${team?.name ?? 'equipe'}.ics`,
-      'text/calendar'
+      ICAL_MIME
     );
   }
 
