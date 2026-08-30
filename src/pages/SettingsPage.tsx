@@ -11,7 +11,10 @@ import {
   LayoutGrid,
 } from 'lucide-react';
 import { FamilyApps } from '@mister-guiiug/dev-wpa-config/react';
-import { REPO_URL, SPONSOR_URL } from '../links';
+import {
+  SPONSOR_URL,
+  repoUrl,
+} from '@mister-guiiug/dev-wpa-config/apps-catalog';
 import { Card } from '../components/ui/Card';
 import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
 import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
@@ -33,6 +36,13 @@ import { FEDERATION_SAMPLE } from '../data/federation';
 import { genId, nowIso } from '../utils/id';
 import { formatDate } from '../utils/date';
 import { useI18n } from '../i18n';
+
+/**
+ * Identifiant de l'app dans le catalogue de la famille. C'est AUSSI le nom du
+ * dépôt GitHub : `repoUrl(APP_ID)` et `currentAppId` en dépendent tous deux,
+ * d'où la constante unique — une faute de frappe donnerait un lien 404.
+ */
+const APP_ID = 'mister-footcoach';
 
 const REMINDER_DELAYS: { value: ReminderDelay; label: string }[] = [
   { value: 'J-1', label: 'J-1' },
@@ -409,7 +419,7 @@ export default function SettingsPage() {
         </p>
         <div className="family-apps">
           <FamilyApps
-            currentAppId="mister-footcoach"
+            currentAppId={APP_ID}
             showSource={false}
             showSponsor={false}
           />
@@ -429,7 +439,7 @@ export default function SettingsPage() {
             </p>
             <div className="flex flex-wrap items-center gap-3 mt-2">
               <a
-                href={REPO_URL}
+                href={repoUrl(APP_ID)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs font-medium text-fg-muted hover:text-fg-heading"

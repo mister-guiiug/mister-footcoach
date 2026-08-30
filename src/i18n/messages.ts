@@ -60,6 +60,10 @@ export const messages = {
     update: {
       available: 'Mise à jour disponible',
       refresh: 'Actualiser',
+      refreshing: 'Mise à jour…',
+      // Masque le bandeau pour la session : il revient au prochain lancement,
+      // d'où « Plus tard » plutôt que « Fermer ».
+      dismiss: 'Plus tard',
     },
     auth: {
       email: 'Email',
@@ -725,6 +729,8 @@ export const messages = {
     update: {
       available: 'Update available',
       refresh: 'Refresh',
+      refreshing: 'Updating…',
+      dismiss: 'Later',
     },
     auth: {
       email: 'Email',

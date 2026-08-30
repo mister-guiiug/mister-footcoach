@@ -167,7 +167,6 @@ mister-footcoach/
 │   ├── main.tsx                     # Point d'entrée — chaîne de providers
 │   ├── App.tsx                      # Routeur (18 routes, pages en lazy())
 │   ├── index.css                    # Tokens Tailwind CSS v4
-│   ├── links.ts
 │   ├── vite-env.d.ts
 │   │
 │   ├── backend/
@@ -188,7 +187,7 @@ mister-footcoach/
 │   │   └── persistAction.ts         # Action dispatchée → écriture Supabase
 │   │
 │   ├── components/
-│   │   ├── UpdateBanner.tsx         # Invite à recharger quand un SW est prêt
+│   │   ├── UpdateBanner.tsx         # Câblage du UpdatePromptBanner du socle
 │   │   ├── layout/
 │   │   │   ├── AppShell.tsx         # Wrapper principal
 │   │   │   ├── TopBar.tsx           # En-tête avec retour et titre
@@ -839,8 +838,10 @@ VitePWA({
 ```
 
 `registerType: 'prompt'` : la mise à jour n'est jamais appliquée dans le dos de
-l'utilisateur, un bandeau propose de recharger (`UpdateBanner`, qui consomme
-`useRegisterSW` de `virtual:pwa-register/react`).
+l'utilisateur, un bandeau propose de recharger. Le bandeau est celui du socle
+(`@mister-guiiug/dev-wpa-config/react/update-prompt-banner`) ; `UpdateBanner`
+ne fait plus que lui injecter le `registerSW` de `virtual:pwa-register`, les
+libellés de l'i18n de l'app et son positionnement.
 
 La seule règle de `runtimeCaching` concerne les Google Fonts. **Les appels
 Supabase ne sont pas mis en cache** par le service worker.
