@@ -9,6 +9,7 @@ import { ContactFormDialog } from '../components/features/contacts/ContactFormDi
 import { useContacts, useAppContext } from '../store/AppContext';
 import type { Contact } from '../types';
 import { useI18n } from '../i18n';
+import { useRemoteWriteGuard } from '../hooks/useRemoteWriteGuard';
 
 export default function ContactsPage() {
   const { t } = useI18n();
@@ -24,6 +25,10 @@ export default function ContactsPage() {
   // synchrone, l'alerte du socle est déclarative — c'est cet état qui porte le
   // message, et sa présence ouvre la boîte.
   const [blockedReason, setBlockedReason] = useState<string | null>(null);
+  // Un TROISIÈME motif de refus, après RG-CONTACT-03 et le formulaire : le
+  // réseau. Il vient AVANT les deux autres — être seul contact d'un joueur
+  // n'a plus d'importance si l'écriture ne peut pas partir.
+  const deleteGuard = useRemoteWriteGuard();
 
   const playerName = (id: string) => {
     const p = state.players.find(x => x.id === id);
@@ -165,9 +170,11 @@ export default function ContactsPage() {
                   >
                     <Pencil size={14} />
                   </button>
+                  {/* Une icône seule ne peut pas porter de phrase : c'est son
+                      `aria-label` qui devient le motif, doublé en infobulle. */}
                   <button
-                    onClick={() => remove(contact)}
-                    aria-label={t('common.delete')}
+                    onClick={deleteGuard.wrap(() => remove(contact))}
+                    {...deleteGuard.iconProps(t('common.delete'))}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-red-600"
                   >
                     <Trash2 size={14} />

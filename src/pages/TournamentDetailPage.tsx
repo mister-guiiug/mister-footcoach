@@ -31,6 +31,7 @@ import { formatDateShort } from '../utils/date';
 import { googleMapsUrl, appleMapsUrl } from '../utils/maps';
 import { computeGroupStandings } from '../utils/tournament';
 import { useI18n } from '../i18n';
+import { useRemoteWriteGuard } from '../hooks/useRemoteWriteGuard';
 
 const statusTone: Record<TournamentStatus, 'muted' | 'warning' | 'success'> = {
   planifie: 'muted',
@@ -46,6 +47,7 @@ export default function TournamentDetailPage() {
   const matches = useTournamentMatches(id!);
   const teams = useTeams();
   const { dispatch } = useAppContext();
+  const deleteGuard = useRemoteWriteGuard();
 
   const [editOpen, setEditOpen] = useState(false);
   const [groupOpen, setGroupOpen] = useState(false);
@@ -273,13 +275,13 @@ export default function TournamentDetailPage() {
                 )}
                 action={
                   <button
-                    onClick={() =>
+                    onClick={deleteGuard.wrap(() =>
                       dispatch({
                         type: 'DELETE_TOURNAMENT_GROUP',
                         groupId: group.id,
                       })
-                    }
-                    aria-label={t('tournaments.deleteGroup')}
+                    )}
+                    {...deleteGuard.iconProps(t('tournaments.deleteGroup'))}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-red-600"
                   >
                     <Trash2 size={14} />

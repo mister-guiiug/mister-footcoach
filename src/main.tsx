@@ -27,6 +27,7 @@ onTTFB(console.log);
 import { AppProvider } from './store/AppContext.tsx';
 import { AuthProvider } from './auth/AuthContext.tsx';
 import { AuthGate } from './auth/AuthGate.tsx';
+import { ConnectionBanner } from './components/ConnectionBanner.tsx';
 import { ToastProvider } from '@mister-guiiug/dev-wpa-config/react/toast';
 import { IconsProvider } from '@mister-guiiug/dev-wpa-config/react/icons-context';
 import { lucideIconSet } from '@mister-guiiug/dev-wpa-config/react/icons-lucide';
@@ -48,6 +49,18 @@ createRoot(document.getElementById('root')!).render(
           <IconsProvider icons={socleIcons}>
             <ToastProvider>
               <AuthProvider>
+                {/* UN SEUL bandeau réseau pour toute l'application, et AVANT
+                    la porte d'accès : avec le backend Supabase, se connecter
+                    est déjà un appel réseau, et l'écran de connexion ne
+                    répondrait qu'« identifiants invalides » quand c'est le
+                    réseau qui manque. Il ne s'affiche pas du tout avec le
+                    backend local, où l'absence de réseau ne coûte rien.
+
+                    EN HAUT, ET DANS LE FLUX : le bas de l'écran porte déjà
+                    `BottomNav` (z-40) et le bandeau de mise à jour
+                    (`fixed bottom-4`, z-50) — deux bandeaux au même endroit se
+                    recouvrent, un défaut qu'aucun test ne verrait. */}
+                <ConnectionBanner />
                 <AuthGate>
                   <AppProvider>
                     <App />

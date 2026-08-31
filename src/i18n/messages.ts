@@ -71,6 +71,12 @@ export const messages = {
       // d'où « Plus tard » plutôt que « Fermer ».
       dismiss: 'Plus tard',
     },
+    connection: {
+      // Affiché uniquement avec le backend Supabase : avec le backend local
+      // (le défaut), l'absence de réseau ne coûte rien à l'utilisateur.
+      offline:
+        'Hors connexion — les modifications ne seront pas enregistrées sur le serveur.',
+    },
     auth: {
       email: 'Email',
       password: 'Mot de passe',
@@ -739,6 +745,9 @@ export const messages = {
       refresh: 'Refresh',
       refreshing: 'Updating…',
       dismiss: 'Later',
+    },
+    connection: {
+      offline: 'Offline — changes will not be saved to the server.',
     },
     auth: {
       email: 'Email',
