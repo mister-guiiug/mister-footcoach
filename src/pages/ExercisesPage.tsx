@@ -9,6 +9,7 @@ import { ExerciseFormDialog } from '../components/features/exercises/ExerciseFor
 import { useExercises, useAppContext } from '../store/AppContext';
 import { type Exercise, type ExerciseCategory } from '../types';
 import { useI18n } from '../i18n';
+import { useRemoteWriteGuard } from '../hooks/useRemoteWriteGuard';
 
 const CATEGORIES: ExerciseCategory[] = [
   'echauffement',
@@ -23,6 +24,7 @@ export default function ExercisesPage() {
   const { t } = useI18n();
   const exercises = useExercises();
   const { dispatch } = useAppContext();
+  const deleteGuard = useRemoteWriteGuard();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<
     'all' | ExerciseCategory
@@ -159,11 +161,16 @@ export default function ExercisesPage() {
                   >
                     <Pencil size={14} />
                   </button>
+                  {/* UNE ICÔNE SEULE NE PEUT PAS PORTER DE PHRASE : quand le
+                      garde bloque, c'est son `aria-label` qui devient le
+                      motif, doublé en infobulle. `aria-disabled` plutôt que
+                      `disabled` : le bouton reste atteignable au clavier,
+                      donc le motif reste DÉCOUVRABLE. */}
                   <button
-                    onClick={() =>
+                    onClick={deleteGuard.wrap(() =>
                       dispatch({ type: 'DELETE_EXERCISE', exerciseId: ex.id })
-                    }
-                    aria-label={t('common.delete')}
+                    )}
+                    {...deleteGuard.iconProps(t('common.delete'))}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-red-600"
                   >
                     <Trash2 size={14} />

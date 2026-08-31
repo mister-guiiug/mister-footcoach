@@ -73,11 +73,24 @@ export default defineConfig({
       // 517/748 → 518/749, lines 1264/1730 → 1266/1732. Les unités ajoutées
       // sont TOUTES couvertes — le nombre d'unités NON couvertes ne bouge pas
       // (statements 524, branches 423, functions 231, lines 466).
+      // Remonté (+0,10 à +0,14 pt) à l'adoption du bandeau réseau du socle et
+      // du garde d'écriture distante. Trois unités neuves — le bandeau
+      // (`components/ConnectionBanner.tsx`), le garde
+      // (`hooks/useRemoteWriteGuard.ts`) et les quatre corbeilles qui
+      // l'étalent — et 15 tests pour aller avec. Le nombre d'unités NON
+      // couvertes ne bouge PAS : statements 524, branches 423, functions 231,
+      // lines 466, exactement comme au relevé précédent. Autrement dit, tout
+      // ce qui a été ajouté est couvert, y compris les DEUX branches qui
+      // comptent vraiment ici : bandeau muet avec le backend local, bandeau
+      // affiché avec Supabase. Mesures au 2026-08-31 : statements 1399/1923 →
+      // 1408/1932 (+9 dont +9 couverts), branches 1177/1600 → 1183/1606
+      // (+6 dont +6), functions 518/749 → 521/752 (+3 dont +3), lines
+      // 1266/1732 → 1275/1741 (+9 dont +9).
       thresholds: {
-        statements: 72.75,
-        branches: 73.56,
-        functions: 69.15,
-        lines: 73.09,
+        statements: 72.87,
+        branches: 73.66,
+        functions: 69.28,
+        lines: 73.23,
       },
     },
   },

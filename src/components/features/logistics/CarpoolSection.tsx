@@ -14,6 +14,7 @@ import type { Match, CarpoolOffer } from '../../../types';
 import { genId } from '../../../utils/id';
 import { CURRENT_USER_ID } from '../../../constants/session';
 import { useI18n } from '../../../i18n';
+import { useRemoteWriteGuard } from '../../../hooks/useRemoteWriteGuard';
 
 interface CarpoolSectionProps {
   match: Match;
@@ -24,6 +25,7 @@ export function CarpoolSection({ match }: CarpoolSectionProps) {
   const offers = useCarpoolOffers(match.id);
   const players = usePlayers(match.teamId);
   const { state, dispatch } = useAppContext();
+  const deleteGuard = useRemoteWriteGuard();
   const [formOpen, setFormOpen] = useState(false);
 
   function conductorName(userId: string): string {
@@ -110,13 +112,13 @@ export function CarpoolSection({ match }: CarpoolSectionProps) {
                   )}
                 </div>
                 <button
-                  onClick={() =>
+                  onClick={deleteGuard.wrap(() =>
                     dispatch({
                       type: 'DELETE_CARPOOL_OFFER',
                       offerId: offer.id,
                     })
-                  }
-                  aria-label={t('carpool.deleteOffer')}
+                  )}
+                  {...deleteGuard.iconProps(t('carpool.deleteOffer'))}
                   className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-red-600"
                 >
                   <Trash2 size={14} />
