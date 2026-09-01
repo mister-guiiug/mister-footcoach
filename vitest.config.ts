@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import {
   baseTestOptions,
   coveragePreset,
+  pwaRegisterAlias,
 } from '@mister-guiiug/dev-wpa-config/vitest-base';
 
 export default defineConfig({
@@ -97,7 +98,13 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
-      'virtual:pwa-register': resolve(__dirname, './src/test/pwa-mock.ts'),
+      // `virtual:pwa-register` n'est fourni que par vite-plugin-pwa, absent
+      // d'ici. La copie locale annonçait que « le vi.mock du setup partagé
+      // reprend la main » : ce vi.mock a été RETIRÉ du socle, il n'a jamais pu
+      // rendre ce service — un mock agit à l'exécution, quand Vite a déjà
+      // refusé de transformer l'importateur. Le double du socle est PILOTABLE
+      // (`swStub.needRefresh()`), là où la copie était muette.
+      ...pwaRegisterAlias,
     },
   },
 });
