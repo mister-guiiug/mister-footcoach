@@ -1,4 +1,3 @@
-import type { ComponentType } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -112,12 +111,12 @@ export function BottomNav() {
       currentPath={pathname}
       label={t('nav.label')}
       moreLabel={t('nav.more')}
-      // `linkComponent` est typé `ComponentType<Record<string, unknown>>`, qui
-      // refuse un composant à prop obligatoire — donc `Link` et son `to`,
-      // alors que c'est l'usage documenté du socle. La conversion est sûre :
-      // `hrefProp` fournit précisément `to`. Même motif que les quatre apps
-      // déjà migrées (miss-genius, miss-lookhouse, miss-supaboss, mister-cim10).
-      linkComponent={Link as unknown as ComponentType<Record<string, unknown>>}
+      // Le socle 3.32.0 a élargi `linkComponent` à `ComponentType<any>` : le
+      // type refusait jusque-là tout composant à prop OBLIGATOIRE, donc
+      // précisément `Link` et son `to` — l'usage que sa propre documentation
+      // donne en exemple. Sept apps portaient la même conversion ; elle n'a
+      // plus lieu d'être.
+      linkComponent={Link}
       hrefProp="to"
       className="fixed bottom-0 left-0 right-0 z-40"
     />
