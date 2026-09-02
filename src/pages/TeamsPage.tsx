@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Users, ChevronRight } from 'lucide-react';
-import { Card } from '../components/ui/Card';
+import { Card } from '@mister-guiiug/dev-wpa-config/react/card';
 import { useTeams, usePlayers } from '../store/AppContext';
 import { useI18n } from '../i18n';
 

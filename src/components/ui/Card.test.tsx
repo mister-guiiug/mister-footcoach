@@ -1,53 +1,42 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Card, CardHeader } from './Card';
+import { Card, CardHeader } from '@mister-guiiug/dev-wpa-config/react/card';
 
-describe('Card', () => {
-  it('renders children', () => {
-    render(<Card>Content</Card>);
-    expect(screen.getByText('Content')).toBeInTheDocument();
+/**
+ * La carte vient du socle depuis l'adoption (PARC.md, chantier 3). Le paquet
+ * teste son rendu ; ce qui reste utile ici, c'est le contrat sur lequel les
+ * pages de l'app s'appuient — l'attribut `data-dwc="card"` que leurs tests
+ * utilisent pour retrouver une carte, et le retrait du padding.
+ */
+describe('Card (socle)', () => {
+  it('rend ses enfants et se retrouve par data-dwc', () => {
+    render(<Card>Contenu</Card>);
+    expect(screen.getByText('Contenu')).toBeInTheDocument();
+    expect(
+      screen.getByText('Contenu').closest('[data-dwc="card"]')
+    ).not.toBeNull();
   });
 
-  it('has padding by default', () => {
-    const { container } = render(<Card>X</Card>);
-    expect(container.firstChild).toHaveClass('p-4');
-  });
-
-  it('has no padding when padding=false', () => {
+  it('signale le retrait du padding par data-padding', () => {
     const { container } = render(<Card padding={false}>X</Card>);
-    expect(container.firstChild).not.toHaveClass('p-4');
+    expect(container.firstChild).toHaveAttribute('data-padding', 'none');
   });
 
-  it('accepts extra className', () => {
-    const { container } = render(<Card className="extra">X</Card>);
-    expect(container.firstChild).toHaveClass('extra');
+  it('relaie les autres props du div', () => {
+    const { container } = render(<Card data-testid="carte">X</Card>);
+    expect(container.firstChild).toHaveAttribute('data-testid', 'carte');
   });
 
-  it('forwards other HTML div props', () => {
-    const { container } = render(<Card data-testid="card">X</Card>);
-    expect(container.firstChild).toHaveAttribute('data-testid', 'card');
-  });
-});
-
-describe('CardHeader', () => {
-  it('renders title', () => {
-    render(<CardHeader title="My Title" />);
-    expect(screen.getByText('My Title')).toBeInTheDocument();
-  });
-
-  it('renders subtitle when provided', () => {
-    render(<CardHeader title="T" subtitle="Sub" />);
-    expect(screen.getByText('Sub')).toBeInTheDocument();
-  });
-
-  it('does not render subtitle when omitted', () => {
-    const { container } = render(<CardHeader title="T" />);
-    // title uses <h3>, no <p> when subtitle is omitted
-    expect(container.querySelectorAll('p')).toHaveLength(0);
-  });
-
-  it('renders action slot when provided', () => {
-    render(<CardHeader title="T" action={<button>Act</button>} />);
-    expect(screen.getByRole('button', { name: 'Act' })).toBeInTheDocument();
+  it('CardHeader rend titre, sous-titre et action', () => {
+    render(
+      <CardHeader
+        title="Titre"
+        subtitle="Sous-titre"
+        action={<button type="button">Agir</button>}
+      />
+    );
+    expect(screen.getByText('Titre')).toBeInTheDocument();
+    expect(screen.getByText('Sous-titre')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Agir' })).toBeInTheDocument();
   });
 });

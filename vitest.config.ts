@@ -87,14 +87,15 @@ export default defineConfig({
       // 1408/1932 (+9 dont +9 couverts), branches 1177/1600 → 1183/1606
       // (+6 dont +6), functions 518/749 → 521/752 (+3 dont +3), lines
       // 1266/1732 → 1275/1741 (+9 dont +9).
-      // 02/09/2026 : six tables *_LABELS mortes retirées de types/index.ts
-      // (PARC.md, chantier 10) — des lignes couvertes trivialement en moins,
-      // le ratio recule de 0,1 point sans qu'un test ait disparu.
+      // 02/09/2026, deux fois le même effet : les six tables *_LABELS mortes
+      // retirées de types/index.ts (chantier 10), puis `Card` adopté du socle
+      // (chantier 3). Du code couvert à 100 % quitte l'app à chaque fois — le
+      // ratio recule sans qu'un test ait disparu. Seuils recalés sur la mesure.
       thresholds: {
-        statements: 72.75,
-        branches: 73.66,
-        functions: 69.28,
-        lines: 73.1,
+        statements: 72.7,
+        branches: 73.1,
+        functions: 69.1,
+        lines: 73,
       },
     },
   },

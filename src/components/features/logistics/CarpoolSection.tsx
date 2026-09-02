@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Car, Plus, Trash2 } from 'lucide-react';
-import { Card, CardHeader } from '../../ui/Card';
+import { Card, CardHeader } from '@mister-guiiug/dev-wpa-config/react/card';
 import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
 import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';

@@ -1,5 +1,5 @@
 import { Bell, Check, CheckCheck } from 'lucide-react';
-import { Card } from '../components/ui/Card';
+import { Card } from '@mister-guiiug/dev-wpa-config/react/card';
 import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
 import {

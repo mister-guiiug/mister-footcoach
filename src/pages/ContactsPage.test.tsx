@@ -44,7 +44,7 @@ describe('ContactsPage', () => {
     // Jean Martin is the only contact of p2/p3 → deletion blocked.
     const card = screen
       .getByText('Jean Martin')
-      .closest('div.rounded-2xl') as HTMLElement;
+      .closest('[data-dwc="card"]') as HTMLElement;
     await userEvent.click(within(card).getByLabelText('Supprimer'));
 
     // Le refus est une alerte du socle, plus un `window.alert` : son texte est
@@ -74,7 +74,7 @@ describe('ContactsPage', () => {
   async function askDeletePierre(): Promise<HTMLElement> {
     const card = screen
       .getByText('Pierre Dupont')
-      .closest('div.rounded-2xl') as HTMLElement;
+      .closest('[data-dwc="card"]') as HTMLElement;
     await userEvent.click(within(card).getByLabelText('Supprimer'));
     return screen.getByRole('alertdialog');
   }

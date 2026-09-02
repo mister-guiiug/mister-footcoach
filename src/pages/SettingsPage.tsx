@@ -15,7 +15,7 @@ import {
   SPONSOR_URL,
   repoUrl,
 } from '@mister-guiiug/dev-wpa-config/apps-catalog';
-import { Card } from '../components/ui/Card';
+import { Card } from '@mister-guiiug/dev-wpa-config/react/card';
 import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
 import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { ConfirmDialog } from '@mister-guiiug/dev-wpa-config/react/confirm-dialog';

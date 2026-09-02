@@ -66,7 +66,7 @@ describe('ExercisesPage', () => {
     renderWithProviders(<ExercisesPage />);
     const card = screen
       .getByText('Jeu de passes 3 contre 1')
-      .closest('div.rounded-2xl') as HTMLElement;
+      .closest('[data-dwc="card"]') as HTMLElement;
     await userEvent.click(within(card).getByLabelText('Modifier'));
 
     const titleInput = screen.getByLabelText('Titre') as HTMLInputElement;
@@ -86,7 +86,7 @@ describe('ExercisesPage', () => {
     renderWithProviders(<ExercisesPage />);
     const card = screen
       .getByText('Jeu de passes 3 contre 1')
-      .closest('div.rounded-2xl') as HTMLElement;
+      .closest('[data-dwc="card"]') as HTMLElement;
     await userEvent.click(within(card).getByLabelText('Supprimer'));
     expect(
       screen.queryByText('Jeu de passes 3 contre 1')
