@@ -1,6 +1,7 @@
+import { getDefaultLocale } from '@mister-guiiug/dev-wpa-config/format';
 export function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('fr-FR', {
+  return d.toLocaleDateString(getDefaultLocale(), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -9,12 +10,15 @@ export function formatDate(dateStr: string): string {
 
 export function formatDateShort(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+  return d.toLocaleDateString(getDefaultLocale(), {
+    day: '2-digit',
+    month: 'short',
+  });
 }
 
 export function formatDateFull(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('fr-FR', {
+  return d.toLocaleDateString(getDefaultLocale(), {
     weekday: 'long',
     day: '2-digit',
     month: 'long',

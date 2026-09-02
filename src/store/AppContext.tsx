@@ -469,7 +469,7 @@ export const EMPTY_APP_STATE: AppState = {
 };
 
 /** Local-storage backed provider (default; used in tests and offline MVP). */
-export function LocalAppProvider({ children }: { children: ReactNode }) {
+function LocalAppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, loadState);
 
   useEffect(() => {

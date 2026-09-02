@@ -23,6 +23,9 @@ import { persistAction } from './persistAction';
 import { Spinner } from '../components/ui/Spinner';
 import { useToast } from '@mister-guiiug/dev-wpa-config/react/toast';
 import { useI18n } from '../i18n';
+import { createLogger } from '@mister-guiiug/dev-wpa-config/logger';
+
+const log = createLogger('store');
 
 /**
  * Supabase-backed provider. Hydrates the full AppState from Postgres, keeps it
@@ -60,7 +63,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
         if (!cancelled) setReady(true);
       })
       .catch((e: unknown) => {
-        console.error('Supabase hydrate failed', e);
+        log.error('Supabase hydrate failed', { error: e });
         if (!cancelled) setReady(true);
       });
 
@@ -92,7 +95,10 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
     (action: AppAction) => {
       localDispatch(action);
       void persistAction(action, stateRef.current).catch((e: unknown) => {
-        console.error('Supabase persist failed', action.type, e);
+        log.error('Supabase persist failed', {
+          error: action.type,
+          details: [e],
+        });
         // Socle : une erreur reste affichée jusqu'à fermeture explicite.
         toast.error(t('errors.saveFailed'));
         void reload();
