@@ -8,10 +8,11 @@ import {
   useAppContext,
 } from '../store/AppContext';
 import { useI18n } from '../i18n';
+import { getDefaultLocale } from '@mister-guiiug/dev-wpa-config/format';
 
 function relativeDate(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString('fr-FR', {
+  return d.toLocaleDateString(getDefaultLocale(), {
     day: '2-digit',
     month: 'short',
     hour: '2-digit',

@@ -19,6 +19,7 @@ import {
 import { isActiveUnavailability, today } from '../utils/date';
 import { rankPlayersForPosition, isSuggested } from '../utils/lineup';
 import { useI18n } from '../i18n';
+import { getDefaultLocale } from '@mister-guiiug/dev-wpa-config/format';
 
 // FORMATIONS est une constante non vide : la première sert de défaut
 // (noUncheckedIndexedAccess rend l'accès [0] `Formation | undefined`).
@@ -112,7 +113,7 @@ export default function LineupPage() {
       lineup: {
         id: `lineup-${Date.now()}`,
         teamId: selectedTeamId,
-        name: `${selectedFormation.label} — ${new Date().toLocaleDateString('fr-FR')}`,
+        name: `${selectedFormation.label} — ${new Date().toLocaleDateString(getDefaultLocale())}`,
         formation: selectedFormation.id,
         slots,
         substituteIds,

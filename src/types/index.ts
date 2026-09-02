@@ -22,21 +22,7 @@ export type ContactType =
 export type MatchStatus =
   'previsionnel' | 'engage' | 'saison' | 'tournoi' | 'annule';
 
-export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
-  previsionnel: 'Prévisionnel',
-  engage: 'Engagé',
-  saison: 'Saison',
-  tournoi: 'Tournoi',
-  annule: 'Annulé',
-};
-
 export type AttendanceStatus = 'present' | 'absent' | 'excuse';
-
-export const ATTENDANCE_STATUS_LABELS: Record<AttendanceStatus, string> = {
-  present: 'Présent',
-  absent: 'Absent',
-  excuse: 'Excusé',
-};
 
 export type TrainingType = 'regulier' | 'exceptionnel';
 
@@ -63,21 +49,9 @@ export const UNAVAILABILITY_MOTIF_LABELS: Record<UnavailabilityMotif, string> =
 
 export type SurveyResponseValue = 'present' | 'absent' | 'incertain';
 
-export const SURVEY_RESPONSE_LABELS: Record<SurveyResponseValue, string> = {
-  present: 'Présent',
-  absent: 'Absent',
-  incertain: 'Incertain',
-};
-
 export type SurveyStatus = 'ouvert' | 'ferme' | 'archive';
 
 export type TournamentStatus = 'planifie' | 'en_cours' | 'termine';
-
-export const TOURNAMENT_STATUS_LABELS: Record<TournamentStatus, string> = {
-  planifie: 'Planifié',
-  en_cours: 'En cours',
-  termine: 'Terminé',
-};
 
 export type TournamentFormat =
   'poules' | 'elimination_directe' | 'poules_finale';
@@ -91,16 +65,6 @@ export type MatchEventType =
   | 'blessure_live'
   | 'arret_mi_temps';
 
-export const MATCH_EVENT_LABELS: Record<MatchEventType, string> = {
-  but: 'But',
-  but_csc: 'CSC',
-  carton_jaune: 'Carton jaune',
-  carton_rouge: 'Carton rouge',
-  remplacement: 'Remplacement',
-  blessure_live: 'Blessure',
-  arret_mi_temps: 'Mi-temps',
-};
-
 export type ExerciseCategory =
   | 'echauffement'
   | 'technique'
@@ -108,15 +72,6 @@ export type ExerciseCategory =
   | 'tactique'
   | 'jeu'
   | 'retour_au_calme';
-
-export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
-  echauffement: 'Échauffement',
-  technique: 'Technique',
-  physique: 'Physique',
-  tactique: 'Tactique',
-  jeu: 'Jeu',
-  retour_au_calme: 'Retour au calme',
-};
 
 // ── Core entities ────────────────────────────────────────────────────
 
