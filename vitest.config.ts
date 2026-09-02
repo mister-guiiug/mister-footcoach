@@ -87,11 +87,14 @@ export default defineConfig({
       // 1408/1932 (+9 dont +9 couverts), branches 1177/1600 → 1183/1606
       // (+6 dont +6), functions 518/749 → 521/752 (+3 dont +3), lines
       // 1266/1732 → 1275/1741 (+9 dont +9).
+      // 02/09/2026 : six tables *_LABELS mortes retirées de types/index.ts
+      // (PARC.md, chantier 10) — des lignes couvertes trivialement en moins,
+      // le ratio recule de 0,1 point sans qu'un test ait disparu.
       thresholds: {
-        statements: 72.87,
+        statements: 72.75,
         branches: 73.66,
         functions: 69.28,
-        lines: 73.23,
+        lines: 73.1,
       },
     },
   },
