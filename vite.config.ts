@@ -88,6 +88,8 @@ export default defineConfig(({ command }) => {
           'logo.svg',
         ],
         manifest: {
+          id: basePath,
+          lang: 'fr',
           name: 'Mister Footcoach',
           short_name: 'Footcoach',
           description:
