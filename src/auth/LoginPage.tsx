@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card } from '../components/ui/Card';
+import { Card } from '@mister-guiiug/dev-wpa-config/react/card';
 import { Input } from '../components/ui/Input';
 import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { useAuth } from './AuthContext';

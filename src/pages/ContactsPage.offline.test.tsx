@@ -39,7 +39,7 @@ function setNavigatorOnline(value: boolean) {
 
 /** La carte du contact nommé, pour viser SA corbeille et pas une autre. */
 function cardOf(name: string): HTMLElement {
-  return screen.getByText(name).closest('div.rounded-2xl') as HTMLElement;
+  return screen.getByText(name).closest('[data-dwc="card"]') as HTMLElement;
 }
 
 beforeEach(() => {

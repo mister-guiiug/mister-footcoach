@@ -9,7 +9,7 @@ import {
   Pencil,
   Navigation,
 } from 'lucide-react';
-import { Card, CardHeader } from '../components/ui/Card';
+import { Card, CardHeader } from '@mister-guiiug/dev-wpa-config/react/card';
 import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
 import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
 import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';

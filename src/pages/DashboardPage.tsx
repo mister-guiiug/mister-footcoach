@@ -1,7 +1,7 @@
 /* c8 ignore next */
 import { Link } from 'react-router-dom';
 import { Calendar, Dumbbell, Users, ClipboardList, Trophy } from 'lucide-react';
-import { Card } from '../components/ui/Card';
+import { Card } from '@mister-guiiug/dev-wpa-config/react/card';
 import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
 import {
   useAppContext,
