@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronRight, AlertTriangle, Plus, Download } from 'lucide-react';
-import { Card } from '@mister-guiiug/dev-wpa-config/react/card';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
-import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
+import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-pwa-config/react/empty-state';
 import { PlayerFormDialog } from '../components/features/players/PlayerFormDialog';
 import {
   useTeam,
@@ -23,8 +23,8 @@ import {
   toIcalendar,
   ICAL_MIME,
   type IcalEvent,
-} from '@mister-guiiug/dev-wpa-config/ical';
-import { downloadText } from '@mister-guiiug/dev-wpa-config/download';
+} from '@mister-guiiug/dev-pwa-config/ical';
+import { downloadText } from '@mister-guiiug/dev-pwa-config/download';
 import { useI18n } from '../i18n';
 import type { Match, Training } from '../types';
 

@@ -1,11 +1,11 @@
-// Épingle le contrat du Button PARTAGÉ (dev-wpa-config/react/button) tel que
+// Épingle le contrat du Button PARTAGÉ (dev-pwa-config/react/button) tel que
 // l'app l'utilise depuis la migration du kit local (variantes, tailles,
 // chargement). Le socle ne teste pas le blocage du clic pendant `loading` :
 // c'est le comportement que le kit local garantissait, on le garde vérifié ici.
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 
 describe('Button (socle)', () => {
   it('renders children', () => {

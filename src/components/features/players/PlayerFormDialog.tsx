@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
+import { Sheet } from '@mister-guiiug/dev-pwa-config/react/sheet';
 import { Input, Select } from '../../ui/Input';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { useTeams, useAppContext } from '../../../store/AppContext';
 import { POSITION_LABELS, type Player, type Position } from '../../../types';
 import { genId } from '../../../utils/id';

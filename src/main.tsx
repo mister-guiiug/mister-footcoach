@@ -1,11 +1,11 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ErrorBoundary } from '@mister-guiiug/dev-wpa-config/react';
+import { ErrorBoundary } from '@mister-guiiug/dev-pwa-config/react';
 import {
   installErrorReporter,
   initSentry,
   recordError,
-} from '@mister-guiiug/dev-wpa-config/react/observability';
+} from '@mister-guiiug/dev-pwa-config/react/observability';
 import './index.css';
 import App from './App.tsx';
 import { I18nProvider } from './i18n';
@@ -28,9 +28,9 @@ import { AppProvider } from './store/AppContext.tsx';
 import { AuthProvider } from './auth/AuthContext.tsx';
 import { AuthGate } from './auth/AuthGate.tsx';
 import { ConnectionBanner } from './components/ConnectionBanner.tsx';
-import { ToastProvider } from '@mister-guiiug/dev-wpa-config/react/toast';
-import { IconsProvider } from '@mister-guiiug/dev-wpa-config/react/icons-context';
-import { lucideIconSet } from '@mister-guiiug/dev-wpa-config/react/icons-lucide';
+import { ToastProvider } from '@mister-guiiug/dev-pwa-config/react/toast';
+import { IconsProvider } from '@mister-guiiug/dev-pwa-config/react/icons-context';
+import { lucideIconSet } from '@mister-guiiug/dev-pwa-config/react/icons-lucide';
 import { X } from 'lucide-react';
 
 /* La croix « fermer » des composants du socle (Toast, Sheet) reste celle de

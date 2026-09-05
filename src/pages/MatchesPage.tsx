@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-import { Card } from '@mister-guiiug/dev-wpa-config/react/card';
-import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
+import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { MatchFormDialog } from '../components/features/matches/MatchFormDialog';
 import { useMatches, useTeams } from '../store/AppContext';
 import { type MatchStatus } from '../types';

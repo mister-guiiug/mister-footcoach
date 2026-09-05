@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Car, Plus, Trash2 } from 'lucide-react';
-import { Card, CardHeader } from '@mister-guiiug/dev-wpa-config/react/card';
-import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
-import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
+import { Card, CardHeader } from '@mister-guiiug/dev-pwa-config/react/card';
+import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
+import { Sheet } from '@mister-guiiug/dev-pwa-config/react/sheet';
 import { Input } from '../../ui/Input';
 import {
   useCarpoolOffers,

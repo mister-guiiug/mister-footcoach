@@ -12,8 +12,8 @@ import {
   Contact,
   Settings,
 } from 'lucide-react';
-import { BottomNav as SharedBottomNav } from '@mister-guiiug/dev-wpa-config/react/bottom-nav';
-import type { BottomNavItem } from '@mister-guiiug/dev-wpa-config/react/bottom-nav';
+import { BottomNav as SharedBottomNav } from '@mister-guiiug/dev-pwa-config/react/bottom-nav';
+import type { BottomNavItem } from '@mister-guiiug/dev-pwa-config/react/bottom-nav';
 import { useI18n } from '../../i18n';
 
 /**

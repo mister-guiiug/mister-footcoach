@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Save } from 'lucide-react';
-import { Card } from '@mister-guiiug/dev-wpa-config/react/card';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import {
   useTeams,
   usePlayers,
@@ -19,7 +19,7 @@ import {
 import { isActiveUnavailability, today } from '../utils/date';
 import { rankPlayersForPosition, isSuggested } from '../utils/lineup';
 import { useI18n } from '../i18n';
-import { getDefaultLocale } from '@mister-guiiug/dev-wpa-config/format';
+import { getDefaultLocale } from '@mister-guiiug/dev-pwa-config/format';
 
 // FORMATIONS est une constante non vide : la première sert de défaut
 // (noUncheckedIndexedAccess rend l'accès [0] `Formation | undefined`).

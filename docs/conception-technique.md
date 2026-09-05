@@ -110,11 +110,11 @@ Versions telles que déclarées dans `package.json` (plages `^`) :
 | Tests E2E       | **Playwright**                    | 1.x     | Tests navigateur PWA + audit a11y (`axe-core`)           |
 | PWA             | **vite-plugin-pwa**               | 1.x     | Manifest, Service Worker (Workbox)                       |
 | Web Vitals      | **web-vitals**                    | 4.x     | Mesure LCP / CLS / INP / FCP / TTFB                      |
-| Config partagée | **@mister-guiiug/dev-wpa-config** | 3.x     | ESLint, Prettier, Vitest, Playwright, i18n, CSP, PWA, CI |
+| Config partagée | **@mister-guiiug/dev-pwa-config** | 3.x     | ESLint, Prettier, Vitest, Playwright, i18n, CSP, PWA, CI |
 
 Une part notable de la configuration (lint, format, base Vitest, Playwright,
 i18n, `ErrorBoundary`, observabilité Sentry, plugins Vite CSP/SEO, workflows CI)
-vient du paquet famille `@mister-guiiug/dev-wpa-config`, partagé entre toutes
+vient du paquet famille `@mister-guiiug/dev-pwa-config`, partagé entre toutes
 les PWA `miss-*` / `mister-*`.
 
 ### 2.2 Backends disponibles
@@ -252,7 +252,7 @@ mister-footcoach/
 │   ├── supabase.md                  # Procédure d'installation du backend
 │   └── conception-technique.md      # Ce document
 │
-├── .github/workflows/               # Appelants minces → dev-wpa-config (§ 12.1)
+├── .github/workflows/               # Appelants minces → dev-pwa-config (§ 12.1)
 ├── index.html
 ├── vite.config.ts
 ├── vitest.config.ts
@@ -746,7 +746,7 @@ sémantiques du projet.
 ```css
 /* src/index.css (extrait) */
 @import 'tailwindcss';
-@import '@mister-guiiug/dev-wpa-config/tailwind-preset.css';
+@import '@mister-guiiug/dev-pwa-config/tailwind-preset.css';
 
 /* Thème manuel : classe `dark` sur <html> (voir ThemeContext + script dans index.html). */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -839,7 +839,7 @@ VitePWA({
 
 `registerType: 'prompt'` : la mise à jour n'est jamais appliquée dans le dos de
 l'utilisateur, un bandeau propose de recharger. Le bandeau est celui du socle
-(`@mister-guiiug/dev-wpa-config/react/update-prompt-banner`) ; `UpdateBanner`
+(`@mister-guiiug/dev-pwa-config/react/update-prompt-banner`) ; `UpdateBanner`
 ne fait plus que lui injecter le `registerSW` de `virtual:pwa-register`, les
 libellés de l'i18n de l'app et son positionnement.
 
@@ -1051,7 +1051,7 @@ les rares dépendances externes sont mockées avec `vi.mock` (§ 10.2).
 ### 10.2 Configuration Vitest 4
 
 La configuration ne part pas de zéro : elle étend `baseTestOptions` et
-`coveragePreset` de `@mister-guiiug/dev-wpa-config/vitest-base` (environnement
+`coveragePreset` de `@mister-guiiug/dev-pwa-config/vitest-base` (environnement
 `jsdom`, `globals`, `setupFiles`, provider v8, reporters `text` / `html` /
 `lcov` / `json-summary`, exclusions communes). Le projet n'ajoute que ce qui lui
 est propre : le périmètre de couverture, les seuils, et les alias.
@@ -1064,7 +1064,7 @@ import { resolve } from 'path';
 import {
   baseTestOptions,
   coveragePreset,
-} from '@mister-guiiug/dev-wpa-config/vitest-base';
+} from '@mister-guiiug/dev-pwa-config/vitest-base';
 
 export default defineConfig({
   plugins: [react()],
@@ -1110,13 +1110,13 @@ couverture réelle mesurée, sans marge. Toute baisse de couverture fait échoue
 source de vérité — les valeurs ci-dessus datent du 2026-08-10 et sont relevées à
 chaque gain de couverture.
 
-Le setup partagé (`@mister-guiiug/dev-wpa-config/vitest-setup`) apporte
+Le setup partagé (`@mister-guiiug/dev-pwa-config/vitest-setup`) apporte
 jest-dom, le polyfill `localStorage` / `sessionStorage` et les stubs de base. Le
 setup projet n'ajoute que les mocks spécifiques à l'application :
 
 ```typescript
 // src/test/setup.ts (extrait)
-import '@mister-guiiug/dev-wpa-config/vitest-setup';
+import '@mister-guiiug/dev-pwa-config/vitest-setup';
 import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 
@@ -1216,11 +1216,11 @@ page d'accueil.
 
 ```typescript
 // e2e/a11y.spec.ts
-// Suite a11y minimale (axe-core + Playwright) — template dev-wpa-config.
+// Suite a11y minimale (axe-core + Playwright) — template dev-pwa-config.
 // Le tag @a11y permet de filtrer : `playwright test --grep @a11y`.
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { expectNoA11yViolations } from '@mister-guiiug/dev-wpa-config/playwright-a11y';
+import { expectNoA11yViolations } from '@mister-guiiug/dev-pwa-config/playwright-a11y';
 
 test.describe('@a11y accessibilité', () => {
   test("page d'accueil sans violation WCAG A/AA", async ({ page }) => {
@@ -1330,7 +1330,7 @@ console — aucun endpoint de collecte n'est branché.
 
 Aucun job n'est écrit à la main dans ce dépôt : les workflows sont des
 **appelants minces** qui délèguent à des _reusable workflows_ du dépôt famille
-`mister-guiiug/dev-wpa-config`, épinglés sur le tag majeur `@v3`. Le bénéfice :
+`mister-guiiug/dev-pwa-config`, épinglés sur le tag majeur `@v3`. Le bénéfice :
 une seule définition de pipeline pour toutes les PWA `miss-*` / `mister-*`.
 
 ```yaml
@@ -1350,15 +1350,15 @@ permissions:
 
 jobs:
   ci:
-    uses: mister-guiiug/dev-wpa-config/.github/workflows/pwa-ci.yml@v3
+    uses: mister-guiiug/dev-pwa-config/.github/workflows/pwa-ci.yml@v4
     secrets: inherit
     with:
       run-e2e: false
 ```
 
-Le reusable `pwa-ci.yml@v3` définit deux jobs actifs sur ce dépôt — plus un job
+Le reusable `pwa-ci.yml@v4` définit deux jobs actifs sur ce dépôt — plus un job
 E2E optionnel, ici désactivé (Node 22 par défaut, `actions/checkout@v5` +
-action composite `setup-pwa@v3` pour l'install) :
+action composite `setup-pwa@v4` pour l'install) :
 
 | Job                 | Contenu                                                                                                           |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------- |
@@ -1383,9 +1383,9 @@ Les autres workflows suivent le même schéma de délégation :
 
 | Fichier            | Reusable / rôle                                                                                | Déclencheur           |
 | ------------------ | ---------------------------------------------------------------------------------------------- | --------------------- |
-| `ci.yml`           | `pwa-ci.yml@v3`                                                                                | PR et push sur `main` |
-| `deploy.yml`       | `pwa-deploy.yml@v3` (`use-base-path: true` pour GitHub Pages)                                  | Push sur `main`       |
-| `lighthouse.yml`   | `pwa-lighthouse.yml@v3` — Lighthouse CI sur le build statique, piloté par `.lighthouserc.json` | PR                    |
+| `ci.yml`           | `pwa-ci.yml@v4`                                                                                | PR et push sur `main` |
+| `deploy.yml`       | `pwa-deploy.yml@v4` (`use-base-path: true` pour GitHub Pages)                                  | Push sur `main`       |
+| `lighthouse.yml`   | `pwa-lighthouse.yml@v4` — Lighthouse CI sur le build statique, piloté par `.lighthouserc.json` | PR                    |
 | `cleanup-runs.yml` | Local — purge l'historique Actions, ne conserve que N runs par workflow                        | Manuel                |
 
 ### 12.2 Environnements
@@ -1498,7 +1498,7 @@ activer côté Supabase si le besoin apparaît.
 
 | Tâche                                     | Détail                                                        |
 | ----------------------------------------- | ------------------------------------------------------------- |
-| Squelette Vite 8 + React 19 + Tailwind v4 | Configuration héritée de `@mister-guiiug/dev-wpa-config`      |
+| Squelette Vite 8 + React 19 + Tailwind v4 | Configuration héritée de `@mister-guiiug/dev-pwa-config`      |
 | Types TypeScript domaine                  | `src/types/index.ts`                                          |
 | Mode `local` (`localStorage` + mock)      | Défaut ; sert au dev, aux tests et à la démo hors-ligne       |
 | 18 pages métier                           | Dashboard, équipes, joueurs, matchs, entraînements, tournois… |

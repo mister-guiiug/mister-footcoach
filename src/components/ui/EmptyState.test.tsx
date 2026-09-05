@@ -1,10 +1,10 @@
-// Épingle le contrat de l'EmptyState PARTAGÉ (dev-wpa-config/react/empty-state)
+// Épingle le contrat de l'EmptyState PARTAGÉ (dev-pwa-config/react/empty-state)
 // tel que l'app l'utilise depuis la migration du kit local. Le socle n'a pas de
 // test dédié à ce composant : les comportements que le kit local garantissait
 // restent donc vérifiés ici, contre le composant du paquet.
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
+import { EmptyState } from '@mister-guiiug/dev-pwa-config/react/empty-state';
 
 describe('EmptyState (socle)', () => {
   it('renders title', () => {

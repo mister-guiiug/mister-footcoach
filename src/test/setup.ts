@@ -2,7 +2,7 @@
 // (sous Vitest 4 + jsdom, Storage peut exister sans getItem/setItem
 // fonctionnels) + stubs de base. Les mocks à spies ci-dessous (délibérés)
 // gardent la main : ils sont enregistrés après.
-import '@mister-guiiug/dev-wpa-config/vitest-setup';
+import '@mister-guiiug/dev-pwa-config/vitest-setup';
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeAll, afterAll, vi } from 'vitest';
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Sheet } from '@mister-guiiug/dev-wpa-config/react/sheet';
+import { Sheet } from '@mister-guiiug/dev-pwa-config/react/sheet';
 import { Input, Textarea } from '../../ui/Input';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { useAppContext } from '../../../store/AppContext';
 import type { Match } from '../../../types';
 import { useI18n } from '../../../i18n';

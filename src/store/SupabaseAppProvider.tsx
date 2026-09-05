@@ -21,9 +21,9 @@ import {
 } from '../backend/tables';
 import { persistAction } from './persistAction';
 import { Spinner } from '../components/ui/Spinner';
-import { useToast } from '@mister-guiiug/dev-wpa-config/react/toast';
+import { useToast } from '@mister-guiiug/dev-pwa-config/react/toast';
 import { useI18n } from '../i18n';
-import { createLogger } from '@mister-guiiug/dev-wpa-config/logger';
+import { createLogger } from '@mister-guiiug/dev-pwa-config/logger';
 
 const log = createLogger('store');
 

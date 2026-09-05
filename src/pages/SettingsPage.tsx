@@ -10,15 +10,15 @@ import {
   Coffee,
   LayoutGrid,
 } from 'lucide-react';
-import { FamilyApps } from '@mister-guiiug/dev-wpa-config/react';
+import { FamilyApps } from '@mister-guiiug/dev-pwa-config/react';
 import {
   SPONSOR_URL,
   repoUrl,
-} from '@mister-guiiug/dev-wpa-config/apps-catalog';
-import { Card } from '@mister-guiiug/dev-wpa-config/react/card';
-import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
-import { ConfirmDialog } from '@mister-guiiug/dev-wpa-config/react/confirm-dialog';
+} from '@mister-guiiug/dev-pwa-config/apps-catalog';
+import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
+import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
+import { ConfirmDialog } from '@mister-guiiug/dev-pwa-config/react/confirm-dialog';
 import { useTheme } from '../theme/ThemeContext';
 import {
   useAppContext,

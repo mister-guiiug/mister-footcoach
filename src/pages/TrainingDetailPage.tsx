@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Clock, Pencil } from 'lucide-react';
-import { Card } from '@mister-guiiug/dev-wpa-config/react/card';
-import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
-import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
+import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
+import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-pwa-config/react/empty-state';
 import { TrainingFormDialog } from '../components/features/trainings/TrainingFormDialog';
 import { TrainingBlocksSection } from '../components/features/trainings/TrainingBlocksSection';
 import {
