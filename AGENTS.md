@@ -14,7 +14,7 @@ PWA de coaching football : React 19 + TypeScript + Vite, Tailwind v4.
 - **i18n** : aucun libellé en dur dans les composants. Tout passe par
   `src/i18n/messages.ts`, où `fr` fait foi et `en` doit refléter exactement les
   mêmes clés.
-- **Socle partagé** : `@mister-guiiug/dev-wpa-config` fournit les configs
+- **Socle partagé** : `@mister-guiiug/dev-pwa-config` fournit les configs
   ESLint, Prettier, lint-staged et Vitest, ainsi que les composants UI et le
   thème. Les fichiers de config locaux ne font que les ré-exporter : étendre le
   socle plutôt que redéfinir des règles ici.

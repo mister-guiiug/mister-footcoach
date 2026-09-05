@@ -8,10 +8,10 @@ import {
   Plus,
   Download,
 } from 'lucide-react';
-import { Card, CardHeader } from '@mister-guiiug/dev-wpa-config/react/card';
-import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
-import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
+import { Card, CardHeader } from '@mister-guiiug/dev-pwa-config/react/card';
+import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-pwa-config/react/empty-state';
 import { PlayerFormDialog } from '../components/features/players/PlayerFormDialog';
 import { UnavailabilityFormDialog } from '../components/features/players/UnavailabilityFormDialog';
 import { InjuryFormDialog } from '../components/features/players/InjuryFormDialog';
@@ -32,7 +32,7 @@ import {
 } from '../utils/date';
 import { computePlayerStats } from '../utils/stats';
 import { buildPlayerExport, exportToJson } from '../utils/rgpd';
-import { downloadText } from '@mister-guiiug/dev-wpa-config/download';
+import { downloadText } from '@mister-guiiug/dev-pwa-config/download';
 import { useI18n } from '../i18n';
 
 export default function PlayerDetailPage() {

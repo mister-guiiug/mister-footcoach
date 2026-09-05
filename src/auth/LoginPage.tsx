@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Card } from '@mister-guiiug/dev-wpa-config/react/card';
+import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
 import { Input } from '../components/ui/Input';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { useAuth } from './AuthContext';
 import { useI18n } from '../i18n';
 

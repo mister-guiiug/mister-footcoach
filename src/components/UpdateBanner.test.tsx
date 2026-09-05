@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { RegisterSW } from '@mister-guiiug/dev-wpa-config/react/use-update-prompt';
+import type { RegisterSW } from '@mister-guiiug/dev-pwa-config/react/use-update-prompt';
 import { I18nProvider } from '../i18n';
 import { UpdateBanner } from './UpdateBanner';
 

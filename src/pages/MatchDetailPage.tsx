@@ -9,10 +9,10 @@ import {
   Pencil,
   Navigation,
 } from 'lucide-react';
-import { Card, CardHeader } from '@mister-guiiug/dev-wpa-config/react/card';
-import { Badge } from '@mister-guiiug/dev-wpa-config/react/badge';
-import { Button } from '@mister-guiiug/dev-wpa-config/react/button';
-import { EmptyState } from '@mister-guiiug/dev-wpa-config/react/empty-state';
+import { Card, CardHeader } from '@mister-guiiug/dev-pwa-config/react/card';
+import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
+import { EmptyState } from '@mister-guiiug/dev-pwa-config/react/empty-state';
 import { MatchFormDialog } from '../components/features/matches/MatchFormDialog';
 import { MeetingPointDialog } from '../components/features/logistics/MeetingPointDialog';
 import { CarpoolSection } from '../components/features/logistics/CarpoolSection';

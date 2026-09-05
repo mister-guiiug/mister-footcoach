@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Card, CardHeader } from '@mister-guiiug/dev-wpa-config/react/card';
+import { Card, CardHeader } from '@mister-guiiug/dev-pwa-config/react/card';
 
 /**
  * La carte vient du socle depuis l'adoption (PARC.md, chantier 3). Le paquet

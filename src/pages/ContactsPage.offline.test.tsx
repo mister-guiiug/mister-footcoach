@@ -22,10 +22,10 @@ import ContactsPage from './ContactsPage';
  * `useRemoteWriteGuard` (local inerte / Supabase bloquant) sont éprouvées à
  * part, dans `hooks/useRemoteWriteGuard.test.tsx`.
  */
-vi.mock('@mister-guiiug/dev-wpa-config/react/use-action-guard', async orig => {
+vi.mock('@mister-guiiug/dev-pwa-config/react/use-action-guard', async orig => {
   const mod =
     await orig<
-      typeof import('@mister-guiiug/dev-wpa-config/react/use-action-guard')
+      typeof import('@mister-guiiug/dev-pwa-config/react/use-action-guard')
     >();
   return { ...mod, useActionGuard: () => mod.useActionGuard({ online: true }) };
 });

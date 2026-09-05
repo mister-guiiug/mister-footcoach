@@ -16,7 +16,7 @@ import { MOCK_DATA } from '../data/mock';
 // L'export iCal se termine par un téléchargement : on intercepte `downloadText`
 // pour lire le `.ics` réellement produit plutôt qu'un intermédiaire.
 const downloadText = vi.hoisted(() => vi.fn());
-vi.mock('@mister-guiiug/dev-wpa-config/download', async importOriginal => ({
+vi.mock('@mister-guiiug/dev-pwa-config/download', async importOriginal => ({
   ...(await importOriginal<object>()),
   downloadText,
 }));
