@@ -131,22 +131,9 @@ describe('SettingsPage', () => {
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
-  // Les deux liens de la carte « À propos » viennent désormais du catalogue de
-  // la famille. Un identifiant d'app faux y passerait la compilation et le type
-  // check pour ne donner qu'un 404 en production : on relit donc les `href`
-  // rendus, pas la constante.
-  it('points the source link at this repository', () => {
-    renderWithProviders(<SettingsPage />);
-    expect(screen.getByRole('link', { name: 'Code source' })).toHaveAttribute(
-      'href',
-      'https://github.com/mister-guiiug/mister-footcoach'
-    );
-  });
-
-  it('points the sponsor link at the family Buy Me a Coffee page', () => {
-    renderWithProviders(<SettingsPage />);
-    expect(
-      screen.getByRole('link', { name: "M'offrir un café" })
-    ).toHaveAttribute('href', 'https://buymeacoffee.com/mister.guiiug');
-  });
+  // Les deux liens de la règle famille ne sont plus rendus par cet écran : ils
+  // viennent du pied de page de la COQUILLE, donc de tous les écrans. Leurs
+  // assertions ont suivi, dans `components/layout/AppShell.test.tsx` — les
+  // laisser ici n'aurait prouvé que le cas d'un seul écran, celui qui n'a
+  // jamais manqué.
 });
