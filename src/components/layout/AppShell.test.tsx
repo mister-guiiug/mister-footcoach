@@ -35,29 +35,21 @@ describe('AppShell', () => {
     expect(screen.getByText('Accueil')).toBeInTheDocument();
   });
 
-  // Règle famille : les deux liens sont visibles sur le PREMIER écran comme
-  // sur les Réglages. C'est la coquille qui le garantit — les assertions
-  // vivaient dans `SettingsPage.test.tsx`, où elles ne prouvaient que le cas
-  // d'un seul écran. Ici, la route rendue est l'accueil.
+  // La règle famille en veut DEUX écrans, pas onze. La coquille ne porte donc
+  // plus le pied de page, et c'est ce que ce test fige : les assertions sur
+  // les liens sont passées dans `DashboardPage.test.tsx` et
+  // `SettingsPage.test.tsx`, les deux écrans qui les portent vraiment.
   //
-  // On relit les `href` RENDUS, pas les constantes : un identifiant d'app faux
-  // passerait la compilation et le type check pour ne donner qu'un 404.
-  it('shows the source link on the first screen, pointing at this repository', () => {
-    renderShell();
-    expect(screen.getByRole('link', { name: 'Code source' })).toHaveAttribute(
-      'href',
-      'https://github.com/mister-guiiug/mister-footcoach'
-    );
-  });
-
-  // L'APOSTROPHE EST TYPOGRAPHIQUE (U+2019), et c'est celle du socle : ses
-  // libellés par défaut écrivent « M’offrir un café ». L'ancienne assertion,
-  // écrite sur le libellé maison de l'app, portait une apostrophe droite
-  // (U+0027) — deux caractères qui se ressemblent et qu'aucun diff ne montre.
-  it('shows the sponsor link on the first screen, pointing at the family Buy Me a Coffee page', () => {
+  // Ce n'est pas une absence décorative : rendu par la coquille, « M’offrir un
+  // café » s'affichait sous le plateau du match en direct et sous chaque
+  // formulaire.
+  it('ne rend AUCUN lien de pied de page : ce n’est plus le rôle de la coquille', () => {
     renderShell();
     expect(
-      screen.getByRole('link', { name: 'M’offrir un café' })
-    ).toHaveAttribute('href', 'https://buymeacoffee.com/mister.guiiug');
+      screen.queryByRole('link', { name: 'Code source' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'M’offrir un café' })
+    ).not.toBeInTheDocument();
   });
 });

@@ -54,6 +54,14 @@ export default defineConfig(({ command }) => {
         siteName: 'Mister Footcoach',
         basePath,
         logoPath: '/logo.svg',
+        // La barre du navigateur, par schéma. Les deux couleurs étaient
+        // écrites à la main dans `index.html` — et elles y SURVIVAIENT au
+        // build par accident : `stripThemeColorMeta` travaille ligne à ligne
+        // et nos balises, mises en forme par Prettier, tenaient sur quatre
+        // lignes chacune. Le jour où l'une d'elles aurait tenu sur une seule,
+        // le build l'aurait retirée sans rien remettre. Les valeurs sont donc
+        // passées ici, à leur seule source, et retirées de `index.html`.
+        themeColor: { light: '#16a34a', dark: '#14532d' },
       }),
       // CSP durcie : script-src par hash SHA-256 de l'IIFE anti-FOUC inline
       // (plus de 'unsafe-inline' en prod). Placé après pwaSeoPlugin pour hasher

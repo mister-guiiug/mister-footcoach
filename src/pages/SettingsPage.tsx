@@ -16,6 +16,8 @@ import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
 import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
 import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { ConfirmDialog } from '@mister-guiiug/dev-pwa-config/react/confirm-dialog';
+import { AppFooter } from '@mister-guiiug/dev-pwa-config/react/app-footer';
+import { repoUrl } from '@mister-guiiug/dev-pwa-config/apps-catalog';
 import { dateSlug, downloadText } from '@mister-guiiug/dev-pwa-config/download';
 import { useTheme } from '../theme/ThemeContext';
 import {
@@ -587,11 +589,20 @@ export default function SettingsPage() {
             <p className="text-xs text-fg-muted mt-0.5">
               {t('settings.appDescription')}
             </p>
-            {/* Les deux liens ne sont plus recopiés ici : le pied de page de
-                la coquille les porte sur TOUS les écrans, celui-ci compris. */}
           </div>
         </div>
       </Card>
+
+      {/* Règle famille : code source, soutien et signalement sur les Réglages
+          et sur l'accueil — deux écrans, pas les onze. Le pied de page était
+          rendu par la coquille, donc partout ; il est revenu ici, où on le
+          cherche, et sur `DashboardPage`. */}
+      <AppFooter
+        version
+        issues
+        className="mt-8 justify-center px-4 pb-4"
+        repoUrl={repoUrl(APP_ID)}
+      />
     </div>
   );
 }

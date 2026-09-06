@@ -131,9 +131,25 @@ describe('SettingsPage', () => {
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
-  // Les deux liens de la règle famille ne sont plus rendus par cet écran : ils
-  // viennent du pied de page de la COQUILLE, donc de tous les écrans. Leurs
-  // assertions ont suivi, dans `components/layout/AppShell.test.tsx` — les
-  // laisser ici n'aurait prouvé que le cas d'un seul écran, celui qui n'a
-  // jamais manqué.
+  // Règle famille : les Réglages sont le SECOND des deux écrans qui portent
+  // les liens — l'accueil est l'autre (`DashboardPage.test.tsx`). Ils ont
+  // transité par la coquille, qui les mettait sur les onze écrans ; les voici
+  // revenus là où on les cherche.
+  //
+  // On relit les `href` RENDUS, pas les constantes : un identifiant d'app faux
+  // passerait la compilation et le type check pour ne donner qu'un 404.
+  it('porte le lien du code source, qui pointe sur CE dépôt', () => {
+    renderWithProviders(<SettingsPage />);
+    expect(screen.getByRole('link', { name: 'Code source' })).toHaveAttribute(
+      'href',
+      'https://github.com/mister-guiiug/mister-footcoach'
+    );
+  });
+
+  it('porte le lien de soutien, qui pointe sur la page Buy Me a Coffee de la famille', () => {
+    renderWithProviders(<SettingsPage />);
+    expect(
+      screen.getByRole('link', { name: 'M’offrir un café' })
+    ).toHaveAttribute('href', 'https://buymeacoffee.com/mister.guiiug');
+  });
 });

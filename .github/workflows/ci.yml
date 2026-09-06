@@ -20,4 +20,9 @@ jobs:
     # secrets du dépôt à un workflow qui n'en demande pas un seul.
     with:
       run-doctor: true # la checklist du parc, lue sur le dépôt et sur dist/ (AMELIORATIONS.md, T2)
-      run-e2e: false
+      # La suite Playwright existait et ne tournait nulle part. Pas de
+      # `e2e-grep` ici : le défaut du réutilisable vaut `@critical|@a11y`, et
+      # notre unique spec est taguée `@a11y`. Un filtre écrit à la main aurait
+      # pu l'écarter en silence — Playwright rend « No tests found » avec un
+      # code 0.
+      run-e2e: true
