@@ -254,4 +254,29 @@ describe('DashboardPage', () => {
     renderWithProviders(<DashboardPage />);
     expect(screen.getByText(/vs FC Orphan/)).toBeInTheDocument();
   });
+
+  // Règle famille : l'accueil est l'un des DEUX écrans qui portent les liens.
+  // Ces assertions vivaient dans `AppShell.test.tsx`, du temps où la coquille
+  // les rendait sur les onze écrans.
+  //
+  // On relit les `href` RENDUS, pas les constantes : un identifiant d'app faux
+  // passerait la compilation et le type check pour ne donner qu'un 404.
+  it('porte le lien du code source, qui pointe sur CE dépôt', () => {
+    renderWithProviders(<DashboardPage />);
+    expect(screen.getByRole('link', { name: 'Code source' })).toHaveAttribute(
+      'href',
+      'https://github.com/mister-guiiug/mister-footcoach'
+    );
+  });
+
+  // L'APOSTROPHE EST TYPOGRAPHIQUE (U+2019), et c'est celle du socle : ses
+  // libellés par défaut écrivent « M’offrir un café ». Une assertion écrite
+  // avec l'apostrophe droite (U+0027) échouerait sans qu'aucun diff ne montre
+  // pourquoi.
+  it('porte le lien de soutien, qui pointe sur la page Buy Me a Coffee de la famille', () => {
+    renderWithProviders(<DashboardPage />);
+    expect(
+      screen.getByRole('link', { name: 'M’offrir un café' })
+    ).toHaveAttribute('href', 'https://buymeacoffee.com/mister.guiiug');
+  });
 });

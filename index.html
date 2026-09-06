@@ -23,16 +23,10 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta
-      name="theme-color"
-      content="#16a34a"
-      media="(prefers-color-scheme: light)"
-    />
-    <meta
-      name="theme-color"
-      content="#14532d"
-      media="(prefers-color-scheme: dark)"
-    />
+    <!-- Les deux `theme-color` par schéma sont posées au build par
+         `pwaSeoPlugin({ themeColor })` (cf. vite.config.ts) : une seule
+         source, et plus de balises écrites à la main que le build croit
+         remplacer alors qu'il les laisse en double. -->
     <meta
       name="description"
       content="Mister Footcoach — application PWA pour les coachs de football : gestion d'équipes, compositions tactiques, statistiques de match."

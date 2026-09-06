@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { Calendar, Dumbbell, Users, ClipboardList, Trophy } from 'lucide-react';
 import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
 import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
+import { AppFooter } from '@mister-guiiug/dev-pwa-config/react/app-footer';
+import { repoUrl } from '@mister-guiiug/dev-pwa-config/apps-catalog';
+import { APP_ID } from '../lib/appId';
 import {
   useAppContext,
   useTeams,
@@ -273,6 +276,16 @@ export default function DashboardPage() {
           </div>
         </section>
       )}
+
+      {/* Règle famille : code source, soutien et signalement sur l'accueil et
+          sur les Réglages — deux écrans, pas les onze. Ils étaient rendus par
+          la coquille, donc partout, jusqu'à ce que `pwa-doctor` le relève. */}
+      <AppFooter
+        version
+        issues
+        className="mt-8 justify-center px-4 pb-4"
+        repoUrl={repoUrl(APP_ID)}
+      />
     </div>
   );
 }
