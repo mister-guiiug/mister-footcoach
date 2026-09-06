@@ -14,8 +14,12 @@ import { I18nProvider } from '../i18n';
  * `useAuth` est simulé : ces tests tiennent l'écran, pas Supabase. Le contrat
  * du contexte est éprouvé à part (`AuthContext.test.tsx`).
  */
-const signIn = vi.fn(() => Promise.resolve({ error: undefined }));
-const signInWithLink = vi.fn(() => Promise.resolve({ error: undefined }));
+const signIn = vi.fn<() => Promise<{ error?: string }>>(() =>
+  Promise.resolve({ error: undefined })
+);
+const signInWithLink = vi.fn<() => Promise<{ error?: string }>>(() =>
+  Promise.resolve({ error: undefined })
+);
 vi.mock('./AuthContext', () => ({
   useAuth: () => ({ session: null, loading: false, signIn, signInWithLink }),
 }));
