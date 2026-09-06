@@ -1,0 +1,39 @@
+# Tests pgTAP, délégués au réutilisable de la famille.
+#
+# LE SEUL ENDROIT OÙ LES MIGRATIONS S'EXÉCUTENT VRAIMENT. Le poste de
+# développement n'a pas de démon Docker qui démarre : les 24 tables de `0001`,
+# les politiques de `0002` et la fonction d'effacement de `0004` n'y sont que
+# RELUES. Ici, la pile jetable du runner les applique depuis zéro et joue
+# `supabase/tests/`.
+#
+# CE QUE CE DÉPÔT-CI A À Y PROUVER. `delete_my_account()` est la seule fonction
+# de l'application qui écrive dans `auth.users`, et elle ne le peut que parce
+# qu'elle appartient à `postgres`. Une relecture ne distingue pas ce droit-là
+# d'un privilège de superutilisateur — or l'un vaut sur un projet hébergé et
+# l'autre non. Les assertions le nomment ; encore faut-il les jouer.
+#
+# AUCUN SECRET, aucune condition : tout se passe dans une base jetable, et rien
+# ne touche le projet hébergé.
+name: Supabase tests
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/config.toml'
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - '.github/workflows/supabase-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/config.toml'
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pgtap:
+    uses: mister-guiiug/dev-pwa-config/.github/workflows/pwa-supabase-test.yml@v4

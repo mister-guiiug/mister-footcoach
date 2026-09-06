@@ -32,6 +32,7 @@ import { googleMapsUrl, appleMapsUrl } from '../utils/maps';
 import { computeGroupStandings } from '../utils/tournament';
 import { useI18n } from '../i18n';
 import { useRemoteWriteGuard } from '../hooks/useRemoteWriteGuard';
+import { RemoteWriteNotice } from '../components/RemoteWriteNotice';
 
 const statusTone: Record<TournamentStatus, 'muted' | 'warning' | 'success'> = {
   planifie: 'muted',
@@ -247,6 +248,10 @@ export default function TournamentDetailPage() {
           <Plus size={14} /> {t('tournaments.addGroup')}
         </Button>
       </div>
+
+      {/* Le motif du garde EN CLAIR : la corbeille de chaque poule est une
+          icône sans texte, son `title` ne s'ouvre qu'à la souris. */}
+      <RemoteWriteNotice />
 
       {groups.length === 0 ? (
         <EmptyState

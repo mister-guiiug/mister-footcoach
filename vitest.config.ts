@@ -91,11 +91,43 @@ export default defineConfig({
       // retirées de types/index.ts (chantier 10), puis `Card` adopté du socle
       // (chantier 3). Du code couvert à 100 % quitte l'app à chaque fois — le
       // ratio recule sans qu'un test ait disparu. Seuils recalés sur la mesure.
+      // Remonté (+1,7 à +2,7 pt) le 06/09/2026 à l'adoption du magasin
+      // VERSIONNÉ et de l'export/import de la base locale.
+      // `src/store/storage.ts` est couvert à 100 % (statements, functions,
+      // lines ; 100 % des branches), et l'écran des réglages gagne 10 tests :
+      // export, aller-retour complet, refus d'un fichier étranger, refus d'un
+      // fichier illisible, refus d'une version future, annulation, absence de
+      // la carte en mode Supabase. Autrement dit, tout ce qui a été ajouté est
+      // couvert — et deux branches inatteignables ont disparu au passage
+      // (`exportState()` ne rend plus `null`, le catch n'a plus de repli
+      // « ce n'était pas une Error »). Mesure au 06/09/2026 :
+      // statements 1502/1996, branches 1222/1639, functions 542/765,
+      // lines 1362/1799. Le `pct` d'istanbul étant TRONQUÉ à deux décimales,
+      // le seuil peut valoir exactement le chiffre affiché.
+      // Remonté encore (+0,02 à +0,05 pt) par `RemoteWriteNotice` : le motif
+      // du garde d'écriture distante, rendu EN CLAIR au-dessus des listes dont
+      // les corbeilles sont bloquées. Quatre tests, dont les deux branches qui
+      // comptent — rien du tout avec le backend local même hors ligne, le
+      // texte du motif hors ligne en mode Supabase. Tout ce qui est ajouté est
+      // couvert. Mesure au 06/09/2026 : statements 1506/2000, branches
+      // 1224/1641, functions 543/766, lines 1365/1802.
+      // Remonté une troisième fois (+0,25 à +0,39 pt) par « Supprimer mon
+      // compte ». `DangerZoneCard` est couvert à 100 % (statements, branches,
+      // functions, lines) par neuf tests, dont les deux qui portent la
+      // sécurité du geste : une adresse mal retapée n'efface RIEN, et une
+      // session absente ne fait pas d'un champ vide une confirmation. Deux
+      // tests de plus sur `AuthContext.deleteAccount` fixent l'ORDRE (la
+      // session ne se ferme qu'APRÈS un succès) — la partie serveur, elle,
+      // n'est pas mesurable ici : elle est prouvée par les 29 assertions
+      // pgTAP de `supabase/tests/suppression-compte.test.sql`, jouées par
+      // `.github/workflows/supabase-tests.yml`. Mesure au 06/09/2026 :
+      // statements 1537/2031, branches 1240/1657, functions 551/774,
+      // lines 1394/1831.
       thresholds: {
-        statements: 72.7,
-        branches: 73.1,
-        functions: 69.1,
-        lines: 73,
+        statements: 75.67,
+        branches: 74.83,
+        functions: 71.18,
+        lines: 76.13,
       },
     },
   },

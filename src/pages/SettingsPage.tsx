@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState, type ChangeEvent } from 'react';
 import {
   Moon,
   Sun,
@@ -8,12 +8,15 @@ import {
   Check,
   RadioTower,
   LayoutGrid,
+  Download,
+  Upload,
 } from 'lucide-react';
 import { FamilyApps } from '@mister-guiiug/dev-pwa-config/react';
 import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
 import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
 import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { ConfirmDialog } from '@mister-guiiug/dev-pwa-config/react/confirm-dialog';
+import { dateSlug, downloadText } from '@mister-guiiug/dev-pwa-config/download';
 import { useTheme } from '../theme/ThemeContext';
 import {
   useAppContext,
@@ -21,6 +24,9 @@ import {
   useNotificationPreferences,
   useClubSettings,
 } from '../store/AppContext';
+import { exportState, importState } from '../store/storage';
+import { BACKEND } from '../backend/config';
+import { DangerZoneCard } from '../components/features/settings/DangerZoneCard';
 import type { NotificationPreferences, ReminderDelay } from '../types';
 import { NOTIFICATION_CATEGORIES } from '../utils/notifications';
 import {
@@ -50,6 +56,75 @@ export default function SettingsPage() {
   // Réinitialisation en attente de réponse : `window.confirm` rendait un
   // booléen tout de suite, la boîte du socle attend un clic.
   const [resetPending, setResetPending] = useState(false);
+
+  // ── Sauvegarde et restauration (mode local) ────────────────────────
+  //
+  // POURQUOI ICI, ET SEULEMENT EN MODE LOCAL. Le mode local est le DÉFAUT :
+  // toute la saison — vingt collections, joueurs, matchs, compositions — vit
+  // dans le `localStorage` d'un seul navigateur. Le vider, changer de
+  // téléphone, ou simplement voir le navigateur nettoyer son stockage, et il
+  // n'y a plus rien : aucun compte, aucun serveur, aucune reprise. Jusqu'ici
+  // la seule sortie de l'application était l'export RGPD d'UN joueur, qui ne
+  // se réimporte pas. En mode `supabase`, la vérité est en base et ce n'est
+  // pas ce magasin-là qui la porte : la carte n'a rien à y promettre.
+  const fileInput = useRef<HTMLInputElement>(null);
+  /** Le fichier lu, en attente de confirmation parce qu'il y a de quoi perdre. */
+  const [pendingImport, setPendingImport] = useState<string | null>(null);
+  /** Dernier import réussi — de quoi VOIR ce qui est entré, pas juste « OK ». */
+  const [importDone, setImportDone] = useState<{
+    teams: number;
+    players: number;
+    matches: number;
+  } | null>(null);
+  /** Le message de refus, tel que le magasin l'a formulé. */
+  const [importError, setImportError] = useState<string | null>(null);
+
+  function exportData() {
+    downloadText(
+      exportState(),
+      `mister-footcoach-${dateSlug()}.json`,
+      'application/json'
+    );
+  }
+
+  /**
+   * Écrit le fichier, ou refuse. Le magasin fait les deux : il ne remplace
+   * l'état QUE si l'enveloppe, la chaîne de migrations et la validation ont
+   * toutes abouti — un fichier d'une autre application repart avec un message,
+   * et la saison en cours n'a pas bougé d'une ligne.
+   */
+  function runImport(json: string) {
+    try {
+      const state = importState(json);
+      dispatch({ type: 'HYDRATE', state });
+      setImportDone({
+        teams: state.teams.length,
+        players: state.players.length,
+        matches: state.matches.length,
+      });
+      setImportError(null);
+    } catch (error) {
+      // Toujours une `Error` : le magasin du socle enveloppe la cause dans une
+      // `Error` au message lisible, et `assertAppState` lève des `TypeError`.
+      // Un repli « ce n'était pas une Error » serait une branche inatteignable.
+      setImportDone(null);
+      setImportError((error as Error).message);
+    }
+  }
+
+  async function onImportFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    // Remis à zéro tout de suite : choisir DEUX fois le même fichier doit
+    // relancer l'import, et un `<input type="file">` ne signale pas un choix
+    // identique au précédent.
+    event.target.value = '';
+    if (!file) return;
+    const json = await file.text();
+    // Un import REMPLACE tout. Tant qu'il n'y a rien à perdre — première
+    // ouverture, données effacées — le demander serait une cérémonie inutile.
+    if (hasSomethingToLose) setPendingImport(json);
+    else runImport(json);
+  }
 
   function syncFederation() {
     const teamId = state.teams[0]?.id ?? '';
@@ -97,6 +172,17 @@ export default function SettingsPage() {
     { value: 'dark', label: t('settings.themeDark'), icon: Moon },
     { value: 'system', label: t('settings.themeSystem'), icon: Monitor },
   ] as const;
+
+  /**
+   * Y a-t-il de quoi perdre ? Trois collections suffisent à le dire — une
+   * équipe, un joueur ou un match, et l'écrasement mérite une question. Le
+   * critère porte sur l'état EN MÉMOIRE, pas sur la présence d'une clé : le
+   * magasin en écrit une dès le premier rendu, elle serait donc toujours là.
+   */
+  const hasSomethingToLose =
+    state.teams.length > 0 ||
+    state.players.length > 0 ||
+    state.matches.length > 0;
 
   return (
     <div className="px-4 py-4 space-y-5">
@@ -366,6 +452,74 @@ export default function SettingsPage() {
         </div>
       </Card>
 
+      {/* Sauvegarde et restauration — mode local seulement */}
+      {BACKEND === 'local' && (
+        <Card>
+          <p className="text-sm font-semibold text-fg-heading mb-3">
+            {t('settings.myData')}
+          </p>
+          <p className="text-xs text-fg-muted mb-3">
+            {t('settings.myDataDesc')}
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={exportData}>
+              <Download size={14} />
+              {t('settings.exportData')}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => fileInput.current?.click()}
+            >
+              <Upload size={14} />
+              {t('settings.importData')}
+            </Button>
+          </div>
+          {/* Le vrai champ est masqué visuellement, pas retiré de l'arbre : il
+              garde son nom accessible, et un test peut lui donner un fichier
+              sans passer par la boîte de dialogue du système. */}
+          <input
+            ref={fileInput}
+            type="file"
+            accept="application/json,.json"
+            className="sr-only"
+            aria-label={t('settings.importData')}
+            onChange={event => void onImportFile(event)}
+          />
+          {importDone && (
+            <p role="status" className="mt-3 text-xs text-fg-muted">
+              {t('settings.importDone', {
+                teams: importDone.teams,
+                players: importDone.players,
+                matches: importDone.matches,
+              })}
+            </p>
+          )}
+          {importError && (
+            <p role="alert" className="mt-3 text-xs text-red-600">
+              {t('settings.importFailed')}
+              <span className="block text-fg-faint">{importError}</span>
+            </p>
+          )}
+        </Card>
+      )}
+
+      {pendingImport !== null && (
+        <ConfirmDialog
+          open
+          destructive
+          title={t('settings.importConfirm')}
+          message={t('settings.importConfirmBody')}
+          confirmLabel={t('settings.importData')}
+          cancelLabel={t('common.cancel')}
+          onConfirm={() => {
+            const json = pendingImport;
+            setPendingImport(null);
+            runImport(json);
+          }}
+          onCancel={() => setPendingImport(null)}
+        />
+      )}
+
       {/* Data management */}
       <Card>
         <p className="text-sm font-semibold text-fg-heading mb-3">
@@ -394,6 +548,13 @@ export default function SettingsPage() {
           onCancel={() => setResetPending(false)}
         />
       )}
+
+      {/* Zone dangereuse — mode Supabase seulement : sans compte, il n'y a
+          rien à supprimer, et un bouton qui n'efface rien serait pire que son
+          absence. Monté CONDITIONNELLEMENT plutôt que rendu vide : la carte
+          appelle `useAuth`, qui exige un `AuthProvider` — lequel n'existe que
+          derrière le backend distant. */}
+      {BACKEND === 'supabase' && <DangerZoneCard />}
 
       {/* App info */}
       <Card>

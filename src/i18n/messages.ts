@@ -650,11 +650,36 @@ export const messages = {
       end: 'Fin',
       teams: 'Équipes',
       activePlayers: 'Joueurs actifs',
+      myData: 'Mes données',
+      myDataDesc:
+        "Toute la saison est enregistrée dans ce navigateur, et nulle part ailleurs. Le fichier exporté contient l'intégralité des données ; il se relit ici, sur cet appareil comme sur un autre.",
+      exportData: 'Exporter',
+      importData: 'Importer',
+      importConfirm: 'Remplacer toutes les données par ce fichier ?',
+      importConfirmBody:
+        "L'import remplace la totalité des données de cette application : équipes, joueurs, matchs, entraînements, sondages. Exportez d'abord si vous voulez pouvoir revenir en arrière.",
+      importDone:
+        'Fichier importé : {teams} équipe(s), {players} joueur(s), {matches} match(s).',
+      importFailed: "Fichier refusé — rien n'a été modifié.",
       demoData: 'Données de démonstration',
       demoDataDesc:
         "L'application utilise des données de démonstration stockées localement. La réinitialisation restaure les données d'exemple originales.",
       resetData: 'Réinitialiser les données',
       resetConfirm: 'Réinitialiser toutes les données de démonstration ?',
+      danger: {
+        title: 'Zone dangereuse',
+        body: 'Supprimer votre compte est définitif : rien ne permet de revenir en arrière, et personne ne peut le faire à votre place ensuite.',
+        action: 'Supprimer mon compte',
+        whatGoes:
+          'Seront effacés : votre fiche (nom, e-mail, rôles), vos coordonnées de contact et la trace de votre consentement, vos notifications et vos offres de covoiturage.',
+        whatStays:
+          "Resteront au club : les équipes, les matchs, les entraînements et les fiches des joueurs — ils ne vous appartiennent pas. Les joueurs dont vous étiez le contact n'en auront plus.",
+        confirmLabel: 'Retapez votre adresse e-mail pour confirmer',
+        confirm: 'Supprimer définitivement',
+        mismatch:
+          "L'adresse saisie ne correspond pas à celle du compte connecté.",
+        failed: 'La suppression a échoué : {error}',
+      },
       otherApps: 'Nos autres applications',
       otherAppsDesc: "D'autres applications gratuites de la même famille.",
       version: 'Version MVP — Phase 0',
@@ -1333,11 +1358,35 @@ export const messages = {
       end: 'End',
       teams: 'Teams',
       activePlayers: 'Active players',
+      myData: 'My data',
+      myDataDesc:
+        'The whole season is stored in this browser, and nowhere else. The exported file holds all of it; it can be read back here, on this device or another one.',
+      exportData: 'Export',
+      importData: 'Import',
+      importConfirm: 'Replace all data with this file?',
+      importConfirmBody:
+        'Importing replaces every piece of data in this app: teams, players, matches, training sessions, polls. Export first if you want to be able to go back.',
+      importDone:
+        'File imported: {teams} team(s), {players} player(s), {matches} match(es).',
+      importFailed: 'File rejected — nothing was changed.',
       demoData: 'Demo data',
       demoDataDesc:
         'The app uses demo data stored locally. Resetting restores the original sample data.',
       resetData: 'Reset the data',
       resetConfirm: 'Reset all demo data?',
+      danger: {
+        title: 'Danger zone',
+        body: 'Deleting your account is permanent: there is no way back, and nobody can do it for you afterwards.',
+        action: 'Delete my account',
+        whatGoes:
+          'Will be erased: your profile (name, email, roles), your contact details and the record of your consent, your notifications and your carpool offers.',
+        whatStays:
+          'Will stay with the club: teams, matches, training sessions and player records — they are not yours. Players you were the contact for will no longer have one.',
+        confirmLabel: 'Retype your email address to confirm',
+        confirm: 'Delete permanently',
+        mismatch: 'The address you typed does not match the signed-in account.',
+        failed: 'Deletion failed: {error}',
+      },
       otherApps: 'Our other apps',
       otherAppsDesc: 'Other free apps from the same family.',
       version: 'MVP version — Phase 0',

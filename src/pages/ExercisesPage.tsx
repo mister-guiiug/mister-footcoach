@@ -10,6 +10,7 @@ import { useExercises, useAppContext } from '../store/AppContext';
 import { type Exercise, type ExerciseCategory } from '../types';
 import { useI18n } from '../i18n';
 import { useRemoteWriteGuard } from '../hooks/useRemoteWriteGuard';
+import { RemoteWriteNotice } from '../components/RemoteWriteNotice';
 
 const CATEGORIES: ExerciseCategory[] = [
   'echauffement',
@@ -111,6 +112,10 @@ export default function ExercisesPage() {
           </button>
         ))}
       </div>
+
+      {/* Le motif du garde EN CLAIR : les corbeilles ci-dessous sont des
+          icônes sans texte, leur `title` ne s'ouvre qu'à la souris. */}
+      <RemoteWriteNotice />
 
       {filtered.length === 0 ? (
         <EmptyState

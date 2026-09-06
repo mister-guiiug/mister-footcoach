@@ -1156,20 +1156,33 @@ Synchroniser automatiquement le calendrier officiel des matchs et les résultats
 
 ### 18.4 Droits des personnes
 
-| Droit         | Modalité                                           |
-| ------------- | -------------------------------------------------- |
-| Accès         | Export via l'interface parent ou sur demande admin |
-| Rectification | Signalement parent → correction par le coach       |
-| Suppression   | Demande via l'interface → traitement admin         |
-| Portabilité   | Export JSON ou CSV                                 |
-| Opposition    | Désactivation notifications et compte              |
+| Droit         | Modalité                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| Accès         | Export via l'interface parent ou sur demande admin                                                      |
+| Rectification | Signalement parent → correction par le coach                                                            |
+| Suppression   | Son compte : « Zone dangereuse » des réglages (mode `supabase`). Un joueur : demande → traitement admin |
+| Portabilité   | Export JSON ou CSV                                                                                      |
+| Opposition    | Désactivation notifications et compte                                                                   |
 
-> **Écart d'implémentation.** L'accès et la portabilité sont livrés : la fiche
-> joueur produit un export JSON complet (`src/utils/rgpd.ts`), et l'assiduité
-> s'exporte en CSV. Le **droit à la suppression n'est pas outillé** : il
-> n'existe aucune action de suppression de joueur dans l'application, seulement
-> pour les contacts. Une demande d'effacement suppose aujourd'hui une
-> intervention manuelle en base.
+> **Où en est chaque droit.** L'accès et la portabilité sont livrés : la fiche
+> joueur produit un export JSON complet (`src/utils/rgpd.ts`), l'assiduité
+> s'exporte en CSV, et en mode `local` la base entière s'exporte **et se
+> réimporte** depuis les réglages.
+>
+> Le **droit à l'effacement de SON PROPRE COMPTE est outillé** depuis le
+> 06/09/2026, en mode `supabase` : la carte « Zone dangereuse » des réglages
+> appelle `delete_my_account()`, une fonction `security definer` appartenant à
+> `postgres`. Elle efface la fiche `users`, la fiche `contacts` (téléphone,
+> e-mail, **date et version du consentement**), les notifications, leurs
+> préférences et les offres de covoiturage, puis le compte lui-même dans
+> `auth.users`. Elle **détache** en revanche ce qui appartient au club —
+> équipes, sondages, indisponibilités, réponses — parce que ces données
+> concernent des tiers, dont des mineurs. La barrière est une adresse à
+> retaper, non un « OK » : un compte effacé ne se rattrape pas.
+>
+> **Reste non outillé** : la suppression d'un JOUEUR par un administrateur (il
+> n'existe d'action de suppression que pour les contacts), et la purge de fin
+> de conservation. Ces deux-là supposent encore une intervention en base.
 
 ### 18.5 Traçabilité du consentement
 
@@ -1648,14 +1661,14 @@ livraison, à mettre à jour au fil des développements.
 
 ### 21.2 Partiellement livré
 
-| Module                 | Ce qui manque                                                                                                          |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Mode match live        | Fenêtre J-0 (RG-LIVE-01) et fonctionnement hors-ligne (RG-LIVE-02) — § 7.5.6                                           |
-| Calendrier externe     | Flux d'abonnement avec URL et token, au lieu d'un export ponctuel — § 13.5                                             |
-| Notifications          | Rappels automatiques J-1 : aucune tâche planifiée n'existe (§ 16.1)                                                    |
-| RGPD                   | Consentement tracé et export livrés ; **droit à la suppression et purge de fin de conservation non outillés** (§ 18.4) |
-| Intégration fédération | Flux **simulé** pour démontrer le rapprochement ; pas d'API réelle branchée (PO-04)                                    |
-| Photos de joueurs      | Champ prévu au modèle, stockage de fichiers non branché                                                                |
+| Module                 | Ce qui manque                                                                                                                                                           |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mode match live        | Fenêtre J-0 (RG-LIVE-01) et fonctionnement hors-ligne (RG-LIVE-02) — § 7.5.6                                                                                            |
+| Calendrier externe     | Flux d'abonnement avec URL et token, au lieu d'un export ponctuel — § 13.5                                                                                              |
+| Notifications          | Rappels automatiques J-1 : aucune tâche planifiée n'existe (§ 16.1)                                                                                                     |
+| RGPD                   | Consentement tracé, export, import et **suppression de son compte** livrés ; suppression d'un joueur par l'admin et purge de fin de conservation non outillées (§ 18.4) |
+| Intégration fédération | Flux **simulé** pour démontrer le rapprochement ; pas d'API réelle branchée (PO-04)                                                                                     |
+| Photos de joueurs      | Champ prévu au modèle, stockage de fichiers non branché                                                                                                                 |
 
 ### 21.3 Évolutions ultérieures
 

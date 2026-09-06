@@ -617,6 +617,46 @@ quand `BACKEND === 'supabase'` ; sinon il gère lui-même l'état local et sa
 persistance dans `localStorage` (clé `mister-footcoach-data`), initialisé
 depuis `src/data/mock.ts`.
 
+#### 5.3.1 Le magasin local est versionné
+
+La persistance ne passe plus par un `JSON.stringify` de l'état suivi d'un
+`JSON.parse` casté en `AppState` : `src/store/storage.ts` monte le
+`createVersionedStore` du socle. Ce que ça change, et pourquoi :
+
+| Avant                                   | Maintenant                                                   |
+| --------------------------------------- | ------------------------------------------------------------ |
+| Valeur nue sous `mister-footcoach-data` | Enveloppe `{ v, data }` sous la **même** clé                 |
+| Aucune version, aucune migration        | `SCHEMA_VERSION = 1`, migrations indexées par version source |
+| `as AppState` — aucune vérification     | `assertAppState` : refuse au lieu de caster                  |
+| Une donnée illisible se perd en silence | Copie de côté (`…data.backup-v0`, `…data.backup-illisible`)  |
+
+La clé n'a pas changé : le préfixe `mister-footcoach-` et la clé `data` se
+recomposent exactement en `mister-footcoach-data`. Le socle considère toute
+valeur **sans** enveloppe comme une version 0, et la migration `0 → 1` de l'app
+la **complète** sans rien retirer — une collection absente d'un instantané plus
+ancien devient un tableau vide, les clés inconnues traversent. L'instantané
+d'aujourd'hui se relit donc entier, sans manœuvre de reprise
+(`src/store/storage.test.ts`).
+
+Deux rôles distincts, et c'est voulu : la migration **complète**, la validation
+**refuse**. C'est cette dernière qui distingue un instantané de cette
+application du fichier d'une autre, et qui fait qu'un import se solde par un
+message plutôt que par une application vidée.
+
+#### 5.3.2 Export et import de la base locale
+
+En mode `local`, les réglages (`SettingsPage`) portent une carte « Mes
+données » : un export de la **totalité** de l'état, enveloppe comprise — donc
+relisible par une version future, qui le repassera par ses migrations —, et
+l'import symétrique. L'import ne remplace rien tant que le parse, la chaîne de
+migrations et la validation n'ont pas toutes abouti : un fichier d'une autre
+application ou tronqué repart avec un message, sans que la saison en cours
+bouge d'une ligne. Quand des données existent, une confirmation est demandée.
+
+La carte est **absente** en mode `supabase` : la vérité y est en base, pas dans
+ce magasin ; exporter un miroir périmé serait mensonger
+(`src/pages/SettingsPage.supabase.test.tsx`).
+
 ### 5.4 Activation de Supabase
 
 ```bash
@@ -867,8 +907,55 @@ mode match live reste un écart connu avec les spécifications (§ 14.2).
 
 ### 7.3 Indicateur de connectivité
 
-Non implémenté : il n'existe ni bandeau hors-ligne, ni indicateur de
-connectivité dans la `TopBar`.
+**Implémenté, et conditionnel.** `src/components/ConnectionBanner.tsx` habille
+le `ConnectionBanner` du socle et est monté dans `src/main.tsx`, au-dessus de
+`AuthGate` : le bandeau s'affiche donc sur tous les écrans, connecté ou non.
+Une version antérieure de ce document affirmait le contraire ; c'était faux.
+
+Il n'y a pas d'indicateur dans la `TopBar`, et c'est délibéré : une icône
+permanente ne dit rien tant qu'elle est verte.
+
+Ce qui compte ici n'est pas le bandeau, c'est sa **condition** :
+
+| Backend              | Bandeau                        | Pourquoi                                                                   |
+| -------------------- | ------------------------------ | -------------------------------------------------------------------------- |
+| `local` **(défaut)** | jamais                         | Tout vit dans `localStorage` : sans réseau, l'app marche exactement pareil |
+| `supabase`           | après 1,5 s hors ligne CONTINU | Chaque `dispatch` part au serveur ; sans réseau, il n'aboutit pas          |
+
+`online` est donc forcé à `true` en mode local — le socle prévoit ce cas
+(« connectivité APPLICATIVE »). Le navigateur peut être hors ligne,
+l'application, elle, ne l'est pas. Annoncer « hors connexion » à un coach dont
+la séance vient d'être enregistrée serait une fausse alerte, et une fausse
+alerte apprend à ignorer les vraies (`src/components/ConnectionBanner.test.tsx`
+éprouve les deux bords de la temporisation, 1499 ms et 1500 ms).
+
+Le libellé ne promet rien qui n'existe : « Hors connexion — les modifications
+ne seront pas enregistrées sur le serveur. » Il ne dit **pas** « ce sera envoyé
+plus tard », parce qu'il n'y a pas de file d'attente (ADR-003).
+
+### 7.4 Le garde d'écriture distante
+
+Un bandeau explique ; il n'empêche rien. `src/hooks/useRemoteWriteGuard.ts`
+enveloppe le `useActionGuard` du socle et rend les suppressions **inertes**
+quand le réseau manque en mode `supabase` — sans quoi
+`SupabaseAppProvider` applique la suppression en local d'abord, échoue, puis
+recharge : l'utilisateur voit son geste réussir, puis s'annuler tout seul.
+
+Le garde est **inerte en mode local** (`online: false` éteint la
+vérification) : `allowed` reste vrai, `reason` reste `null`.
+
+Portée réelle, écrite ici pour qu'elle ne se découvre pas à l'usage :
+
+| Couvert par le garde                                                                                                           | Non couvert                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| Les quatre suppressions par corbeille : contacts, exercices, tournois (`TournamentDetailPage`), covoiturage (`CarpoolSection`) | Les créations et modifications par formulaire, et les événements du mode match live |
+
+Une suppression bloquée porte son motif **à l'écran** — pas seulement dans son
+nom accessible. Les corbeilles sont des icônes sans texte : `title` ne
+s'affiche qu'à la souris, et cette application se tient au bord d'un terrain,
+sur un téléphone. Chaque liste concernée rend donc le motif en clair
+(`RemoteWriteNotice`), et le bouton reste dans le parcours clavier
+(`aria-disabled`, pas `disabled`) pour que le motif soit **découvrable**.
 
 ---
 
@@ -959,6 +1046,63 @@ Les rôles (`admin`, `coach`, `parent`) sont stockés dans la colonne
 > « U13 A » du jeu de données mock. Il n'y a pas encore de résolution du profil
 > `users` à partir de la session Supabase côté client : `useCurrentUser()` lit
 > cette constante dans les deux modes.
+
+### 8.5 Supprimer son compte
+
+Le droit à l'effacement (RGPD art. 17) est outillé depuis le 06/09/2026, en
+mode `supabase` uniquement — sans compte, il n'y a rien à supprimer.
+
+**Tout se passe en base.** Le client appelle une RPC ; c'est
+`public.delete_my_account()` (`supabase/migrations/0004_supprimer_son_compte.sql`)
+qui travaille. Elle est `security definer` et **appartient explicitement à
+`postgres`** : c'est de lui qu'elle emprunte `bypassrls` (pour traverser les
+politiques des 24 tables) et le droit d'écrire dans `auth.users`. Le bundle est
+servi par GitHub Pages avec la clé publique : la clé `service_role` et l'API
+d'administration (`auth.admin.deleteUser`) sont hors de question, et c'est
+précisément ce que cette fonction remplace.
+
+**Deux gestes, pas un — et c'est la seule décision de cette migration.** Le
+squelette de la famille efface tout, parce que rien de ce que possède un compte
+n'appartient à quelqu'un d'autre. Ici c'est faux : un entraîneur qui s'en va ne
+doit pas emporter la saison du club.
+
+| Effacé (à lui)                                                                                                                                             | Détaché (au club)                                                                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`, `contacts` (téléphone, e-mail, `consentDate`, `consentVersion`), `notifications`, `notification_preferences`, `carpool_offers`, puis `auth.users` | `teams."coachId"`, `teams."adjointCoachId"`, `surveys."createdBy"`, `unavailabilities."declaredBy"`, `survey_responses."parentUserId"` → `null` |
+
+Aucune de ces tables n'a de clé étrangère vers `auth.users` : **aucune cascade
+ne viendrait au secours d'un oubli**, d'où la liste explicite, faite pour se
+relire quand le modèle grandit.
+
+Ce que ça ne fait pas, et que l'écran annonce avant de demander : la fiche d'un
+JOUEUR n'est pas celle de son parent. Un parent qui efface son compte efface ses
+propres coordonnées — les joueurs dont il était le contact n'en auront donc
+plus — mais pas la fiche de son enfant, qui relève du registre du club.
+
+**La barrière est une adresse à retaper**, pas un « OK »
+(`src/components/features/settings/DangerZoneCard.tsx`). Toutes les autres
+suppressions de l'application passent par le `ConfirmDialog` du socle, et c'est
+bien : elles se rattrapent. Un compte effacé, non — et une barrière à « OK »
+n'en est pas une, c'est le même clic que celui qu'on regrette, deux fois de
+suite. Une adresse mal retapée ne grise pas le bouton : elle obtient une
+réponse, en `role="alert"`.
+
+**La preuve.** `supabase/tests/suppression-compte.test.sql` (29 assertions,
+jouées par `.github/workflows/supabase-tests.yml` sur une pile jetable à chaque
+changement de migration) vérifie le RÉSULTAT — plus une ligne du partant, tout
+ce qui est au club encore là et détaché, le voisin intact — **et le
+MÉCANISME** : que la fonction appartient bien à `postgres`, qu'elle est bien
+`security definer`, que l'appelant ne peut PAS toucher `auth.users` par
+lui-même, et que le droit dont elle hérite est un GRANT (ou la propriété de la
+table) et non un privilège de superutilisateur. Cette dernière assertion est
+celle qui rend le résultat transposable à un projet **hébergé**, où `postgres`
+n'est pas superutilisateur.
+
+> **La limite, dite.** Ces assertions tournent sur la pile jetable du runner,
+> pas contre le projet hébergé. Elles établissent que le mécanisme invoqué
+> n'est pas un privilège de superutilisateur ; elles ne sont pas un appel réel
+> contre un projet en production. Personne, sur ce parc, n'a encore effacé un
+> compte hébergé par cette voie.
 
 ---
 
@@ -1239,6 +1383,29 @@ La configuration vient de la factory famille `definePwaPlaywrightConfig`, avec
 npm run test:e2e
 ```
 
+### 10.6 Tests pgTAP — le seul endroit où les migrations s'exécutent
+
+Vitest ne touche pas la base : il éprouve du TypeScript. Les 24 tables de
+`0001`, les politiques de `0002` et la fonction d'effacement de `0004` n'étaient
+donc, jusqu'ici, que **relues** — et une politique se relit vite et se trompe de
+même.
+
+`supabase/tests/*.sql` s'exécute sur une pile Supabase **jetable**, montée par
+le runner, qui applique les migrations depuis zéro :
+
+```bash
+supabase start   # exige Docker — absent du poste de développement
+supabase test db
+```
+
+`.github/workflows/supabase-tests.yml` délègue au réutilisable de la famille
+(`pwa-supabase-test.yml@v4`) et se déclenche sur tout changement de
+`supabase/config.toml`, `supabase/migrations/**` ou `supabase/tests/**`. Aucun
+secret : rien n'y touche le projet hébergé.
+
+`supabase/config.toml` n'existe que pour cette pile locale — le projet hébergé,
+lui, se configure par son tableau de bord et `npm run supabase:push`.
+
 > Ces tests **ne tournent pas en CI** (`run-e2e: false`, § 12.1). Les scénarios
 > fonctionnels de bout en bout (sondages, mode live, connexion) restent à
 > écrire.
@@ -1496,36 +1663,41 @@ activer côté Supabase si le besoin apparaît.
 
 ### 14.1 Fait
 
-| Tâche                                     | Détail                                                        |
-| ----------------------------------------- | ------------------------------------------------------------- |
-| Squelette Vite 8 + React 19 + Tailwind v4 | Configuration héritée de `@mister-guiiug/dev-pwa-config`      |
-| Types TypeScript domaine                  | `src/types/index.ts`                                          |
-| Mode `local` (`localStorage` + mock)      | Défaut ; sert au dev, aux tests et à la démo hors-ligne       |
-| 18 pages métier                           | Dashboard, équipes, joueurs, matchs, entraînements, tournois… |
-| Simulateur de composition                 | Terrain interactif, formations foot à 8 (`LineupPage`)        |
-| Mode match live                           | Événements, score, historique des postes (en ligne)           |
-| Sondages de présence                      | Intention joueur / confirmation tuteur, divergences           |
-| Logistique des déplacements               | Point de RDV + covoiturage                                    |
-| Flux iCal                                 | Génération RFC 5545 **côté client** (`src/utils/ical.ts`)     |
-| Backend Supabase                          | Schéma, RLS, seed, realtime, persistance (§ 4)                |
-| Authentification                          | Supabase Auth + `AuthGate`, rôles admin / coach / parent      |
-| Notifications in-app                      | Table `notifications` + préférences par utilisateur           |
-| i18n                                      | Français / anglais (`src/i18n`)                               |
-| Thème clair / sombre / système            | `ThemeContext` + anti-FOUC inline                             |
-| PWA installable                           | Manifest + SW Workbox, bandeau de mise à jour                 |
-| Tests Vitest 4                            | 53 fichiers, seuils de couverture en cliquet (§ 10.2)         |
-| CI/CD                                     | Déléguée au reusable famille + Lighthouse CI (§ 12.1)         |
+| Tâche                                     | Détail                                                                |
+| ----------------------------------------- | --------------------------------------------------------------------- |
+| Squelette Vite 8 + React 19 + Tailwind v4 | Configuration héritée de `@mister-guiiug/dev-pwa-config`              |
+| Types TypeScript domaine                  | `src/types/index.ts`                                                  |
+| Mode `local` (`localStorage` + mock)      | Défaut ; sert au dev, aux tests et à la démo hors-ligne               |
+| Magasin local versionné                   | Enveloppe `{ v, data }`, migration 0 → 1, copie de côté (§ 5.3.1)     |
+| Export / import de la base locale         | Carte « Mes données » des réglages, mode `local` (§ 5.3.2)            |
+| Indicateur de connectivité                | Bandeau du socle, mode `supabase` seulement (§ 7.3)                   |
+| 18 pages métier                           | Dashboard, équipes, joueurs, matchs, entraînements, tournois…         |
+| Simulateur de composition                 | Terrain interactif, formations foot à 8 (`LineupPage`)                |
+| Mode match live                           | Événements, score, historique des postes (en ligne)                   |
+| Sondages de présence                      | Intention joueur / confirmation tuteur, divergences                   |
+| Logistique des déplacements               | Point de RDV + covoiturage                                            |
+| Flux iCal                                 | Génération RFC 5545 **côté client** (`src/utils/ical.ts`)             |
+| Backend Supabase                          | Schéma, RLS, seed, realtime, persistance (§ 4)                        |
+| Authentification                          | Supabase Auth + `AuthGate`, rôles admin / coach / parent              |
+| Supprimer son compte                      | `delete_my_account()` + « Zone dangereuse », prouvée en pgTAP (§ 8.5) |
+| Notifications in-app                      | Table `notifications` + préférences par utilisateur                   |
+| i18n                                      | Français / anglais (`src/i18n`)                                       |
+| Thème clair / sombre / système            | `ThemeContext` + anti-FOUC inline                                     |
+| PWA installable                           | Manifest + SW Workbox, bandeau de mise à jour                         |
+| Tests Vitest 4                            | 53 fichiers, seuils de couverture en cliquet (§ 10.2)                 |
+| CI/CD                                     | Déléguée au reusable famille + Lighthouse CI (§ 12.1)                 |
+| Tests pgTAP                               | Pile jetable en CI : les migrations s'exécutent enfin (§ 10.6)        |
 
 ### 14.2 Écarts connus avec les spécifications
 
-| Manque                         | Détail                                                                     |
-| ------------------------------ | -------------------------------------------------------------------------- |
-| Rappels J-1                    | Aucune tâche planifiée : ni cron, ni Edge Function, ni `pg_cron` (§ 4.4)   |
-| File d'attente hors-ligne      | Le mode live ne survit pas à une coupure réseau en mode `supabase` (§ 7.2) |
-| Photos de joueurs              | Colonnes présentes, Supabase Storage non branché (§ 11.4)                  |
-| Profil utilisateur côté client | `useCurrentUser()` lit encore `CURRENT_USER_ID` figé (§ 8.4)               |
-| E2E fonctionnels               | Une seule spec a11y, non exécutée en CI (§ 10.5)                           |
-| Indicateur de connectivité     | Non implémenté (§ 7.3)                                                     |
+| Manque                         | Détail                                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Rappels J-1                    | Aucune tâche planifiée : ni cron, ni Edge Function, ni `pg_cron` (§ 4.4)                                           |
+| File d'attente hors-ligne      | Le mode live ne survit pas à une coupure réseau en mode `supabase` (§ 7.2)                                         |
+| Photos de joueurs              | Colonnes présentes, Supabase Storage non branché (§ 11.4)                                                          |
+| Profil utilisateur côté client | `useCurrentUser()` lit encore `CURRENT_USER_ID` figé (§ 8.4)                                                       |
+| E2E fonctionnels               | Une seule spec a11y, non exécutée en CI (§ 10.5)                                                                   |
+| Garde d'écriture partiel       | Seules les quatre suppressions par corbeille sont gardées ; les formulaires et le mode live ne le sont pas (§ 7.4) |
 
 ### 14.3 Évolutions futures
 

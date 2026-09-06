@@ -15,6 +15,7 @@ import { genId } from '../../../utils/id';
 import { CURRENT_USER_ID } from '../../../constants/session';
 import { useI18n } from '../../../i18n';
 import { useRemoteWriteGuard } from '../../../hooks/useRemoteWriteGuard';
+import { RemoteWriteNotice } from '../../RemoteWriteNotice';
 
 interface CarpoolSectionProps {
   match: Match;
@@ -68,6 +69,10 @@ export function CarpoolSection({ match }: CarpoolSectionProps) {
           onClose={() => setFormOpen(false)}
         />
       )}
+
+      {/* Le motif du garde EN CLAIR : la corbeille de chaque offre est une
+          icône sans texte, son `title` ne s'ouvre qu'à la souris. */}
+      <RemoteWriteNotice />
 
       {offers.length === 0 ? (
         <p className="text-sm text-fg-muted">{t('carpool.none')}</p>

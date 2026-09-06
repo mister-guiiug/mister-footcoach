@@ -21,6 +21,25 @@ interface AuthValue {
    */
   signInWithLink: (email: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
+  /**
+   * Le droit à l'effacement (RGPD art. 17), sans écrire au mainteneur.
+   * `docs/specs-fonctionnelles.md` § 21.2 le listait comme non outillé, et
+   * cette application manipule des données de MINEURS et de leurs contacts,
+   * avec `consentDate` et `consentVersion` au modèle : un consentement qu'on
+   * ne peut pas retirer n'est pas un consentement.
+   *
+   * TOUT SE PASSE EN BASE. `delete_my_account()` est `security definer` et
+   * appartient à `postgres` : c'est de lui qu'elle emprunte le droit d'écrire
+   * dans `auth.users`, que le client n'a à aucun moment. Le bundle est servi
+   * par GitHub Pages avec la clé publique — la clé `service_role` et l'API
+   * d'administration sont donc hors de question, et c'est précisément ce que
+   * cette fonction remplace.
+   *
+   * La session est fermée APRÈS, et seulement si la suppression a réussi :
+   * déconnecter d'abord laisserait un compte vivant derrière un écran qui dit
+   * le contraire.
+   */
+  deleteAccount: () => Promise<{ error?: string }>;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -73,9 +92,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await getSupabase().auth.signOut();
   }
 
+  async function deleteAccount() {
+    const sb = getSupabase();
+    const { error } = await sb.rpc('delete_my_account');
+    // Un refus laisse la session INTACTE : l'utilisateur voit le message et
+    // peut réessayer. Le déconnecter ici lui ferait croire que c'est fait.
+    if (error) return { error: error.message };
+    await sb.auth.signOut();
+    return {};
+  }
+
   return (
     <AuthContext.Provider
-      value={{ session, loading, signIn, signInWithLink, signOut }}
+      value={{
+        session,
+        loading,
+        signIn,
+        signInWithLink,
+        signOut,
+        deleteAccount,
+      }}
     >
       {children}
     </AuthContext.Provider>
