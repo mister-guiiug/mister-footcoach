@@ -1047,6 +1047,63 @@ Les rôles (`admin`, `coach`, `parent`) sont stockés dans la colonne
 > `users` à partir de la session Supabase côté client : `useCurrentUser()` lit
 > cette constante dans les deux modes.
 
+### 8.5 Supprimer son compte
+
+Le droit à l'effacement (RGPD art. 17) est outillé depuis le 06/09/2026, en
+mode `supabase` uniquement — sans compte, il n'y a rien à supprimer.
+
+**Tout se passe en base.** Le client appelle une RPC ; c'est
+`public.delete_my_account()` (`supabase/migrations/0004_supprimer_son_compte.sql`)
+qui travaille. Elle est `security definer` et **appartient explicitement à
+`postgres`** : c'est de lui qu'elle emprunte `bypassrls` (pour traverser les
+politiques des 24 tables) et le droit d'écrire dans `auth.users`. Le bundle est
+servi par GitHub Pages avec la clé publique : la clé `service_role` et l'API
+d'administration (`auth.admin.deleteUser`) sont hors de question, et c'est
+précisément ce que cette fonction remplace.
+
+**Deux gestes, pas un — et c'est la seule décision de cette migration.** Le
+squelette de la famille efface tout, parce que rien de ce que possède un compte
+n'appartient à quelqu'un d'autre. Ici c'est faux : un entraîneur qui s'en va ne
+doit pas emporter la saison du club.
+
+| Effacé (à lui)                                                                                                                                             | Détaché (au club)                                                                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`, `contacts` (téléphone, e-mail, `consentDate`, `consentVersion`), `notifications`, `notification_preferences`, `carpool_offers`, puis `auth.users` | `teams."coachId"`, `teams."adjointCoachId"`, `surveys."createdBy"`, `unavailabilities."declaredBy"`, `survey_responses."parentUserId"` → `null` |
+
+Aucune de ces tables n'a de clé étrangère vers `auth.users` : **aucune cascade
+ne viendrait au secours d'un oubli**, d'où la liste explicite, faite pour se
+relire quand le modèle grandit.
+
+Ce que ça ne fait pas, et que l'écran annonce avant de demander : la fiche d'un
+JOUEUR n'est pas celle de son parent. Un parent qui efface son compte efface ses
+propres coordonnées — les joueurs dont il était le contact n'en auront donc
+plus — mais pas la fiche de son enfant, qui relève du registre du club.
+
+**La barrière est une adresse à retaper**, pas un « OK »
+(`src/components/features/settings/DangerZoneCard.tsx`). Toutes les autres
+suppressions de l'application passent par le `ConfirmDialog` du socle, et c'est
+bien : elles se rattrapent. Un compte effacé, non — et une barrière à « OK »
+n'en est pas une, c'est le même clic que celui qu'on regrette, deux fois de
+suite. Une adresse mal retapée ne grise pas le bouton : elle obtient une
+réponse, en `role="alert"`.
+
+**La preuve.** `supabase/tests/suppression-compte.test.sql` (29 assertions,
+jouées par `.github/workflows/supabase-tests.yml` sur une pile jetable à chaque
+changement de migration) vérifie le RÉSULTAT — plus une ligne du partant, tout
+ce qui est au club encore là et détaché, le voisin intact — **et le
+MÉCANISME** : que la fonction appartient bien à `postgres`, qu'elle est bien
+`security definer`, que l'appelant ne peut PAS toucher `auth.users` par
+lui-même, et que le droit dont elle hérite est un GRANT (ou la propriété de la
+table) et non un privilège de superutilisateur. Cette dernière assertion est
+celle qui rend le résultat transposable à un projet **hébergé**, où `postgres`
+n'est pas superutilisateur.
+
+> **La limite, dite.** Ces assertions tournent sur la pile jetable du runner,
+> pas contre le projet hébergé. Elles établissent que le mécanisme invoqué
+> n'est pas un privilège de superutilisateur ; elles ne sont pas un appel réel
+> contre un projet en production. Personne, sur ce parc, n'a encore effacé un
+> compte hébergé par cette voie.
+
 ---
 
 ## 9. Sécurité
@@ -1326,6 +1383,29 @@ La configuration vient de la factory famille `definePwaPlaywrightConfig`, avec
 npm run test:e2e
 ```
 
+### 10.6 Tests pgTAP — le seul endroit où les migrations s'exécutent
+
+Vitest ne touche pas la base : il éprouve du TypeScript. Les 24 tables de
+`0001`, les politiques de `0002` et la fonction d'effacement de `0004` n'étaient
+donc, jusqu'ici, que **relues** — et une politique se relit vite et se trompe de
+même.
+
+`supabase/tests/*.sql` s'exécute sur une pile Supabase **jetable**, montée par
+le runner, qui applique les migrations depuis zéro :
+
+```bash
+supabase start   # exige Docker — absent du poste de développement
+supabase test db
+```
+
+`.github/workflows/supabase-tests.yml` délègue au réutilisable de la famille
+(`pwa-supabase-test.yml@v4`) et se déclenche sur tout changement de
+`supabase/config.toml`, `supabase/migrations/**` ou `supabase/tests/**`. Aucun
+secret : rien n'y touche le projet hébergé.
+
+`supabase/config.toml` n'existe que pour cette pile locale — le projet hébergé,
+lui, se configure par son tableau de bord et `npm run supabase:push`.
+
 > Ces tests **ne tournent pas en CI** (`run-e2e: false`, § 12.1). Les scénarios
 > fonctionnels de bout en bout (sondages, mode live, connexion) restent à
 > écrire.
@@ -1583,28 +1663,30 @@ activer côté Supabase si le besoin apparaît.
 
 ### 14.1 Fait
 
-| Tâche                                     | Détail                                                            |
-| ----------------------------------------- | ----------------------------------------------------------------- |
-| Squelette Vite 8 + React 19 + Tailwind v4 | Configuration héritée de `@mister-guiiug/dev-pwa-config`          |
-| Types TypeScript domaine                  | `src/types/index.ts`                                              |
-| Mode `local` (`localStorage` + mock)      | Défaut ; sert au dev, aux tests et à la démo hors-ligne           |
-| Magasin local versionné                   | Enveloppe `{ v, data }`, migration 0 → 1, copie de côté (§ 5.3.1) |
-| Export / import de la base locale         | Carte « Mes données » des réglages, mode `local` (§ 5.3.2)        |
-| Indicateur de connectivité                | Bandeau du socle, mode `supabase` seulement (§ 7.3)               |
-| 18 pages métier                           | Dashboard, équipes, joueurs, matchs, entraînements, tournois…     |
-| Simulateur de composition                 | Terrain interactif, formations foot à 8 (`LineupPage`)            |
-| Mode match live                           | Événements, score, historique des postes (en ligne)               |
-| Sondages de présence                      | Intention joueur / confirmation tuteur, divergences               |
-| Logistique des déplacements               | Point de RDV + covoiturage                                        |
-| Flux iCal                                 | Génération RFC 5545 **côté client** (`src/utils/ical.ts`)         |
-| Backend Supabase                          | Schéma, RLS, seed, realtime, persistance (§ 4)                    |
-| Authentification                          | Supabase Auth + `AuthGate`, rôles admin / coach / parent          |
-| Notifications in-app                      | Table `notifications` + préférences par utilisateur               |
-| i18n                                      | Français / anglais (`src/i18n`)                                   |
-| Thème clair / sombre / système            | `ThemeContext` + anti-FOUC inline                                 |
-| PWA installable                           | Manifest + SW Workbox, bandeau de mise à jour                     |
-| Tests Vitest 4                            | 53 fichiers, seuils de couverture en cliquet (§ 10.2)             |
-| CI/CD                                     | Déléguée au reusable famille + Lighthouse CI (§ 12.1)             |
+| Tâche                                     | Détail                                                                |
+| ----------------------------------------- | --------------------------------------------------------------------- |
+| Squelette Vite 8 + React 19 + Tailwind v4 | Configuration héritée de `@mister-guiiug/dev-pwa-config`              |
+| Types TypeScript domaine                  | `src/types/index.ts`                                                  |
+| Mode `local` (`localStorage` + mock)      | Défaut ; sert au dev, aux tests et à la démo hors-ligne               |
+| Magasin local versionné                   | Enveloppe `{ v, data }`, migration 0 → 1, copie de côté (§ 5.3.1)     |
+| Export / import de la base locale         | Carte « Mes données » des réglages, mode `local` (§ 5.3.2)            |
+| Indicateur de connectivité                | Bandeau du socle, mode `supabase` seulement (§ 7.3)                   |
+| 18 pages métier                           | Dashboard, équipes, joueurs, matchs, entraînements, tournois…         |
+| Simulateur de composition                 | Terrain interactif, formations foot à 8 (`LineupPage`)                |
+| Mode match live                           | Événements, score, historique des postes (en ligne)                   |
+| Sondages de présence                      | Intention joueur / confirmation tuteur, divergences                   |
+| Logistique des déplacements               | Point de RDV + covoiturage                                            |
+| Flux iCal                                 | Génération RFC 5545 **côté client** (`src/utils/ical.ts`)             |
+| Backend Supabase                          | Schéma, RLS, seed, realtime, persistance (§ 4)                        |
+| Authentification                          | Supabase Auth + `AuthGate`, rôles admin / coach / parent              |
+| Supprimer son compte                      | `delete_my_account()` + « Zone dangereuse », prouvée en pgTAP (§ 8.5) |
+| Notifications in-app                      | Table `notifications` + préférences par utilisateur                   |
+| i18n                                      | Français / anglais (`src/i18n`)                                       |
+| Thème clair / sombre / système            | `ThemeContext` + anti-FOUC inline                                     |
+| PWA installable                           | Manifest + SW Workbox, bandeau de mise à jour                         |
+| Tests Vitest 4                            | 53 fichiers, seuils de couverture en cliquet (§ 10.2)                 |
+| CI/CD                                     | Déléguée au reusable famille + Lighthouse CI (§ 12.1)                 |
+| Tests pgTAP                               | Pile jetable en CI : les migrations s'exécutent enfin (§ 10.6)        |
 
 ### 14.2 Écarts connus avec les spécifications
 

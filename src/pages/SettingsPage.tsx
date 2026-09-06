@@ -26,6 +26,7 @@ import {
 } from '../store/AppContext';
 import { exportState, importState } from '../store/storage';
 import { BACKEND } from '../backend/config';
+import { DangerZoneCard } from '../components/features/settings/DangerZoneCard';
 import type { NotificationPreferences, ReminderDelay } from '../types';
 import { NOTIFICATION_CATEGORIES } from '../utils/notifications';
 import {
@@ -547,6 +548,13 @@ export default function SettingsPage() {
           onCancel={() => setResetPending(false)}
         />
       )}
+
+      {/* Zone dangereuse — mode Supabase seulement : sans compte, il n'y a
+          rien à supprimer, et un bouton qui n'efface rien serait pire que son
+          absence. Monté CONDITIONNELLEMENT plutôt que rendu vide : la carte
+          appelle `useAuth`, qui exige un `AuthProvider` — lequel n'existe que
+          derrière le backend distant. */}
+      {BACKEND === 'supabase' && <DangerZoneCard />}
 
       {/* App info */}
       <Card>

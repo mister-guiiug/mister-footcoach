@@ -111,11 +111,23 @@ export default defineConfig({
       // texte du motif hors ligne en mode Supabase. Tout ce qui est ajouté est
       // couvert. Mesure au 06/09/2026 : statements 1506/2000, branches
       // 1224/1641, functions 543/766, lines 1365/1802.
+      // Remonté une troisième fois (+0,25 à +0,39 pt) par « Supprimer mon
+      // compte ». `DangerZoneCard` est couvert à 100 % (statements, branches,
+      // functions, lines) par neuf tests, dont les deux qui portent la
+      // sécurité du geste : une adresse mal retapée n'efface RIEN, et une
+      // session absente ne fait pas d'un champ vide une confirmation. Deux
+      // tests de plus sur `AuthContext.deleteAccount` fixent l'ORDRE (la
+      // session ne se ferme qu'APRÈS un succès) — la partie serveur, elle,
+      // n'est pas mesurable ici : elle est prouvée par les 29 assertions
+      // pgTAP de `supabase/tests/suppression-compte.test.sql`, jouées par
+      // `.github/workflows/supabase-tests.yml`. Mesure au 06/09/2026 :
+      // statements 1537/2031, branches 1240/1657, functions 551/774,
+      // lines 1394/1831.
       thresholds: {
-        statements: 75.3,
-        branches: 74.58,
-        functions: 70.88,
-        lines: 75.74,
+        statements: 75.67,
+        branches: 74.83,
+        functions: 71.18,
+        lines: 76.13,
       },
     },
   },
