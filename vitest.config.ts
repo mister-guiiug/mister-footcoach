@@ -104,11 +104,18 @@ export default defineConfig({
       // statements 1502/1996, branches 1222/1639, functions 542/765,
       // lines 1362/1799. Le `pct` d'istanbul étant TRONQUÉ à deux décimales,
       // le seuil peut valoir exactement le chiffre affiché.
+      // Remonté encore (+0,02 à +0,05 pt) par `RemoteWriteNotice` : le motif
+      // du garde d'écriture distante, rendu EN CLAIR au-dessus des listes dont
+      // les corbeilles sont bloquées. Quatre tests, dont les deux branches qui
+      // comptent — rien du tout avec le backend local même hors ligne, le
+      // texte du motif hors ligne en mode Supabase. Tout ce qui est ajouté est
+      // couvert. Mesure au 06/09/2026 : statements 1506/2000, branches
+      // 1224/1641, functions 543/766, lines 1365/1802.
       thresholds: {
-        statements: 75.25,
-        branches: 74.55,
-        functions: 70.84,
-        lines: 75.7,
+        statements: 75.3,
+        branches: 74.58,
+        functions: 70.88,
+        lines: 75.74,
       },
     },
   },

@@ -907,8 +907,55 @@ mode match live reste un écart connu avec les spécifications (§ 14.2).
 
 ### 7.3 Indicateur de connectivité
 
-Non implémenté : il n'existe ni bandeau hors-ligne, ni indicateur de
-connectivité dans la `TopBar`.
+**Implémenté, et conditionnel.** `src/components/ConnectionBanner.tsx` habille
+le `ConnectionBanner` du socle et est monté dans `src/main.tsx`, au-dessus de
+`AuthGate` : le bandeau s'affiche donc sur tous les écrans, connecté ou non.
+Une version antérieure de ce document affirmait le contraire ; c'était faux.
+
+Il n'y a pas d'indicateur dans la `TopBar`, et c'est délibéré : une icône
+permanente ne dit rien tant qu'elle est verte.
+
+Ce qui compte ici n'est pas le bandeau, c'est sa **condition** :
+
+| Backend              | Bandeau                        | Pourquoi                                                                   |
+| -------------------- | ------------------------------ | -------------------------------------------------------------------------- |
+| `local` **(défaut)** | jamais                         | Tout vit dans `localStorage` : sans réseau, l'app marche exactement pareil |
+| `supabase`           | après 1,5 s hors ligne CONTINU | Chaque `dispatch` part au serveur ; sans réseau, il n'aboutit pas          |
+
+`online` est donc forcé à `true` en mode local — le socle prévoit ce cas
+(« connectivité APPLICATIVE »). Le navigateur peut être hors ligne,
+l'application, elle, ne l'est pas. Annoncer « hors connexion » à un coach dont
+la séance vient d'être enregistrée serait une fausse alerte, et une fausse
+alerte apprend à ignorer les vraies (`src/components/ConnectionBanner.test.tsx`
+éprouve les deux bords de la temporisation, 1499 ms et 1500 ms).
+
+Le libellé ne promet rien qui n'existe : « Hors connexion — les modifications
+ne seront pas enregistrées sur le serveur. » Il ne dit **pas** « ce sera envoyé
+plus tard », parce qu'il n'y a pas de file d'attente (ADR-003).
+
+### 7.4 Le garde d'écriture distante
+
+Un bandeau explique ; il n'empêche rien. `src/hooks/useRemoteWriteGuard.ts`
+enveloppe le `useActionGuard` du socle et rend les suppressions **inertes**
+quand le réseau manque en mode `supabase` — sans quoi
+`SupabaseAppProvider` applique la suppression en local d'abord, échoue, puis
+recharge : l'utilisateur voit son geste réussir, puis s'annuler tout seul.
+
+Le garde est **inerte en mode local** (`online: false` éteint la
+vérification) : `allowed` reste vrai, `reason` reste `null`.
+
+Portée réelle, écrite ici pour qu'elle ne se découvre pas à l'usage :
+
+| Couvert par le garde                                                                                                           | Non couvert                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| Les quatre suppressions par corbeille : contacts, exercices, tournois (`TournamentDetailPage`), covoiturage (`CarpoolSection`) | Les créations et modifications par formulaire, et les événements du mode match live |
+
+Une suppression bloquée porte son motif **à l'écran** — pas seulement dans son
+nom accessible. Les corbeilles sont des icônes sans texte : `title` ne
+s'affiche qu'à la souris, et cette application se tient au bord d'un terrain,
+sur un téléphone. Chaque liste concernée rend donc le motif en clair
+(`RemoteWriteNotice`), et le bouton reste dans le parcours clavier
+(`aria-disabled`, pas `disabled`) pour que le motif soit **découvrable**.
 
 ---
 
@@ -1536,36 +1583,39 @@ activer côté Supabase si le besoin apparaît.
 
 ### 14.1 Fait
 
-| Tâche                                     | Détail                                                        |
-| ----------------------------------------- | ------------------------------------------------------------- |
-| Squelette Vite 8 + React 19 + Tailwind v4 | Configuration héritée de `@mister-guiiug/dev-pwa-config`      |
-| Types TypeScript domaine                  | `src/types/index.ts`                                          |
-| Mode `local` (`localStorage` + mock)      | Défaut ; sert au dev, aux tests et à la démo hors-ligne       |
-| 18 pages métier                           | Dashboard, équipes, joueurs, matchs, entraînements, tournois… |
-| Simulateur de composition                 | Terrain interactif, formations foot à 8 (`LineupPage`)        |
-| Mode match live                           | Événements, score, historique des postes (en ligne)           |
-| Sondages de présence                      | Intention joueur / confirmation tuteur, divergences           |
-| Logistique des déplacements               | Point de RDV + covoiturage                                    |
-| Flux iCal                                 | Génération RFC 5545 **côté client** (`src/utils/ical.ts`)     |
-| Backend Supabase                          | Schéma, RLS, seed, realtime, persistance (§ 4)                |
-| Authentification                          | Supabase Auth + `AuthGate`, rôles admin / coach / parent      |
-| Notifications in-app                      | Table `notifications` + préférences par utilisateur           |
-| i18n                                      | Français / anglais (`src/i18n`)                               |
-| Thème clair / sombre / système            | `ThemeContext` + anti-FOUC inline                             |
-| PWA installable                           | Manifest + SW Workbox, bandeau de mise à jour                 |
-| Tests Vitest 4                            | 53 fichiers, seuils de couverture en cliquet (§ 10.2)         |
-| CI/CD                                     | Déléguée au reusable famille + Lighthouse CI (§ 12.1)         |
+| Tâche                                     | Détail                                                            |
+| ----------------------------------------- | ----------------------------------------------------------------- |
+| Squelette Vite 8 + React 19 + Tailwind v4 | Configuration héritée de `@mister-guiiug/dev-pwa-config`          |
+| Types TypeScript domaine                  | `src/types/index.ts`                                              |
+| Mode `local` (`localStorage` + mock)      | Défaut ; sert au dev, aux tests et à la démo hors-ligne           |
+| Magasin local versionné                   | Enveloppe `{ v, data }`, migration 0 → 1, copie de côté (§ 5.3.1) |
+| Export / import de la base locale         | Carte « Mes données » des réglages, mode `local` (§ 5.3.2)        |
+| Indicateur de connectivité                | Bandeau du socle, mode `supabase` seulement (§ 7.3)               |
+| 18 pages métier                           | Dashboard, équipes, joueurs, matchs, entraînements, tournois…     |
+| Simulateur de composition                 | Terrain interactif, formations foot à 8 (`LineupPage`)            |
+| Mode match live                           | Événements, score, historique des postes (en ligne)               |
+| Sondages de présence                      | Intention joueur / confirmation tuteur, divergences               |
+| Logistique des déplacements               | Point de RDV + covoiturage                                        |
+| Flux iCal                                 | Génération RFC 5545 **côté client** (`src/utils/ical.ts`)         |
+| Backend Supabase                          | Schéma, RLS, seed, realtime, persistance (§ 4)                    |
+| Authentification                          | Supabase Auth + `AuthGate`, rôles admin / coach / parent          |
+| Notifications in-app                      | Table `notifications` + préférences par utilisateur               |
+| i18n                                      | Français / anglais (`src/i18n`)                                   |
+| Thème clair / sombre / système            | `ThemeContext` + anti-FOUC inline                                 |
+| PWA installable                           | Manifest + SW Workbox, bandeau de mise à jour                     |
+| Tests Vitest 4                            | 53 fichiers, seuils de couverture en cliquet (§ 10.2)             |
+| CI/CD                                     | Déléguée au reusable famille + Lighthouse CI (§ 12.1)             |
 
 ### 14.2 Écarts connus avec les spécifications
 
-| Manque                         | Détail                                                                     |
-| ------------------------------ | -------------------------------------------------------------------------- |
-| Rappels J-1                    | Aucune tâche planifiée : ni cron, ni Edge Function, ni `pg_cron` (§ 4.4)   |
-| File d'attente hors-ligne      | Le mode live ne survit pas à une coupure réseau en mode `supabase` (§ 7.2) |
-| Photos de joueurs              | Colonnes présentes, Supabase Storage non branché (§ 11.4)                  |
-| Profil utilisateur côté client | `useCurrentUser()` lit encore `CURRENT_USER_ID` figé (§ 8.4)               |
-| E2E fonctionnels               | Une seule spec a11y, non exécutée en CI (§ 10.5)                           |
-| Indicateur de connectivité     | Non implémenté (§ 7.3)                                                     |
+| Manque                         | Détail                                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Rappels J-1                    | Aucune tâche planifiée : ni cron, ni Edge Function, ni `pg_cron` (§ 4.4)                                           |
+| File d'attente hors-ligne      | Le mode live ne survit pas à une coupure réseau en mode `supabase` (§ 7.2)                                         |
+| Photos de joueurs              | Colonnes présentes, Supabase Storage non branché (§ 11.4)                                                          |
+| Profil utilisateur côté client | `useCurrentUser()` lit encore `CURRENT_USER_ID` figé (§ 8.4)                                                       |
+| E2E fonctionnels               | Une seule spec a11y, non exécutée en CI (§ 10.5)                                                                   |
+| Garde d'écriture partiel       | Seules les quatre suppressions par corbeille sont gardées ; les formulaires et le mode live ne le sont pas (§ 7.4) |
 
 ### 14.3 Évolutions futures
 

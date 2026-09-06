@@ -10,6 +10,7 @@ import { useContacts, useAppContext } from '../store/AppContext';
 import type { Contact } from '../types';
 import { useI18n } from '../i18n';
 import { useRemoteWriteGuard } from '../hooks/useRemoteWriteGuard';
+import { RemoteWriteNotice } from '../components/RemoteWriteNotice';
 
 export default function ContactsPage() {
   const { t } = useI18n();
@@ -110,6 +111,10 @@ export default function ContactsPage() {
           onConfirm={() => setBlockedReason(null)}
         />
       )}
+
+      {/* Le motif du garde EN CLAIR : les corbeilles ci-dessous sont des
+          icônes sans texte, leur `title` ne s'ouvre qu'à la souris. */}
+      <RemoteWriteNotice />
 
       {contacts.length === 0 ? (
         <EmptyState
