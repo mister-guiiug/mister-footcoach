@@ -91,11 +91,24 @@ export default defineConfig({
       // retirées de types/index.ts (chantier 10), puis `Card` adopté du socle
       // (chantier 3). Du code couvert à 100 % quitte l'app à chaque fois — le
       // ratio recule sans qu'un test ait disparu. Seuils recalés sur la mesure.
+      // Remonté (+1,7 à +2,7 pt) le 06/09/2026 à l'adoption du magasin
+      // VERSIONNÉ et de l'export/import de la base locale.
+      // `src/store/storage.ts` est couvert à 100 % (statements, functions,
+      // lines ; 100 % des branches), et l'écran des réglages gagne 10 tests :
+      // export, aller-retour complet, refus d'un fichier étranger, refus d'un
+      // fichier illisible, refus d'une version future, annulation, absence de
+      // la carte en mode Supabase. Autrement dit, tout ce qui a été ajouté est
+      // couvert — et deux branches inatteignables ont disparu au passage
+      // (`exportState()` ne rend plus `null`, le catch n'a plus de repli
+      // « ce n'était pas une Error »). Mesure au 06/09/2026 :
+      // statements 1502/1996, branches 1222/1639, functions 542/765,
+      // lines 1362/1799. Le `pct` d'istanbul étant TRONQUÉ à deux décimales,
+      // le seuil peut valoir exactement le chiffre affiché.
       thresholds: {
-        statements: 72.7,
-        branches: 73.1,
-        functions: 69.1,
-        lines: 73,
+        statements: 75.25,
+        branches: 74.55,
+        functions: 70.84,
+        lines: 75.7,
       },
     },
   },

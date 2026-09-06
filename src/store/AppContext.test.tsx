@@ -25,6 +25,7 @@ import {
   useExercises,
 } from './AppContext';
 import { MOCK_DATA } from '../data/mock';
+import { SCHEMA_VERSION } from './storage';
 
 const STORAGE_KEY = 'mister-footcoach-data';
 
@@ -74,13 +75,21 @@ describe('loadState', () => {
 describe('saveState', () => {
   beforeEach(() => localStorage.clear());
 
-  it('persists state to localStorage on dispatch', () => {
+  // La clé n'a pas bougé, ce qu'elle CONTIENT si : l'état n'est plus écrit nu,
+  // il est enveloppé par le magasin versionné (`{ v, data }`). Cette assertion
+  // est le seul endroit de la suite qui lisait l'écriture brute — elle lit
+  // maintenant l'enveloppe, et le numéro de version avec.
+  it('persists state to localStorage on dispatch, inside the versioned envelope', () => {
     const { result } = renderHook(() => useAppContext(), { wrapper });
     act(() => {
       result.current.dispatch({ type: 'SET_SELECTED_TEAM', teamId: 't2' });
     });
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-    expect(saved.selectedTeamId).toBe('t2');
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)!) as {
+      v: number;
+      data: { selectedTeamId: string };
+    };
+    expect(saved.v).toBe(SCHEMA_VERSION);
+    expect(saved.data.selectedTeamId).toBe('t2');
   });
 
   it('silently ignores localStorage write errors', () => {

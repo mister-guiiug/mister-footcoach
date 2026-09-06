@@ -650,6 +650,17 @@ export const messages = {
       end: 'Fin',
       teams: 'Équipes',
       activePlayers: 'Joueurs actifs',
+      myData: 'Mes données',
+      myDataDesc:
+        "Toute la saison est enregistrée dans ce navigateur, et nulle part ailleurs. Le fichier exporté contient l'intégralité des données ; il se relit ici, sur cet appareil comme sur un autre.",
+      exportData: 'Exporter',
+      importData: 'Importer',
+      importConfirm: 'Remplacer toutes les données par ce fichier ?',
+      importConfirmBody:
+        "L'import remplace la totalité des données de cette application : équipes, joueurs, matchs, entraînements, sondages. Exportez d'abord si vous voulez pouvoir revenir en arrière.",
+      importDone:
+        'Fichier importé : {teams} équipe(s), {players} joueur(s), {matches} match(s).',
+      importFailed: "Fichier refusé — rien n'a été modifié.",
       demoData: 'Données de démonstration',
       demoDataDesc:
         "L'application utilise des données de démonstration stockées localement. La réinitialisation restaure les données d'exemple originales.",
@@ -1333,6 +1344,17 @@ export const messages = {
       end: 'End',
       teams: 'Teams',
       activePlayers: 'Active players',
+      myData: 'My data',
+      myDataDesc:
+        'The whole season is stored in this browser, and nowhere else. The exported file holds all of it; it can be read back here, on this device or another one.',
+      exportData: 'Export',
+      importData: 'Import',
+      importConfirm: 'Replace all data with this file?',
+      importConfirmBody:
+        'Importing replaces every piece of data in this app: teams, players, matches, training sessions, polls. Export first if you want to be able to go back.',
+      importDone:
+        'File imported: {teams} team(s), {players} player(s), {matches} match(es).',
+      importFailed: 'File rejected — nothing was changed.',
       demoData: 'Demo data',
       demoDataDesc:
         'The app uses demo data stored locally. Resetting restores the original sample data.',

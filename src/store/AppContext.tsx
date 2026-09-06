@@ -6,7 +6,6 @@ import {
   type ReactNode,
 } from 'react';
 import type {
-  AppData,
   Player,
   Contact,
   Match,
@@ -36,14 +35,11 @@ import {
 } from '../utils/notifications';
 import { BACKEND } from '../backend/config';
 import { SupabaseAppProvider } from './SupabaseAppProvider';
-
-const STORAGE_KEY = 'mister-footcoach-data';
+import { loadState, saveState, type AppState } from './storage';
 
 // ── State ────────────────────────────────────────────────────────────
 
-export interface AppState extends AppData {
-  selectedTeamId: string;
-}
+export type { AppState };
 
 // ── Actions ──────────────────────────────────────────────────────────
 
@@ -407,27 +403,14 @@ export function reducer(state: AppState, action: Action): AppState {
 }
 
 // ── Persistence ───────────────────────────────────────────────────────
-
-function loadState(): AppState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as AppState;
-      return parsed;
-    }
-  } catch {
-    // ignore
-  }
-  return { ...MOCK_DATA, selectedTeamId: MOCK_DATA.teams[0]!.id };
-}
-
-function saveState(state: AppState): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // ignore
-  }
-}
+//
+// `loadState` / `saveState` viennent de `./storage` : le magasin VERSIONNÉ du
+// socle, et non plus les six lignes de `JSON.parse` / `JSON.stringify` qui
+// vivaient ici. Ce qui a changé n'est pas la clé — c'est toujours
+// `mister-footcoach-data` — mais ce qui l'entoure : une enveloppe `{ v, data }`,
+// une chaîne de migrations indexée par version source, une validation qui
+// REFUSE au lieu de caster, et une copie de côté avant toute perte possible.
+// Voir l'en-tête de `./storage.ts` pour le pourquoi.
 
 // ── Context ───────────────────────────────────────────────────────────
 

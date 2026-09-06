@@ -617,6 +617,46 @@ quand `BACKEND === 'supabase'` ; sinon il gère lui-même l'état local et sa
 persistance dans `localStorage` (clé `mister-footcoach-data`), initialisé
 depuis `src/data/mock.ts`.
 
+#### 5.3.1 Le magasin local est versionné
+
+La persistance ne passe plus par un `JSON.stringify` de l'état suivi d'un
+`JSON.parse` casté en `AppState` : `src/store/storage.ts` monte le
+`createVersionedStore` du socle. Ce que ça change, et pourquoi :
+
+| Avant                                   | Maintenant                                                   |
+| --------------------------------------- | ------------------------------------------------------------ |
+| Valeur nue sous `mister-footcoach-data` | Enveloppe `{ v, data }` sous la **même** clé                 |
+| Aucune version, aucune migration        | `SCHEMA_VERSION = 1`, migrations indexées par version source |
+| `as AppState` — aucune vérification     | `assertAppState` : refuse au lieu de caster                  |
+| Une donnée illisible se perd en silence | Copie de côté (`…data.backup-v0`, `…data.backup-illisible`)  |
+
+La clé n'a pas changé : le préfixe `mister-footcoach-` et la clé `data` se
+recomposent exactement en `mister-footcoach-data`. Le socle considère toute
+valeur **sans** enveloppe comme une version 0, et la migration `0 → 1` de l'app
+la **complète** sans rien retirer — une collection absente d'un instantané plus
+ancien devient un tableau vide, les clés inconnues traversent. L'instantané
+d'aujourd'hui se relit donc entier, sans manœuvre de reprise
+(`src/store/storage.test.ts`).
+
+Deux rôles distincts, et c'est voulu : la migration **complète**, la validation
+**refuse**. C'est cette dernière qui distingue un instantané de cette
+application du fichier d'une autre, et qui fait qu'un import se solde par un
+message plutôt que par une application vidée.
+
+#### 5.3.2 Export et import de la base locale
+
+En mode `local`, les réglages (`SettingsPage`) portent une carte « Mes
+données » : un export de la **totalité** de l'état, enveloppe comprise — donc
+relisible par une version future, qui le repassera par ses migrations —, et
+l'import symétrique. L'import ne remplace rien tant que le parse, la chaîne de
+migrations et la validation n'ont pas toutes abouti : un fichier d'une autre
+application ou tronqué repart avec un message, sans que la saison en cours
+bouge d'une ligne. Quand des données existent, une confirmation est demandée.
+
+La carte est **absente** en mode `supabase` : la vérité y est en base, pas dans
+ce magasin ; exporter un miroir périmé serait mensonger
+(`src/pages/SettingsPage.supabase.test.tsx`).
+
 ### 5.4 Activation de Supabase
 
 ```bash
