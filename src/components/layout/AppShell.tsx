@@ -19,6 +19,8 @@ export function AppShell() {
             écran. Le pied de page est DANS `<main>` parce que la barre basse
             est fixe et que c'est le `pb-20` qui lui réserve sa place. */}
         <AppFooter
+          version
+          issues
           className="mt-8 justify-center px-4 pb-4"
           repoUrl={repoUrl(APP_ID)}
         />
