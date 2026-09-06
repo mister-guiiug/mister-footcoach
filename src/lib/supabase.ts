@@ -17,7 +17,10 @@ export function getSupabase(): SupabaseClient {
     );
   }
   client = createClient(url, anonKey, {
-    auth: { persistSession: true, autoRefreshToken: true },
+    // `flowType: 'pkce'` : le lien de connexion renvoie `?code=` dans la query au
+    // lieu d'un jeton dans le fragment — inoffensif sous BrowserRouter, et le
+    // même réglage que le reste de la famille.
+    auth: { persistSession: true, autoRefreshToken: true, flowType: 'pkce' },
   });
   return client;
 }

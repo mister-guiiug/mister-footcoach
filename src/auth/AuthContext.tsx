@@ -13,6 +13,13 @@ interface AuthValue {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  /**
+   * Un lien à usage unique, par e-mail : l'application ne voit passer aucun
+   * secret et n'en stocke aucun. C'est l'entrée par défaut depuis l'étape 5
+   * d'AMELIORATIONS.md ; le mot de passe reste possible, il n'est plus le
+   * défaut.
+   */
+  signInWithLink: (email: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -43,12 +50,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message };
   }
 
+  async function signInWithLink(email: string) {
+    const { error } = await getSupabase().auth.signInWithOtp({
+      email,
+      options: {
+        // Le retour du lien est calculé depuis l'origine SERVIE, jamais depuis
+        // une constante : le même bundle tourne en local et sur Pages. Cette
+        // adresse doit figurer dans la liste d'URL autorisées du projet
+        // Supabase (Authentication → URL Configuration), qui ne contient que
+        // localhost:3000 à la création — sinon le lien part, et n'arrive nulle
+        // part.
+        emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
+        // Les comptes sont créés par l'administrateur : un lien envoyé à une
+        // adresse inconnue ne doit pas en fabriquer un.
+        shouldCreateUser: false,
+      },
+    });
+    return { error: error?.message };
+  }
+
   async function signOut() {
     await getSupabase().auth.signOut();
   }
 
   return (
-    <AuthContext.Provider value={{ session, loading, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{ session, loading, signIn, signInWithLink, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );
