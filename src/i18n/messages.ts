@@ -82,6 +82,17 @@ export const messages = {
       password: 'Mot de passe',
       signIn: 'Se connecter',
       invalidCredentials: 'Identifiants invalides.',
+      sendLink: 'Recevoir un lien de connexion',
+      linkIntro:
+        'Un lien à usage unique arrive dans votre boîte : aucun mot de passe à retenir, ni à voler.',
+      linkSentTitle: 'Lien envoyé',
+      linkSent:
+        'Un lien vient d’être envoyé à {email}. Ouvrez-le depuis cet appareil : il vous ramènera ici, connecté·e. Il n’est valable qu’une fois.',
+      linkAgain: 'Recevoir un autre lien',
+      linkFailed:
+        'Envoi impossible : cette adresse n’a pas de compte, ou le réseau manque. Essayez avec un mot de passe.',
+      usePassword: 'Se connecter avec un mot de passe',
+      useLink: 'Recevoir un lien plutôt',
     },
     dashboard: {
       greeting: 'Bonjour 👋',
@@ -754,6 +765,17 @@ export const messages = {
       password: 'Password',
       signIn: 'Sign in',
       invalidCredentials: 'Invalid credentials.',
+      sendLink: 'Email me a sign-in link',
+      linkIntro:
+        'A one-time link lands in your inbox: no password to remember, none to steal.',
+      linkSentTitle: 'Link sent',
+      linkSent:
+        'A link was just sent to {email}. Open it from this device: it brings you back here, signed in. It only works once.',
+      linkAgain: 'Send another link',
+      linkFailed:
+        'Could not send it: this address has no account, or the network is down. Try with a password.',
+      usePassword: 'Sign in with a password',
+      useLink: 'Send me a link instead',
     },
     dashboard: {
       greeting: 'Hello 👋',
