@@ -20,11 +20,42 @@ export default defineConfig({
       exclude: [...coveragePreset.exclude, 'src/main.tsx'],
       // Planchers = couverture réelle EXACTE au 2026-08-30, sans marge :
       // statements 1409/1933, branches 1185/1608, functions 526/757,
-      // lines 1275/1741 (le `pct` d'istanbul tronque à 2 décimales). Mesures
-      // identiques sur Linux (CI) et Windows, d'où la tolérance zéro.
+      // lines 1275/1741 (le `pct` d'istanbul tronque à 2 décimales).
       // Cliquet strict : toute régression casse la CI, et tout gain de
       // couverture doit être répercuté ici. À monter, jamais à baisser pour
       // faire passer le rouge au vert.
+      //
+      // La RÉFÉRENCE est la CI, et elle seule : `npm ci` y installe le
+      // lockfile à la lettre. La phrase qui tenait ici — « mesures identiques
+      // sur Linux (CI) et Windows, d'où la tolérance zéro » — promettait le
+      // bon résultat pour la mauvaise raison. Le 06/09/2026, sur le même
+      // commit (3a97850), le poste rendait 75.67 / 74.83 / 71.18 / 76.13 et la
+      // CI 75.72 / 75.22 / 71.26 / 76.18 : jusqu'à 0,39 pt d'écart sur les
+      // branches, et des DÉNOMINATEURS différents (1657 contre 1683), donc pas
+      // un arrondi. Les seuils, calés sur le poste, étaient la mesure exacte
+      // d'une installation abîmée.
+      //
+      // Ce n'est PAS Windows contre Linux : les deux rendent le même chiffre
+      // au bit près. Ce qui divergeait, c'est la chaîne d'outils. Pour
+      // construire sous Windows on pose les binaires natifs sans les
+      // enregistrer (`npm i --no-save @rolldown/binding-win32-x64-msvc …`) ;
+      // sans numéro, npm installe la DERNIÈRE version, pas celle du lockfile —
+      // ici @rolldown/binding 1.2.7 au lieu de 1.1.5 (et lightningcss 1.33.0
+      // pour 1.32.0, @rollup/rollup 4.63.1 pour 4.62.2). Or le transformeur de
+      // 1.2.7 conserve DAVANTAGE de commentaires à travers la transformation
+      // JSX : dans TeamDetailPage.tsx aucun `/* istanbul ignore next */` ne
+      // survivait, il en survit un ; dans MatchDetailPage.tsx on passe de un à
+      // trois. Chaque indice qui survit fait RETIRER du rapport le sous-arbre
+      // qu'il annote — ici du code entièrement couvert (TeamDetailPage
+      // 166-207, MatchDetailPage 254-271). L'écart entier tient dans ces deux
+      // fichiers, et il est à sens unique : le poste voyait moins d'unités,
+      // toutes couvertes, donc un ratio plus bas. En épinglant les binaires du
+      // lockfile, le poste retombe sur 1541/2035, 1266/1683, 553/776,
+      // 1398/1835 — la CI à l'identique.
+      //
+      // Donc : seuils calés sur la CI, et une mesure locale EN DESSOUS n'accuse
+      // pas les tests mais l'installation — comparer les versions posées dans
+      // node_modules à celles du lockfile avant de toucher à un chiffre ici.
       // Rebasé (à la baisse de ~0,4 pt) lors de la migration du kit UI vers
       // les composants du socle : ~200 lignes locales couvertes à ~100 %
       // (Badge, Button, EmptyState, Toast, Dialog) ont été SUPPRIMÉES au
@@ -120,14 +151,17 @@ export default defineConfig({
       // session ne se ferme qu'APRÈS un succès) — la partie serveur, elle,
       // n'est pas mesurable ici : elle est prouvée par les 29 assertions
       // pgTAP de `supabase/tests/suppression-compte.test.sql`, jouées par
-      // `.github/workflows/supabase-tests.yml`. Mesure au 06/09/2026 :
-      // statements 1537/2031, branches 1240/1657, functions 551/774,
-      // lines 1394/1831.
+      // `.github/workflows/supabase-tests.yml`. Mesure au 06/09/2026, en CI
+      // et sur un poste dont les binaires suivent le lockfile : statements
+      // 1541/2035, branches 1266/1683, functions 553/776, lines 1398/1835.
+      // (Les relevés locaux des trois entrées précédentes, du même jour,
+      // sortent de la même installation abîmée et sont donc bas d'autant :
+      // ils sont laissés tels quels, personne ne les a re-mesurés.)
       thresholds: {
-        statements: 75.67,
-        branches: 74.83,
-        functions: 71.18,
-        lines: 76.13,
+        statements: 75.72,
+        branches: 75.22,
+        functions: 71.26,
+        lines: 76.18,
       },
     },
   },
