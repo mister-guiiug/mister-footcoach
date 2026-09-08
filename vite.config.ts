@@ -103,7 +103,7 @@ export default defineConfig(({ command }) => {
           id: basePath,
           lang: 'fr',
           name: 'Mister Footcoach',
-          short_name: 'Footcoach',
+          short_name: 'Mister Footcoach',
           description:
             'Application PWA pour les coachs de football : équipes, compositions, stats.',
           start_url: basePath,
