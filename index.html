@@ -17,8 +17,15 @@
     <meta charset="UTF-8" />
     <!-- CSP injected at build by cspPlugin (@mister-guiiug/dev-pwa-config/vite-csp) -->
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <link rel="alternate icon" type="image/png" href="/pwa-192x192.png" />
-    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+    <!--
+      CHEMINS RELATIFS, PAS ABSOLUS. `/pwa-192x192.png` visait la racine du
+      DOMAINE, pas celle de l'application — servie, elle, sous
+      `/mister-footcoach/`. Le fichier n'existait d'ailleurs nulle part : iOS
+      retombait sur une capture de la page en guise d'icône. Un chemin relatif
+      se résout contre le chemin de base, quel qu'il soit.
+    -->
+    <link rel="alternate icon" type="image/png" href="icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"

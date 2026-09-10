@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "icons": "pwa-icons --source public/logo.svg --out public/icons --maskable --bg 20,83,45 --sizes 96,144,180,192,256,384,512",
     "preview": "vite preview",
     "test": "vitest run --coverage",
     "test:watch": "vitest",

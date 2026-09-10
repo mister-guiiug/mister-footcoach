@@ -93,11 +93,14 @@ export default defineConfig(({ command }) => {
             },
           ],
         },
+        // Ce que le worker doit précacher EN PLUS du build. La liste citait
+        // 'favicon.ico', 'pwa-192x192.png' et 'pwa-512x512.png' : AUCUN de ces
+        // trois fichiers n'a jamais existé dans `public/`.
         includeAssets: [
-          'favicon.ico',
-          'pwa-192x192.png',
-          'pwa-512x512.png',
           'logo.svg',
+          'icons/icon-192.png',
+          'icons/icon-512.png',
+          'icons/icon-maskable.png',
         ],
         manifest: {
           id: basePath,
@@ -111,19 +114,28 @@ export default defineConfig(({ command }) => {
           theme_color: '#16a34a',
           background_color: '#ffffff',
           display: 'standalone',
+          // TROIS PROMESSES QUE LE BUILD NE TENAIT PAS. Ces chemins ne
+          // désignaient aucun fichier : Chrome Android lisait trois 404 et
+          // fabriquait une pastille à la lettre. Les icônes sortent
+          // désormais de `npm run icons` (`pwa-icons` du socle), dans
+          // `public/icons`, et le maskable est une image DISTINCTE — un
+          // seul fichier `any maskable` se fait rogner son dessin par le
+          // masque d'Android.
           icons: [
             {
-              src: 'pwa-192x192.png',
+              src: 'icons/icon-192.png',
               sizes: '192x192',
               type: 'image/png',
+              purpose: 'any',
             },
             {
-              src: 'pwa-512x512.png',
+              src: 'icons/icon-512.png',
               sizes: '512x512',
               type: 'image/png',
+              purpose: 'any',
             },
             {
-              src: 'pwa-512x512.png',
+              src: 'icons/icon-maskable.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable',
