@@ -5,6 +5,7 @@ import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
 import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
 import { AppFooter } from '@mister-guiiug/dev-pwa-config/react/app-footer';
 import { repoUrl } from '@mister-guiiug/dev-pwa-config/apps-catalog';
+import { PwaInstallPrompt } from '@mister-guiiug/dev-pwa-config/react/pwa-install-prompt';
 import { APP_ID } from '../lib/appId';
 import {
   useAppContext,
@@ -280,6 +281,14 @@ export default function DashboardPage() {
       {/* Règle famille : code source, soutien et signalement sur l'accueil et
           sur les Réglages — deux écrans, pas les onze. Ils étaient rendus par
           la coquille, donc partout, jusqu'à ce que `pwa-doctor` le relève. */}
+
+      {/* ICI, ET PAS DANS LA COQUILLE : un bandeau global paraîtrait
+          par-dessus une tâche en cours ; sur l'accueil, l'utilisateur est au
+          repos. Ne rend rien tant qu'une installation n'est pas possible, ni
+          une fois l'application installée — et sur iOS, où l'événement natif
+          n'existe pas, donne la marche à suivre. Cadence du socle : au premier
+          lancement, puis une fois par mois, trois fois. */}
+      <PwaInstallPrompt />
       <AppFooter
         version
         issues
