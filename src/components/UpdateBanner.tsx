@@ -24,6 +24,7 @@ export function UpdateBanner() {
 
   return (
     <UpdatePromptBanner
+      checkEvery="1h"
       registerSW={registerSW}
       title={t('update.available')}
       updateLabel={t('update.refresh')}
