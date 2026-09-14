@@ -13,7 +13,7 @@
     "format:check": "prettier --check .",
     "icons": "pwa-icons --source public/logo.svg --out public/icons --maskable --bg 20,83,45 --sizes 96,144,180,192,256,384,512",
     "preview": "vite preview",
-    "test": "vitest run --coverage",
+    "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -21,7 +21,8 @@
     "supabase:setup": "node scripts/supabase-setup.mjs",
     "supabase:push": "supabase db push",
     "supabase:link": "supabase link",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:coverage": "vitest run --coverage"
   },
   "bundleBudget": {
     "totalGzipKb": 195
