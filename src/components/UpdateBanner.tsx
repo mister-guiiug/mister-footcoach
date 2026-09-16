@@ -18,6 +18,11 @@ import { useI18n } from '../i18n';
  * session, il ne le reporte pas dans `localStorage`. Écarter la mise à jour
  * pour N heures garderait une version périmée entre les mains de l'utilisateur
  * au prochain lancement ; là, le bandeau revient.
+ *
+ * ET LA PROP EST ÉCRITE, depuis le socle 4.19.0 : le défaut y est passé de 0 à
+ * 4 heures. Ce paragraphe décrivait donc un choix que le code ne faisait pas —
+ * il reposait sur l'ancien défaut. Sans cette ligne, le second bouton devient
+ * un report, et les deux tests du bandeau ne trouvent plus « Plus tard ».
  */
 export function UpdateBanner() {
   const { t } = useI18n();
@@ -25,6 +30,7 @@ export function UpdateBanner() {
   return (
     <UpdatePromptBanner
       checkEvery="1h"
+      snoozeHours={0}
       registerSW={registerSW}
       title={t('update.available')}
       updateLabel={t('update.refresh')}
