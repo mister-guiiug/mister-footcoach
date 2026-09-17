@@ -1,9 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <circle cx="32" cy="32" r="30" fill="#16a34a" stroke="#14532d" stroke-width="2"/>
-  <!-- Pentagone central -->
-  <polygon points="32,18 38,26 36,34 28,34 26,26" fill="#111827"/>
-  <!-- Hexagones blancs -->
-  <polygon points="32,8 40,14 38,24 26,24 24,14" fill="white" opacity="0.15"/>
-  <polygon points="44,22 54,24 54,36 44,42 40,32 44,22" fill="white" opacity="0.15"/>
-  <polygon points="20,22 24,32 20,42 10,36 10,24 20,22" fill="white" opacity="0.15"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!--
+    Source UNIQUE des icônes : `npm run icons`. Trois contraintes qui ne se
+    devinent pas (le détail est dans docs/conception-technique.md § 11.4) :
+
+    1. le fond de la tuile `#0f3d21` est RECOPIÉ dans l'option de fond du
+       script `icons` (15,61,33). C'est cette couleur que le socle peint
+       derrière la zone de sécurité du maskable et sous l'icône Apple, qui est
+       aplatie : les deux valeurs divergent, un cadre apparaît ;
+    2. le F est tracé en rectangles, jamais en texte : aucune fonte n'est
+       garantie au rendu d'un SVG ;
+    3. pas de double tiret dans ces commentaires. XML l'interdit, et `sharp`
+       rejette alors le fichier entier sur un « corrupt header » muet.
+
+    Dessiné pour 16 px d'abord (l'onglet), pas pour 512 : le terrain à 14 %
+    s'évanouit avant 48 px, et c'est voulu.
+  -->
+  <rect x="0" y="0" width="512" height="512" rx="112.64" fill="#0f3d21"/>
+
+  <!-- Le terrain : le contexte sans le bruit. -->
+  <g stroke="#f8fafc" stroke-width="8" fill="none" opacity="0.14">
+    <rect x="64" y="96" width="384" height="320" rx="10"/>
+    <line x1="64" y1="256" x2="448" y2="256"/>
+    <circle cx="256" cy="256" r="86"/>
+  </g>
+
+  <!-- Marges 137 à gauche, 113 à droite : centrer la boîte du dessin (125/125)
+       tasse l'ensemble à droite, centrer les masses (150/100) laisse trop d'air
+       à gauche. Trois calages rendus côte à côte, celui du milieu gagne. -->
+  <g fill="#f8fafc">
+    <rect x="137" y="128" width="54" height="256" rx="10"/>
+    <rect x="137" y="128" width="184" height="54" rx="10"/>
+    <rect x="137" y="229" width="140" height="54" rx="10"/>
+  </g>
+
+  <!-- Pentagone CALCULÉ (cinq sommets à 72°, le premier à -90°), là où le logo
+       précédent approchait ses « hexagones » à l'œil, en quadrilatères. -->
+  <circle cx="347" cy="298" r="52" fill="#facc15"/>
+  <polygon points="347,276 367.92,291.2 359.93,315.8 334.07,315.8 326.08,291.2" fill="#0f3d21"/>
 </svg>
