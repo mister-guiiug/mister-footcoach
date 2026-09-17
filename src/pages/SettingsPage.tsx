@@ -584,9 +584,6 @@ export default function SettingsPage() {
           <div className="text-sm">
             <p className="font-semibold text-fg-heading">{t('app.name')}</p>
             <p className="text-xs text-fg-muted mt-0.5">
-              {t('settings.version')}
-            </p>
-            <p className="text-xs text-fg-muted mt-0.5">
               {t('settings.appDescription')}
             </p>
           </div>
