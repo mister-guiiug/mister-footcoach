@@ -65,10 +65,13 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Réinitialiser les données')).toBeInTheDocument();
   });
 
-  it('shows app info card', () => {
+  it('shows app info card, sans mention de version', () => {
+    // La carte portait « Version MVP — Phase 0 ». Plus aucun écran du parc
+    // n'affiche de version : celle qui était liée pointait vers
+    // `…/releases/tag/vX.Y.Z`, et aucune app ne pose de tag git.
     renderWithProviders(<SettingsPage />);
     expect(screen.getByText('Mister Footcoach')).toBeInTheDocument();
-    expect(screen.getByText(/Version MVP/)).toBeInTheDocument();
+    expect(screen.queryByText(/Version/)).not.toBeInTheDocument();
   });
 
   // ── Réinitialisation : la boîte du socle, pas `window.confirm` ───────

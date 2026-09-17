@@ -682,7 +682,6 @@ export const messages = {
       },
       otherApps: 'Nos autres applications',
       otherAppsDesc: "D'autres applications gratuites de la même famille.",
-      version: 'Version MVP — Phase 0',
       appDescription:
         "Application PWA de gestion d'équipes jeunes de football. Données stockées localement (localStorage).",
       sourceCode: 'Code source',
@@ -1389,7 +1388,6 @@ export const messages = {
       },
       otherApps: 'Our other apps',
       otherAppsDesc: 'Other free apps from the same family.',
-      version: 'MVP version — Phase 0',
       appDescription:
         'PWA for managing youth football teams. Data stored locally (localStorage).',
       sourceCode: 'Source code',
