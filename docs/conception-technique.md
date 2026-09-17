@@ -236,11 +236,11 @@ mister-footcoach/
 │                                    # surveyStatus, tournament, federation
 │
 ├── scripts/
-│   ├── supabase-setup.mjs           # Création projet + push des migrations
-│   └── generate-icons.mjs
+│   └── supabase-setup.mjs           # Création projet + push des migrations
 │
 ├── public/
-│   ├── logo.svg
+│   ├── logo.svg                     # Source UNIQUE des icônes (npm run icons)
+│   ├── icons/                       # Sorties de `pwa-icons` (socle)
 │   └── screenshots/                 # Captures du manifest PWA
 │
 ├── e2e/
@@ -1469,8 +1469,11 @@ Le principal levier de performance appliqué est ailleurs : découpage des chunk
 - **Photos de joueurs : non implémentées.** Les colonnes `photoStorageId` /
   `logoStorageId` existent dans le schéma, mais aucun upload, aucun
   redimensionnement et aucun bucket Supabase Storage ne sont branchés.
-- Icônes PWA et captures du manifest générées hors build
-  (`scripts/generate-icons.mjs`, `sharp`).
+- Icônes PWA et captures du manifest générées hors build, par les outils du
+  socle : `npm run icons` (`pwa-icons`) depuis `public/logo.svg`, seule source.
+  La couleur de fond passée à `pwa-icons` doit rester celle de la tuile du
+  SVG : c'est elle qui remplit la zone de sécurité du maskable et le dessous de
+  l'icône Apple, qui est aplatie.
 - Les avatars affichés sont des placeholders CSS — aucun appel réseau.
 
 ### 11.5 Métriques cibles
