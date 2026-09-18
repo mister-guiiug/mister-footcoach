@@ -14,10 +14,11 @@ export function AppShell() {
    * premier composant à la fois sous le routeur et présent sur tous les
    * écrans.
    *
-   * GA4 n'envoie `page_view` qu'au chargement du document, et `initAnalytics`
-   * pose en plus `send_page_view: false` pour que la première vue passe par ce
-   * hook comme les autres — sinon l'écran d'entrée serait compté deux fois. Le
-   * hook ne fait rien tant que le consentement n'est pas accordé.
+   * `initAnalytics` pose `capture_pageview: false` pour que la première vue
+   * passe par ce hook comme les autres : laissé à lui-même, PostHog en envoie
+   * une au chargement ET à chaque changement d'historique, et l'écran d'entrée
+   * serait compté deux fois. Le hook ne fait rien tant que le consentement
+   * n'est pas accordé.
    */
   usePageViews(pathname);
 
@@ -36,9 +37,10 @@ export function AppShell() {
         {/* Une `region`, pas une boîte modale : elle ne recouvre rien et ne
             piège pas le focus — un bandeau posé par-dessus un plateau de match
             en direct serait exactement le « dark pattern » que le RGPD nomme.
-            Ne rend RIEN tant que `VITE_GA_MEASUREMENT_ID` n'est pas posée. */}
+            Ne rend RIEN tant que `VITE_POSTHOG_KEY` n'est pas posée. */}
         <ConsentBanner
-          gaMeasurementId={import.meta.env.VITE_GA_MEASUREMENT_ID}
+          posthogKey={import.meta.env.VITE_POSTHOG_KEY}
+          loader={() => import('posthog-js/dist/module.slim.js')}
           className="mx-4 mb-4"
         />
       </main>
