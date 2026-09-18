@@ -25,14 +25,16 @@
     "test:coverage": "vitest run --coverage"
   },
   "bundleBudget": {
-    "totalGzipKb": 379,
+    "totalGzipKb": 435,
     "preloadGzipKb": 172,
-    "_pourquoiPreload": "Posé le 16/09/2026 avec Sentry, socle 4.18.0. Le total compte les morceaux ASYNCHRONES : il monte de 195 à 379 kB par la seule installation du SDK, alors que le chemin critique ne bouge pas. Sans cette seconde borne, ~151 kB de mou couvriraient toute régression. Mesuré 156.2 kB, budget à +10 %."
+    "_pourquoiPreload": "Posé le 16/09/2026 avec Sentry, socle 4.18.0. Le total compte les morceaux ASYNCHRONES : il monte de 195 à 379 kB par la seule installation du SDK, alors que le chemin critique ne bouge pas. Sans cette seconde borne, ~151 kB de mou couvriraient toute régression. Mesuré 156.2 kB, budget à +10 %.",
+    "_pourquoi": "RELEVÉ DE 379 À 435 LE 19/09/2026 : `posthog-js` entre avec l'ADR 0012. CE CHIFFRE N'A PAS ÉTÉ MESURÉ EN LOCAL, et c'est dit plutôt que masqué : ce dépôt porte `os=linux` dans son `.npmrc`, si bien que npm n'installe pas le binding Rolldown de Windows et que `vite build` n'y tourne pas. 379 + 56 reprend le morceau mesuré ailleurs (48,9 kB gzip pour `posthog-js/dist/module.slim.js`) avec la marge habituelle. À CONFIRMER SUR LE PREMIER RUN DE CI, qui est de toute façon la seule mesure qui fasse foi ici : gh run view <id> -R mister-guiiug/mister-footcoach --log | grep 'TOTAL gzip'. Le morceau est DIFFÉRÉ : il n'est chargé qu'après l'accord, et `preloadGzipKb` — inchangé — garde le chemin critique."
   },
   "dependencies": {
     "@sentry/react": "^10.75.0",
     "@supabase/supabase-js": "^2.116.0",
     "lucide-react": "^1.47.0",
+    "posthog-js": "^1.434.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.4",
@@ -42,7 +44,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^10.0.1",
-    "@mister-guiiug/dev-pwa-config": "^4.21.3",
+    "@mister-guiiug/dev-pwa-config": "^6.0.1",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
