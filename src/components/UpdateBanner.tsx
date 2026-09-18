@@ -1,6 +1,5 @@
 import { registerSW } from 'virtual:pwa-register';
 import { UpdatePromptBanner } from '@mister-guiiug/dev-pwa-config/react/update-prompt-banner';
-import { useI18n } from '../i18n';
 
 /**
  * Bandeau « Mise à jour disponible ». Le balisage, l'état et l'application de
@@ -25,17 +24,11 @@ import { useI18n } from '../i18n';
  * un report, et les deux tests du bandeau ne trouvent plus « Plus tard ».
  */
 export function UpdateBanner() {
-  const { t } = useI18n();
-
   return (
     <UpdatePromptBanner
       checkEvery="1h"
       snoozeHours={0}
       registerSW={registerSW}
-      title={t('update.available')}
-      updateLabel={t('update.refresh')}
-      updatingLabel={t('update.refreshing')}
-      dismissLabel={t('update.dismiss')}
       className="fixed bottom-4 left-1/2 z-50 max-w-[calc(100vw-2rem)] -translate-x-1/2"
     />
   );
