@@ -63,14 +63,6 @@ export const messages = {
       back: 'Retour',
       notifications: 'Notifications',
     },
-    update: {
-      available: 'Mise à jour disponible',
-      refresh: 'Actualiser',
-      refreshing: 'Mise à jour…',
-      // Masque le bandeau pour la session : il revient au prochain lancement,
-      // d'où « Plus tard » plutôt que « Fermer ».
-      dismiss: 'Plus tard',
-    },
     connection: {
       // Affiché uniquement avec le backend Supabase : avec le backend local
       // (le défaut), l'absence de réseau ne coûte rien à l'utilisateur.
@@ -774,12 +766,6 @@ export const messages = {
     topbar: {
       back: 'Back',
       notifications: 'Notifications',
-    },
-    update: {
-      available: 'Update available',
-      refresh: 'Refresh',
-      refreshing: 'Updating…',
-      dismiss: 'Later',
     },
     connection: {
       offline: 'Offline — changes will not be saved to the server.',

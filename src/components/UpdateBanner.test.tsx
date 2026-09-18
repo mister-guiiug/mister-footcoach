@@ -78,7 +78,7 @@ describe('UpdateBanner', () => {
     expect(banner).toHaveAttribute('data-dwc', 'update-banner');
     expect(banner).toHaveTextContent('Mise à jour disponible');
     expect(
-      screen.getByRole('button', { name: 'Actualiser' })
+      screen.getByRole('button', { name: 'Mettre à jour' })
     ).toBeInTheDocument();
   });
 
@@ -99,7 +99,7 @@ describe('UpdateBanner', () => {
     announceUpdate();
 
     expect(screen.getByRole('status')).toHaveTextContent('Update available');
-    expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Later' })).toBeInTheDocument();
   });
 });
