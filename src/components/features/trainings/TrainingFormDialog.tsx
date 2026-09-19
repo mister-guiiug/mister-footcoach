@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sheet } from '@mister-guiiug/dev-pwa-config/react/sheet';
+import { GESTES, trackEvent } from '@mister-guiiug/dev-pwa-config/analytics';
 import { Input, Select, Textarea } from '../../ui/Input';
 import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { useTeams, useAppContext } from '../../../store/AppContext';
@@ -68,6 +69,19 @@ export function TrainingFormDialog({
       for (const t of series) {
         dispatch({ type: 'ADD_TRAINING', training: t });
       }
+      /*
+       * UNE SEULE FOIS POUR TOUTE LA SÉRIE — hors de la boucle, donc. Une
+       * récurrence de quinze séances est UN geste de coach, pas quinze : la
+       * compter quinze fois écraserait toutes les autres créations de l'app.
+       *
+       * `serie` dit justement que la récurrence a servi. Ni le thème, ni la
+       * note, ni la date, ni l'équipe.
+       */
+      trackEvent(GESTES.CREATION, {
+        objet: 'entrainement',
+        modifiee: false,
+        serie: true,
+      });
       dispatch({
         type: 'NOTIFY',
         teamId: form.teamId,
@@ -101,6 +115,11 @@ export function TrainingFormDialog({
     dispatch({
       type: isEdit ? 'UPDATE_TRAINING' : 'ADD_TRAINING',
       training: saved,
+    });
+    trackEvent(GESTES.CREATION, {
+      objet: 'entrainement',
+      modifiee: isEdit,
+      serie: false,
     });
     dispatch({
       type: 'NOTIFY',

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Radio, Plus, Minus, X, Play, Pause, RotateCcw } from 'lucide-react';
+import { GESTES, trackEvent } from '@mister-guiiug/dev-pwa-config/analytics';
 import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
 import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { EmptyState } from '@mister-guiiug/dev-pwa-config/react/empty-state';
@@ -81,6 +82,19 @@ export default function MatchLivePage() {
 
   function toggleLive() {
     dispatch({ type: 'SET_MATCH_LIVE', matchId: id!, active: !isLive });
+    /*
+     * LE SUIVI EN DIRECT, DÉBUT ET FIN. Le socle réserve `partie` à « une
+     * session de jeu OU DE MATCH » : c'en est une, tenue au bord du terrain.
+     *
+     * LES DEUX ÉTAPES OU AUCUNE. `terminee` seul ne dit rien : c'est leur
+     * RAPPORT qui répond — combien de directs lancés sont menés au bout, et
+     * combien restent ouverts parce que le téléphone est rentré dans la poche.
+     *
+     * NI LE MATCH, NI L'ADVERSAIRE, NI LE SCORE, NI UN SEUL JOUEUR. Les
+     * événements de la feuille (buts, cartons, remplacements) désignent des
+     * mineurs : ils ne sortent pas de l'appareil, et ne sont pas comptés.
+     */
+    trackEvent(GESTES.PARTIE, { etape: isLive ? 'terminee' : 'demarree' });
     setIsLive(v => !v);
   }
 
@@ -453,6 +467,10 @@ export default function MatchLivePage() {
         onClick={() => {
           if (isLive) {
             dispatch({ type: 'SET_MATCH_LIVE', matchId: id!, active: false });
+            // L'autre porte de sortie du direct, derrière le même garde : sans
+            // le `if`, refermer un match déjà clos compterait une fin de plus
+            // que de débuts.
+            trackEvent(GESTES.PARTIE, { etape: 'terminee' });
             setIsLive(false);
           }
           navigate(`/matchs/${id}`);

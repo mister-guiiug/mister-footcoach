@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Save } from 'lucide-react';
+import { GESTES, trackEvent } from '@mister-guiiug/dev-pwa-config/analytics';
 import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
 import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import {
@@ -119,6 +120,21 @@ export default function LineupPage() {
         substituteIds,
         createdAt: new Date().toISOString(),
       },
+    });
+    /*
+     * COMPOSER UNE ÉQUIPE — le geste que cette application existe pour rendre
+     * facile, et le seul de la catégorie « simulation » des spécifications.
+     *
+     * `formation` EST UNE LISTE FERMÉE (`FORMATIONS`) : savoir laquelle est
+     * réellement posée dit si les schémas proposés sont les bons.
+     *
+     * AUCUN JOUEUR, JAMAIS. Cette application gère des données de MINEURS :
+     * ni un identifiant, ni un poste attribué, ni le nom de l'équipe, ni
+     * même le nombre de titulaires, qui dirait la taille d'un effectif.
+     */
+    trackEvent(GESTES.CREATION, {
+      objet: 'composition',
+      formation: selectedFormation.id,
     });
   }
 

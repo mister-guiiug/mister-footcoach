@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sheet } from '@mister-guiiug/dev-pwa-config/react/sheet';
+import { GESTES, trackEvent } from '@mister-guiiug/dev-pwa-config/analytics';
 import { Input, Select, Textarea } from '../../ui/Input';
 import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import {
@@ -98,6 +99,15 @@ export function MatchFormDialog({
     };
 
     dispatch({ type: isEdit ? 'UPDATE_MATCH' : 'ADD_MATCH', match: saved });
+    /*
+     * POSER UN MATCH AU CALENDRIER. `modifiee` sépare la création de la
+     * correction sans faire deux compteurs qui ne s'additionneraient plus.
+     *
+     * NI L'ADVERSAIRE, NI LE LIEU, NI L'ADRESSE, NI LA DATE, NI L'ÉQUIPE : un
+     * club, une catégorie et une date suffisent à désigner un groupe d'enfants
+     * réel.
+     */
+    trackEvent(GESTES.CREATION, { objet: 'match', modifiee: isEdit });
     dispatch({
       type: 'NOTIFY',
       teamId: saved.teamId,
