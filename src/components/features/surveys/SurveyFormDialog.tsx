@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sheet } from '@mister-guiiug/dev-pwa-config/react/sheet';
+import { GESTES, trackEvent } from '@mister-guiiug/dev-pwa-config/analytics';
 import { Input, Select, Textarea } from '../../ui/Input';
 import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import {
@@ -95,6 +96,17 @@ export function SurveyFormDialog({
     };
 
     dispatch({ type: 'ADD_SURVEY', survey });
+    /*
+     * LANCER UN SONDAGE — le pont entre le coach et les familles. `notifie`
+     * dit si la notification qui l'accompagne est demandée ; c'est elle qui
+     * décide si le sondage sera vu.
+     *
+     * NI LA QUESTION — elle est saisie —, NI L'ÉQUIPE, NI L'ÉCHÉANCE.
+     */
+    trackEvent(GESTES.CREATION, {
+      objet: 'sondage',
+      notifie: sendNotification,
+    });
     if (sendNotification) {
       dispatch({
         type: 'NOTIFY',

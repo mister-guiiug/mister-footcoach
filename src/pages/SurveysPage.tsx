@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AlertTriangle, Plus } from 'lucide-react';
+import { GESTES, trackEvent } from '@mister-guiiug/dev-pwa-config/analytics';
 import { Card, CardHeader } from '@mister-guiiug/dev-pwa-config/react/card';
 import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
 import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
@@ -91,6 +92,17 @@ function SurveyCard({ survey }: { survey: Survey }) {
     field: 'intentionJoueur' | 'confirmationParent',
     value: SurveyResponseValue
   ) {
+    /*
+     * RÉPONDRE À UN SONDAGE — l'autre bout du pont, côté familles. Un sondage
+     * sans réponse ne sert à rien, et c'est le rapport entre les deux
+     * compteurs qui le dira.
+     *
+     * `champ` distingue l'intention du joueur de la confirmation du parent :
+     * deux colonnes du schéma, deux gestes différents. LA VALEUR, ELLE, NE
+     * PART PAS : « présent » ou « absent » est une information sur la
+     * disponibilité d'un MINEUR. Ni le joueur, ni le sondage, ni l'équipe.
+     */
+    trackEvent(GESTES.CREATION, { objet: 'reponse_sondage', champ: field });
     const existing = responses.find(r => r.playerId === playerId);
     if (existing) {
       dispatch({
