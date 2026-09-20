@@ -363,7 +363,7 @@ export const ARRAY_TABLES: { table: string; key: keyof AppState }[] = [
 ];
 
 export async function loadAllFromSupabase(): Promise<AppState> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const state: AppState = { ...EMPTY_APP_STATE };
   const mutable = state as unknown as Record<string, unknown>;
 
@@ -452,19 +452,24 @@ un unique canal, et déclenche une réhydratation complète debouncée à 300 ms
 
 ```typescript
 // src/store/SupabaseAppProvider.tsx (extrait)
-const sb = getSupabase();
-const channel = sb.channel('app-changes');
-for (const table of ALL_TABLES) {
-  channel.on(
-    'postgres_changes',
-    { event: '*', schema: 'public', table },
-    () => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => void reload(), 300);
-    }
-  );
-}
-channel.subscribe();
+let sb: SupabaseClient | null = null;
+let channel: RealtimeChannel | null = null;
+getSupabase().then(client => {
+  if (cancelled) return; // démonté avant l'arrivée du client : pas de canal
+  sb = client;
+  channel = sb.channel('app-changes');
+  for (const table of ALL_TABLES) {
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table },
+      () => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => void reload(), 300);
+      }
+    );
+  }
+  channel.subscribe();
+});
 ```
 
 Les écritures sont **optimistes** : l'action est appliquée localement par le
@@ -666,27 +671,39 @@ VITE_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR-ANON-KEY
 ```
 
-Le client est créé **paresseusement** et mis en cache, pour qu'une app en mode
+Le client est créé **paresseusement** et partagé, par la fabrique du socle
+(`@mister-guiiug/dev-pwa-config/supabase-client`), pour qu'une app en mode
 `local` ne construise jamais de client et ne dépende d'aucune variable
-d'environnement :
+d'environnement. `getSupabase()` rend une **promesse** : la fabrique est
+asynchrone, et une variable manquante se voit en rejet au premier appel, dans
+un contexte qu'une frontière d'erreur sait afficher.
 
 ```typescript
-// src/lib/supabase.ts
-export function getSupabase(): SupabaseClient {
-  if (client) return client;
-  const url = import.meta.env.VITE_SUPABASE_URL;
-  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) {
-    throw new Error(
-      'Supabase non configuré : définissez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.'
-    );
-  }
-  client = createClient(url, anonKey, {
-    auth: { persistSession: true, autoRefreshToken: true },
-  });
-  return client;
+// src/lib/supabase.ts — la fabrique du socle, avec les options de toujours
+const configure = !!(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+export const supabase = configure
+  ? createSupabaseClientFactory<SupabaseClient>({
+      env: import.meta.env,
+      auth: { flowType: 'pkce' }, // fusionné sur persistSession + autoRefreshToken
+      loader: () => Promise.resolve({ createClient }), // SDK importé statiquement
+    })
+  : null;
+
+export function getSupabase(): Promise<SupabaseClient> {
+  if (!supabase) return Promise.reject(new Error('Supabase non configuré : …'));
+  return supabase.getClient();
 }
 ```
+
+Le garde `configure` n'est pas qu'une lecture de configuration : Vite remplace
+`import.meta.env.VITE_SUPABASE_URL` par sa valeur au build (`undefined` quand
+elle manque), et le bundler replie le ternaire — sans les variables, la
+fabrique n'est jamais construite, `createClient` n'est référencé nulle part et
+le SDK (≈ 55 kB gzip) sort du bundle. L'ancienne copie obtenait le même
+résultat sans le dire, par son `throw` qui rendait `createClient(…)`
+inatteignable.
 
 Les étapes complètes (création du projet en région Frankfurt, application des
 trois migrations, rattachement du compte auth au profil `users`) sont dans
@@ -989,20 +1006,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (BACKEND !== 'supabase') return;
-    const sb = getSupabase();
-    sb.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
+    let cancelled = false;
+    let subscription: { unsubscribe: () => void } | null = null;
+    getSupabase().then(sb => {
+      if (cancelled) return; // démonté avant l'arrivée du client
+      sb.auth.getSession().then(({ data }) => {
+        setSession(data.session);
+        setLoading(false);
+      });
+      subscription = sb.auth.onAuthStateChange((_e, s) => setSession(s)).data
+        .subscription;
     });
-    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription?.unsubscribe();
+    };
   }, []);
 
   async function signIn(email: string, password: string) {
-    const { error } = await getSupabase().auth.signInWithPassword({
-      email,
-      password,
-    });
+    const sb = await getSupabase();
+    const { error } = await sb.auth.signInWithPassword({ email, password });
     return { error: error?.message };
   }
   // signOut …

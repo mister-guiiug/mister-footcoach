@@ -47,30 +47,50 @@ const AuthContext = createContext<AuthValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(BACKEND === 'supabase');
+  // Un client introuvable (configuration manquante) : la fabrique du socle
+  // REJETTE au lieu de lever, et une frontière d'erreur n'attrape qu'un rendu
+  // ou un effet, jamais un rejet. L'erreur est donc rejouée au rendu, pour
+  // finir là où finissait le `throw` synchrone qu'elle remplace — l'écran de
+  // secours, pas une roue qui tourne sans fin derrière `loading`.
+  const [failure, setFailure] = useState<Error | null>(null);
 
   useEffect(() => {
     if (BACKEND !== 'supabase') return;
-    const sb = getSupabase();
-    sb.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
-    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-    });
-    return () => sub.subscription.unsubscribe();
+    // Le client est une PROMESSE (fabrique du socle) : l'abonnement se pose
+    // quand elle arrive, et pas du tout si le fournisseur s'est démonté
+    // entre-temps — sinon l'abonnement survivrait au composant.
+    let cancelled = false;
+    let subscription: { unsubscribe: () => void } | null = null;
+    getSupabase()
+      .then(sb => {
+        if (cancelled) return;
+        sb.auth.getSession().then(({ data }) => {
+          setSession(data.session);
+          setLoading(false);
+        });
+        subscription = sb.auth.onAuthStateChange((_e, s) => {
+          setSession(s);
+        }).data.subscription;
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setFailure(error instanceof Error ? error : new Error(String(error)));
+      });
+    return () => {
+      cancelled = true;
+      subscription?.unsubscribe();
+    };
   }, []);
 
   async function signIn(email: string, password: string) {
-    const { error } = await getSupabase().auth.signInWithPassword({
-      email,
-      password,
-    });
+    const sb = await getSupabase();
+    const { error } = await sb.auth.signInWithPassword({ email, password });
     return { error: error?.message };
   }
 
   async function signInWithLink(email: string) {
-    const { error } = await getSupabase().auth.signInWithOtp({
+    const sb = await getSupabase();
+    const { error } = await sb.auth.signInWithOtp({
       email,
       options: {
         // Le retour du lien est calculé depuis l'origine SERVIE, jamais depuis
@@ -89,11 +109,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
-    await getSupabase().auth.signOut();
+    const sb = await getSupabase();
+    await sb.auth.signOut();
   }
 
   async function deleteAccount() {
-    const sb = getSupabase();
+    const sb = await getSupabase();
     const { error } = await sb.rpc('delete_my_account');
     // Un refus laisse la session INTACTE : l'utilisateur voit le message et
     // peut réessayer. Le déconnecter ici lui ferait croire que c'est fait.
@@ -101,6 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await sb.auth.signOut();
     return {};
   }
+
+  if (failure) throw failure;
 
   return (
     <AuthContext.Provider

@@ -13,6 +13,7 @@ import {
   type AppAction,
   type AppState,
 } from './AppContext';
+import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import { getSupabase } from '../lib/supabase';
 import {
   loadAllFromSupabase,
@@ -67,24 +68,39 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
         if (!cancelled) setReady(true);
       });
 
-    const sb = getSupabase();
-    const channel = sb.channel('app-changes');
-    for (const table of ALL_TABLES) {
-      channel.on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table },
-        () => {
-          if (timer) clearTimeout(timer);
-          timer = setTimeout(() => void reload(), 300);
+    // Le client est une PROMESSE (fabrique du socle) : le canal s'ouvre quand
+    // elle arrive — et pas du tout si le fournisseur s'est démonté entre-temps,
+    // sinon un canal orphelin resterait ouvert et compterait dans le quota
+    // temps réel du projet. L'hydratation, elle, a déjà son `catch` : un client
+    // introuvable y est journalisé, et l'app s'ouvre sur un état vide plutôt
+    // que de ne pas s'ouvrir.
+    let sb: SupabaseClient | null = null;
+    let channel: RealtimeChannel | null = null;
+    getSupabase()
+      .then(client => {
+        if (cancelled) return;
+        sb = client;
+        channel = sb.channel('app-changes');
+        for (const table of ALL_TABLES) {
+          channel.on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table },
+            () => {
+              if (timer) clearTimeout(timer);
+              timer = setTimeout(() => void reload(), 300);
+            }
+          );
         }
-      );
-    }
-    channel.subscribe();
+        channel.subscribe();
+      })
+      .catch((e: unknown) => {
+        log.error('Supabase realtime unavailable', { error: e });
+      });
 
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
-      void sb.removeChannel(channel);
+      if (sb && channel) void sb.removeChannel(channel);
     };
   }, [reload]);
 
