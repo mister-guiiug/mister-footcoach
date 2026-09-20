@@ -1,14 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy } from 'react';
+import { useIdlePrefetch } from '@mister-guiiug/dev-pwa-config/react/use-prefetch';
 import { AppShell } from './components/layout/AppShell';
 import { Spinner } from './components/ui/Spinner';
 
 // CHAQUE IMPORT D'UNE PAGE PRÉCHARGÉE EST NOMMÉ, parce qu'il sert DEUX FOIS : à
-// `lazy` ci-dessous, et au préchargement à l'inactivité de
-// `usePrechargeLesPagesDeLaBarre`. Deux `import()` du même spécificateur ne
-// téléchargent qu'une fois — le registre de modules dédoublonne — mais encore
-// faut-il que ce soit LITTÉRALEMENT le même spécificateur, sinon le bundler
-// émet deux morceaux et le préchargement ne sert plus à rien.
+// `lazy` ci-dessous, et au préchargement à l'inactivité par `useIdlePrefetch`.
+// Deux `import()` du même spécificateur ne téléchargent qu'une fois — le
+// registre de modules dédoublonne — mais encore faut-il que ce soit
+// LITTÉRALEMENT le même spécificateur, sinon le bundler émet deux morceaux et
+// le préchargement ne sert plus à rien.
 const chargeTeams = () => import('./pages/TeamsPage');
 const chargeMatches = () => import('./pages/MatchesPage');
 const chargeTrainings = () => import('./pages/TrainingsPage');
@@ -21,57 +22,16 @@ const chargeTrainings = () => import('./pages/TrainingsPage');
  * (`maxVisible` vaut 5, dont une place pour « Plus »), et les précharger
  * ferait payer à tout le monde onze morceaux pour un menu qui n'en montre que
  * quatre. Pour celles-là, c'est la pastille qui tourne qui répond au clic.
- */
-const CHARGEURS_DE_LA_BARRE = [chargeTeams, chargeMatches, chargeTrainings];
-
-/** `navigator.connection` n'est pas dans les types du DOM : il reste un brouillon. */
-type NavigateurEconome = Navigator & { connection?: { saveData?: boolean } };
-
-/**
- * PRÉCHARGE LES PAGES DE LA BARRE DÈS QUE LE FIL PRINCIPAL SOUFFLE.
  *
- * Sans préchargement, le morceau d'une page n'est demandé qu'AU CLIC : un
- * aller-retour réseau complet, payé au pire moment — pendant que le reste du
- * bundle arrive et que le service worker précharge ses entrées. Mesuré à froid
- * le 20/09/2026 sur deux sites publiés du parc, première visite : 133 ms sur
- * mister-settle, 161 ms sur mister-molkky, pendant lesquelles l'URL indique
- * déjà la nouvelle route et l'écran affiche encore l'ancien.
- *
- * N'entre PAS dans `bundleBudget.preloadGzipKb` : ce budget ne compte que ce
- * qui est `modulepreload` dans le document, et un `import()` tardif n'y entre
- * pas.
+ * UN SEUL CHARGEUR pour les trois, constante de module : `useIdlePrefetch`
+ * dédoublonne par identité du chargeur, une flèche recréée à chaque rendu
+ * serait chaque fois « nouvelle ». `allSettled` : un morceau qui manque
+ * n'empêche pas les deux autres d'arriver — et un échec de préchargement
+ * n'est pas une erreur, au clic `lazy` redemandera le morceau et c'est LUI
+ * qui la portera, dans son propre `Suspense`.
  */
-function usePrechargeLesPagesDeLaBarre() {
-  useEffect(() => {
-    // `saveData` : le visiteur a demandé qu'on épargne son forfait. On ne
-    // télécharge alors que ce qu'il demande vraiment — et c'est précisément
-    // pour ce cas-là que la barre, elle, sait désormais dire qu'elle charge.
-    if ((navigator as NavigateurEconome).connection?.saveData) return;
-
-    let annule = false;
-    const precharge = () => {
-      if (annule) return;
-      // Un échec ici est sans conséquence : au clic, `lazy` redemandera le
-      // morceau et c'est LUI qui portera l'erreur, dans son propre `Suspense`.
-      for (const charge of CHARGEURS_DE_LA_BARRE) void charge().catch(() => {});
-    };
-
-    // `requestIdleCallback` manque encore à Safari avant la 17 ; le repli
-    // minuté vaut mieux que rien.
-    if (typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(precharge, { timeout: 3000 });
-      return () => {
-        annule = true;
-        window.cancelIdleCallback?.(id);
-      };
-    }
-    const id = window.setTimeout(precharge, 1200);
-    return () => {
-      annule = true;
-      window.clearTimeout(id);
-    };
-  }, []);
-}
+const chargeLesPagesDeLaBarre = () =>
+  Promise.allSettled([chargeTeams(), chargeMatches(), chargeTrainings()]);
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const TeamsPage = lazy(chargeTeams);
@@ -93,7 +53,26 @@ const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 export default function App() {
-  usePrechargeLesPagesDeLaBarre();
+  // PRÉCHARGE LES PAGES DE LA BARRE DÈS QUE LE FIL PRINCIPAL SOUFFLE — par le
+  // socle : `requestIdleCallback` (avec un délai de repli sur Safari avant 17,
+  // qui ne l'a pas), annulation au démontage, et rien du tout quand le visiteur
+  // a demandé d'économiser son forfait (`saveData`) ou que la connexion est en
+  // 2G — c'est précisément pour ce cas-là que la barre sait dire qu'elle charge.
+  //
+  // Sans préchargement, le morceau d'une page n'est demandé qu'AU CLIC : un
+  // aller-retour réseau complet, payé au pire moment — pendant que le reste du
+  // bundle arrive et que le service worker précharge ses entrées. Mesuré à
+  // froid le 20/09/2026 sur deux sites publiés du parc, première visite :
+  // 133 ms sur mister-settle, 161 ms sur mister-molkky, pendant lesquelles
+  // l'URL indique déjà la nouvelle route et l'écran affiche encore l'ancien.
+  //
+  // N'entre PAS dans `bundleBudget.preloadGzipKb` : ce budget ne compte que ce
+  // qui est `modulepreload` dans le document, et un `import()` tardif n'y
+  // entre pas.
+  //
+  // `timeout: 3000` — au plus tard trois secondes après le montage, même si le
+  // fil principal ne souffle jamais : le plafond qu'avait déjà la copie locale.
+  useIdlePrefetch(chargeLesPagesDeLaBarre, { timeout: 3000 });
   return (
     // Basename dérivé de `BASE_URL` (donc de `VITE_BASE_PATH`) : `/mister-footcoach/`
     // pour GitHub Pages, `/` quand `dist/` est servi à la racine (Lighthouse CI,
