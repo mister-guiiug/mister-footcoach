@@ -834,9 +834,12 @@ html.dark {
 ```
 
 Le basculement clair / sombre / système est piloté par
-`src/theme/ThemeContext.tsx`, qui pose la classe `dark` sur `<html>` ; un script
-inline dans `index.html` applique le thème avant le premier rendu pour éviter le
-flash (son hash SHA-256 est repris dans la CSP, § 9.1).
+`src/theme/ThemeContext.tsx` — un contexte bâti sur le hook `useTheme` du socle
+(`@mister-guiiug/dev-pwa-config/react/use-theme`), appelé une fois avec la clé
+de stockage `mister_footcoach_theme` et `attribute: 'class'` —, qui pose la
+classe `dark` sur `<html>` ; un script inline dans `index.html` lit la même clé
+et applique le thème avant le premier rendu pour éviter le flash (son hash
+SHA-256 est repris dans la CSP, § 9.1).
 
 ---
 

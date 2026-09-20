@@ -211,11 +211,21 @@ export default defineConfig({
       // Statements et functions ne bougent pas — aucune fonction n'a été
       // ajoutée, c'est délibéré : sur ce dépôt, une flèche non couverte coûte
       // un dixième de point (voir la note du `loader` juste au-dessus).
+      // RE-CALÉ le 20/09/2026 (le thème vient du socle) : `ThemeContext.tsx`
+      // ne tient plus l'état à la main, il appelle `useTheme` du socle. 33
+      // instructions et 10 fonctions, TOUTES couvertes, partent dans
+      // `node_modules`, où rien ne les mesure ; l'adaptateur qui reste en
+      // compte 10 et 2, couvertes aussi. Le dénominateur baisse plus que le
+      // numérateur : statements 75,67 → 75,40, branches 74,89 → 74,74,
+      // functions 71,11 → 70,82, lines 76,22 → 75,96 — mesure locale, égale
+      // au centième à celle de la CI sur `main` (run 35511098087), stable
+      // sur deux passes. Adopter le socle coûte ici du ratio, pas de la
+      // couverture : le code parti était couvert, et le socle a ses tests.
       thresholds: {
-        statements: 75.63,
-        branches: 74.8,
-        functions: 71.09,
-        lines: 76.08,
+        statements: 75.4,
+        branches: 74.74,
+        functions: 70.82,
+        lines: 75.96,
       },
     },
   },

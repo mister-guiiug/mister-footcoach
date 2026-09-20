@@ -153,4 +153,26 @@ describe('ThemeProvider', () => {
     renderHook(() => useTheme(), { wrapper });
     expect(addListenerMock).not.toHaveBeenCalled();
   });
+
+  // Le contrat avec le CSS et l'IIFE anti-FOUC : la CLASSE `dark` sur <html>,
+  // jamais `data-theme` — `index.css` ne connaît que `.dark`. C'est ce qui
+  // casserait en silence si le fournisseur du socle était monté avec son
+  // attribut par défaut.
+  it('pose la classe `dark` et `color-scheme` sur <html>, jamais `data-theme`', () => {
+    const { result } = renderHook(() => useTheme(), { wrapper });
+    act(() => result.current.setTheme('dark'));
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(document.documentElement.style.colorScheme).toBe('dark');
+    act(() => result.current.setTheme('light'));
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(document.documentElement.style.colorScheme).toBe('light');
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+  });
+
+  it('une valeur stockée inconnue retombe sur « system » au lieu de se propager', () => {
+    localStorage.setItem(STORAGE_KEY, 'sepia');
+    const { result } = renderHook(() => useTheme(), { wrapper });
+    expect(result.current.theme).toBe('system');
+    expect(result.current.resolvedTheme).toBe('light');
+  });
 });
