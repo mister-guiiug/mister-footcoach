@@ -221,6 +221,12 @@ export default defineConfig({
       // au centième à celle de la CI sur `main` (run 35511098087), stable
       // sur deux passes. Adopter le socle coûte ici du ratio, pas de la
       // couverture : le code parti était couvert, et le socle a ses tests.
+      // La preuve, comme pour le `BottomNav` : le nombre d'unités NON
+      // couvertes est rigoureusement identique avant/après — statements 506,
+      // branches 423, functions 227, lines 446. Mesures : statements
+      // 1574/2080 → 1551/2057 (−23 dont −23 couverts), branches 1262/1685 →
+      // 1252/1675 (−10 dont −10), functions 559/786 → 551/778 (−8 dont −8),
+      // lines 1430/1876 → 1410/1856 (−20 dont −20).
       thresholds: {
         statements: 75.4,
         branches: 74.74,
