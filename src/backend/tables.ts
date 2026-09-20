@@ -36,7 +36,7 @@ export const ALL_TABLES = [
 
 /** Loads the full app state from Supabase into the AppState shape. */
 export async function loadAllFromSupabase(): Promise<AppState> {
-  const sb = getSupabase();
+  const sb = await getSupabase();
   const state: AppState = { ...EMPTY_APP_STATE };
   const mutable = state as unknown as Record<string, unknown>;
 

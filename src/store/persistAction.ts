@@ -21,17 +21,20 @@ async function run(query: PromiseLike<{ error: unknown }>): Promise<void> {
   }
 }
 
-function upsert(table: string, row: Row) {
-  return run(getSupabase().from(table).upsert(row));
+// Le client est une PROMESSE (fabrique du socle) : chaque écriture l'attend —
+// et seules les écritures le demandent, une action locale ne crée jamais de
+// client.
+async function upsert(table: string, row: Row) {
+  return run((await getSupabase()).from(table).upsert(row));
 }
-function insert(table: string, rows: Row | Row[]) {
-  return run(getSupabase().from(table).insert(rows));
+async function insert(table: string, rows: Row | Row[]) {
+  return run((await getSupabase()).from(table).insert(rows));
 }
-function del(table: string, id: string) {
-  return run(getSupabase().from(table).delete().eq('id', id));
+async function del(table: string, id: string) {
+  return run((await getSupabase()).from(table).delete().eq('id', id));
 }
-function patch(table: string, id: string, changes: Row) {
-  return run(getSupabase().from(table).update(changes).eq('id', id));
+async function patch(table: string, id: string, changes: Row) {
+  return run((await getSupabase()).from(table).update(changes).eq('id', id));
 }
 
 /**
@@ -81,7 +84,7 @@ export async function persistAction(
       return;
     case 'SET_TRAINING_BLOCKS':
       await run(
-        getSupabase()
+        (await getSupabase())
           .from('training_blocks')
           .delete()
           .eq('trainingId', action.trainingId)
@@ -163,7 +166,7 @@ export async function persistAction(
       return;
     case 'MARK_ALL_NOTIFICATIONS_READ':
       await run(
-        getSupabase()
+        (await getSupabase())
           .from('notifications')
           .update({ read: true })
           .eq('userId', action.userId)

@@ -36,8 +36,9 @@ const { calls, fromImpl, setError } = vi.hoisted(() => {
   return { calls, fromImpl, setError };
 });
 
+// La fabrique du socle rend le client dans une PROMESSE : le double aussi.
 vi.mock('../lib/supabase', () => ({
-  getSupabase: () => ({ from: fromImpl }),
+  getSupabase: () => Promise.resolve({ from: fromImpl }),
 }));
 
 import { persistAction } from './persistAction';
