@@ -574,6 +574,12 @@ export default function SettingsPage() {
             currentAppId={APP_ID}
             showSource={false}
             showSponsor={false}
+            // Les deux réglages que `index.css` posait en CSS : la Card
+            // fournit déjà son titre, et l'app refaisait la grille en flex.
+            showTitle={false}
+            layout="list"
+            // Dix-neuf cartes d'affilée : repliées par catégorie, sept lignes.
+            groupBy="category"
           />
         </div>
       </Card>
