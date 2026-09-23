@@ -91,7 +91,7 @@ export default defineConfig(({ command }) => {
       pwaSeoPlugin({
         siteName: 'Mister Footcoach',
         basePath,
-        logoPath: '/logo.svg',
+        logoPath: '/icons/icon-512.png',
         // La barre du navigateur, par schéma. Les deux couleurs étaient
         // écrites à la main dans `index.html` — et elles y SURVIVAIENT au
         // build par accident : `stripThemeColorMeta` travaille ligne à ligne
