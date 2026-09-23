@@ -32,10 +32,10 @@
     "_pourquoi": "RELEVÉ DE 379 À 435 LE 19/09/2026 : `posthog-js` entre avec l'ADR 0012. CE CHIFFRE N'A PAS ÉTÉ MESURÉ EN LOCAL, et c'est dit plutôt que masqué : ce dépôt porte `os=linux` dans son `.npmrc`, si bien que npm n'installe pas le binding Rolldown de Windows et que `vite build` n'y tourne pas. 379 + 56 reprend le morceau mesuré ailleurs (48,9 kB gzip pour `posthog-js/dist/module.slim.js`) avec la marge habituelle. À CONFIRMER SUR LE PREMIER RUN DE CI, qui est de toute façon la seule mesure qui fasse foi ici : gh run view <id> -R mister-guiiug/mister-footcoach --log | grep 'TOTAL gzip'. Le morceau est DIFFÉRÉ : il n'est chargé qu'après l'accord, et `preloadGzipKb` — inchangé — garde le chemin critique."
   },
   "dependencies": {
-    "@sentry/react": "^10.75.2",
-    "@supabase/supabase-js": "^2.116.0",
+    "@sentry/react": "^10.75.3",
+    "@supabase/supabase-js": "^2.117.1",
     "lucide-react": "^1.47.0",
-    "posthog-js": "^1.434.7",
+    "posthog-js": "^1.434.11",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.4",
@@ -63,7 +63,7 @@
     "husky": "^9.1.7",
     "jsdom": "^30.1.1",
     "lint-staged": "^17.5.1",
-    "prettier": "^3.9.8",
+    "prettier": "^3.9.9",
     "rollup-plugin-visualizer": "^7.1.1",
     "sharp": "^0.35.4",
     "typescript": "~6.0.3",
