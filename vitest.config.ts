@@ -11,6 +11,11 @@ export default defineConfig({
   plugins: [react()],
   test: {
     ...baseTestOptions,
+    // Vitest stube les feuilles (`css: false`) : `import … from './index.css?raw'`
+    // rendrait la chaîne VIDE, et `src/theme.test.ts` ne mesurerait rien. On
+    // n'ouvre que la lecture BRUTE de cette feuille ; un `import './index.css'`
+    // reste stubé, et Tailwind n'est jamais compilé pendant les tests.
+    css: { include: [/index\.css\?raw$/] },
     coverage: {
       ...coveragePreset,
       provider: 'v8',
