@@ -6,6 +6,7 @@ import { pwaSeoPlugin } from '@mister-guiiug/dev-pwa-config/vite-pwa-base';
 import { cspPlugin } from '@mister-guiiug/dev-pwa-config/vite-csp';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { versionPlugin } from '@mister-guiiug/dev-pwa-config/vite-version';
+import { NAVIGATE_FALLBACK_DENY_FILES } from '@mister-guiiug/dev-pwa-config/vite-pwa';
 
 const analyze = process.env.ANALYZE === '1';
 
@@ -120,6 +121,8 @@ export default defineConfig(({ command }) => {
       VitePWA({
         registerType: 'prompt',
         workbox: {
+          // Un fichier (sitemap.xml, llms.txt…) va au réseau, pas à index.html.
+          navigateFallbackDenylist: [NAVIGATE_FALLBACK_DENY_FILES],
           globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,webmanifest}'],
           /*
            * LE MORCEAU SENTRY HORS DU PRÉCACHE, sans quoi le découpage
