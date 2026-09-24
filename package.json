@@ -32,7 +32,7 @@
     "_pourquoi": "RELEVÉ DE 379 À 435 LE 19/09/2026 : `posthog-js` entre avec l'ADR 0012. CE CHIFFRE N'A PAS ÉTÉ MESURÉ EN LOCAL, et c'est dit plutôt que masqué : ce dépôt porte `os=linux` dans son `.npmrc`, si bien que npm n'installe pas le binding Rolldown de Windows et que `vite build` n'y tourne pas. 379 + 56 reprend le morceau mesuré ailleurs (48,9 kB gzip pour `posthog-js/dist/module.slim.js`) avec la marge habituelle. À CONFIRMER SUR LE PREMIER RUN DE CI, qui est de toute façon la seule mesure qui fasse foi ici : gh run view <id> -R mister-guiiug/mister-footcoach --log | grep 'TOTAL gzip'. Le morceau est DIFFÉRÉ : il n'est chargé qu'après l'accord, et `preloadGzipKb` — inchangé — garde le chemin critique."
   },
   "dependencies": {
-    "@sentry/react": "^10.75.3",
+    "@sentry/react": "^11.0.0",
     "@supabase/supabase-js": "^2.117.1",
     "lucide-react": "^1.47.0",
     "posthog-js": "^1.434.11",
@@ -45,7 +45,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^10.0.1",
-    "@mister-guiiug/dev-pwa-config": "^6.13.0",
+    "@mister-guiiug/dev-pwa-config": "^6.15.1",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
@@ -75,6 +75,11 @@
   "overrides": {
     "eslint-plugin-jsx-a11y": {
       "eslint": "$eslint"
+    }
+  },
+  "pwaDoctor": {
+    "refus": {
+      "wf-keepalive": "Aucun projet Supabase n'est branché en production : deploy.yml ne transmet que VITE_POSTHOG_KEY et VITE_SENTRY_DSN, et le dépôt n'a ni variable ni secret Supabase (relevé du 24/09/2026). src/lib/supabase.ts ne crée de client que si VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY sont posées. Un keep-alive n'aurait donc rien à réveiller — et le réutilisable, qui exige ces deux secrets, échouerait tous les trois jours. À ajouter le jour où un projet est provisionné."
     }
   }
 }
