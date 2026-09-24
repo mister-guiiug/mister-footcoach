@@ -10,7 +10,6 @@ import './index.css';
 import App from './App.tsx';
 import { I18nProvider } from './i18n';
 import { ThemeProvider } from './theme/ThemeContext.tsx';
-import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
 installErrorReporter();
 void initSentry({
@@ -27,11 +26,13 @@ void initSentry({
   loader: () => import('@sentry/react'),
 });
 
-onCLS(console.log);
-onFCP(console.log);
-onINP(console.log);
-onLCP(console.log);
-onTTFB(console.log);
+// PLUS DE `onCLS(console.log)` NI DE SES QUATRE VOISINS. Hérités du squelette
+// (05/05/2026), ils écrivaient les mesures dans la console de chaque visiteur,
+// et leur import STATIQUE de `web-vitals` a changé de prix avec Sentry 11 :
+// `@sentry/browser-utils` dépend désormais du même paquet, le découpage le
+// range avec le SDK, et l'entrée tirait alors `sentry.js` — 144,6 kB dans le
+// chemin critique de chaque visiteur, DSN ou pas. Pour mesurer, c'est
+// `initWebVitals` du socle, avec ses seuils.
 
 import { AppProvider } from './store/AppContext.tsx';
 import { AuthProvider } from './auth/AuthContext.tsx';
