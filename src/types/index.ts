@@ -369,6 +369,12 @@ export interface ClubSettings {
   autoSurveyOnMatch: boolean;
   /** Timestamp of the last federation synchronisation (specs §17). */
   federationLastSync?: string;
+  /**
+   * Nom du club, imprimé en tête des exports PDF (feuille de match, rapport
+   * d'assiduité). Chaîne vide quand il a été effacé : `undefined` disparaîtrait
+   * du JSON envoyé à Supabase, et la colonne garderait l'ancien nom.
+   */
+  clubName?: string;
 }
 
 // ── App state ────────────────────────────────────────────────────────

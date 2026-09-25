@@ -109,6 +109,26 @@ describe('persistAction routing', () => {
     ]);
   });
 
+  it('écrit le nom du club dans sa colonne — et un nom effacé comme une chaîne vide', async () => {
+    // La colonne `"clubName"` vient de `0005_nom_du_club.sql`. Un nom effacé
+    // part en '' et non en `undefined` : JSON retirerait la clé, et l'upsert
+    // laisserait l'ancien nom en base.
+    await persistAction(
+      {
+        type: 'SET_CLUB_SETTINGS',
+        settings: { autoSurveyOnMatch: true, clubName: '' },
+      },
+      state
+    );
+    expect(calls).toEqual([
+      [
+        'upsert',
+        'club_settings',
+        { id: 'default', autoSurveyOnMatch: true, clubName: '' },
+      ],
+    ]);
+  });
+
   it('does nothing for local-only actions', async () => {
     await persistAction({ type: 'SET_SELECTED_TEAM', teamId: 't1' }, state);
     await persistAction({ type: 'RESET_TO_MOCK' }, state);

@@ -16,12 +16,14 @@ import { EmptyState } from '@mister-guiiug/dev-pwa-config/react/empty-state';
 import { MatchFormDialog } from '../components/features/matches/MatchFormDialog';
 import { MeetingPointDialog } from '../components/features/logistics/MeetingPointDialog';
 import { CarpoolSection } from '../components/features/logistics/CarpoolSection';
+import { PdfExportButton } from '../components/features/export/PdfExportButton';
 import {
   useMatch,
   useMatchEvents,
   useTeam,
   usePlayers,
   useAttendances,
+  useAppContext,
 } from '../store/AppContext';
 import { type MatchStatus, type AttendanceStatus } from '../types';
 import { formatDateFull } from '../utils/date';
@@ -49,8 +51,9 @@ const attendanceTone: Record<
 };
 
 export default function MatchDetailPage() {
-  const { t } = useI18n();
+  const { t, localeTag } = useI18n();
   const { id } = useParams<{ id: string }>();
+  const { state } = useAppContext();
   const match = useMatch(id!);
   const events = useMatchEvents(id!);
   const team = useTeam(match?.teamId ?? '');
@@ -69,6 +72,26 @@ export default function MatchDetailPage() {
 
   const hasScore =
     match.scoreHome !== undefined && match.scoreAway !== undefined;
+
+  // La feuille de match : le module PDF n'est chargé qu'ici, au clic.
+  const exportSheet = async () => {
+    const pdf = await import('../pdf/exportPdf');
+    return pdf.exportMatchSheet(
+      {
+        match,
+        team,
+        clubName: state.clubSettings.clubName,
+        players: state.players,
+        lineups: state.lineups,
+        unavailabilities: state.unavailabilities,
+        matchEvents: events,
+        users: state.users,
+        tournaments: state.tournaments,
+        generatedAt: new Date(),
+      },
+      { t, localeTag }
+    );
+  };
 
   return (
     <div className="px-4 py-4 space-y-4">
@@ -215,6 +238,19 @@ export default function MatchDetailPage() {
             </Button>
           </div>
         </div>
+      </Card>
+
+      {/* Feuille de match en PDF (specs § 21.1) */}
+      <Card>
+        <CardHeader
+          title={t('pdf.matchSheet.cardTitle')}
+          subtitle={t('pdf.matchSheet.cardDesc')}
+        />
+        <PdfExportButton
+          objet="feuille_de_match"
+          ariaLabel={t('pdf.matchSheet.exportAria')}
+          onExport={exportSheet}
+        />
       </Card>
 
       {/* Carpool — away matches only (specs §14.4) */}

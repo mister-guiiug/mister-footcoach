@@ -27,6 +27,10 @@ Dans **SQL Editor**, exécute dans l'ordre :
    parent) + fonctions d'aide.
 3. `supabase/migrations/0003_seed.sql` — données minimales (club, saison,
    2 équipes, quelques joueurs, profil admin).
+4. `supabase/migrations/0004_supprimer_son_compte.sql` — `delete_my_account()`,
+   la suppression de son compte.
+5. `supabase/migrations/0005_nom_du_club.sql` — le nom du club
+   (`club_settings."clubName"`), imprimé en tête des exports PDF.
 
 (ou `supabase db push` avec la CLI si tu utilises le projet lié.)
 
@@ -114,7 +118,7 @@ SUPABASE_PROJECT_REF=<ref> npm run supabase:setup
 
 (Si le projet existe déjà, va directement à la 2ᵉ commande.) La CLI demande le
 **mot de passe de la base** au moment voulu — jamais passé en argument. Le
-script applique les 3 migrations via `supabase db push`. Il reste à lier ton
+script applique les migrations via `supabase db push`. Il reste à lier ton
 compte auth (étape 3) et à remplir `.env.local` (étape 4).
 
 ## Notes techniques
