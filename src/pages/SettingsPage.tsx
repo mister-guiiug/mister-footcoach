@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from 'react';
+import { lazy, Suspense, useRef, useState, type ChangeEvent } from 'react';
 import {
   Moon,
   Sun,
@@ -41,6 +41,29 @@ import { genId, nowIso } from '../utils/id';
 import { formatDate } from '../utils/date';
 import { useI18n } from '../i18n';
 import { APP_ID } from '../lib/appId';
+
+// LES DEUX RÉGLAGES DU MODE CONNECTÉ, chargés à la demande — et ABSENTS d'un
+// build local. La condition porte sur `import.meta.env`, que Vite remplace
+// dans CE module : fausse dès la transformation, le bundler ne voit pas les
+// `import()`, et rien de ces écrans (ni leurs icônes, ni les modules du socle
+// qu'ils tirent) n'atterrit dans les morceaux que tout visiteur précharge.
+// Voir `src/player/RoleSwitch.tsx`. Vitest (`MODE === 'test'`) les construit.
+const PushSetting =
+  import.meta.env.VITE_BACKEND === 'supabase' || import.meta.env.MODE === 'test'
+    ? lazy(() =>
+        import('../components/features/settings/PushSetting').then(m => ({
+          default: m.PushSetting,
+        }))
+      )
+    : null;
+const PlayerAccountsCard =
+  import.meta.env.VITE_BACKEND === 'supabase' || import.meta.env.MODE === 'test'
+    ? lazy(() =>
+        import('../components/features/settings/PlayerAccountsCard').then(
+          m => ({ default: m.PlayerAccountsCard })
+        )
+      )
+    : null;
 
 const REMINDER_DELAYS: { value: ReminderDelay; label: string }[] = [
   { value: 'J-1', label: 'J-1' },
@@ -317,11 +340,41 @@ export default function SettingsPage() {
                 ))}
               </div>
             </div>
+
+            {/* Le push n'existe qu'avec le backend Supabase : il faut un
+                serveur pour garder l'abonnement et envoyer. En mode local,
+                une ligne le dit, là où le réglage apparaîtrait. */}
+            {BACKEND === 'supabase' && PushSetting ? (
+              <Suspense fallback={null}>
+                <PushSetting />
+              </Suspense>
+            ) : (
+              <p className="mt-3 border-t border-border-ui pt-3 text-xs text-fg-muted">
+                {t('settings.pushLocal')}
+              </p>
+            )}
           </>
         ) : (
           <p className="text-xs text-fg-muted">{t('settings.allDisabled')}</p>
         )}
       </Card>
+
+      {/* Le compte joueur : invitations (parent) et comptes du club (admin).
+          Même règle que le push — sans compte, rien à inviter. */}
+      {BACKEND === 'supabase' && PlayerAccountsCard ? (
+        <Suspense fallback={null}>
+          <PlayerAccountsCard />
+        </Suspense>
+      ) : (
+        <Card>
+          <p className="mb-1 text-sm font-semibold text-fg-heading">
+            {t('settings.playerAccount')}
+          </p>
+          <p className="text-xs text-fg-muted">
+            {t('settings.playerAccountLocal')}
+          </p>
+        </Card>
+      )}
 
       {/* Club settings */}
       <Card>

@@ -99,6 +99,11 @@ export function DangerZoneCard() {
           <p className="text-xs text-fg-muted">
             {t('settings.danger.whatGoes')}
           </p>
+          {/* Le compte joueur (0006) : effacer son compte retire aussi le
+              consentement qu'on avait donné pour un enfant. */}
+          <p className="text-xs text-fg-muted">
+            {t('playerAccount.deletionNote')}
+          </p>
           <p className="text-xs text-fg-muted">
             {t('settings.danger.whatStays')}
           </p>

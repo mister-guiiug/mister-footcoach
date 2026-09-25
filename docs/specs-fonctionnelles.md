@@ -1,7 +1,7 @@
 # Spécifications Fonctionnelles — Mister Footcoach
 
-**Version :** 1.3  
-**Date :** 11/08/2026  
+**Version :** 1.4  
+**Date :** 25/09/2026  
 **Statut :** Spécification de référence — cible fonctionnelle du produit  
 **Auteur :** Product Owner / Analyste Fonctionnel  
 **Application :** Mister Footcoach — PWA de gestion d'équipes jeunes de football
@@ -14,6 +14,7 @@
 | 1.1     | 05/05/2026 | Ajout §4.6–4.7 (indisponibilités, blessures), §7.5 (mode match live), §8.5–8.6 (contenu séance, bibliothèque exercices), §12 (tournois), §13 (calendrier externe)                                    |
 | 1.2     | 05/05/2026 | Ajout §14 (logistique des déplacements), §15 (sondages de présence) ; mise à jour matrice permissions, modèle de données, user stories, découpage et points ouverts                                  |
 | 1.3     | 11/08/2026 | Clôture des points ouverts tranchés par l'implémentation (§22), correction du modèle de données (§19), écarts d'implémentation signalés (§7.5, §13), découpage §21 remplacé par un état de livraison |
+| 1.4     | 25/09/2026 | Compte joueur (rôle, consentement parental, minimisation) et notifications push livrés en mode connecté : §2, §3, §15, §16, §18, §19, §20, §21                                                       |
 
 > **Nature de ce document.** Il décrit la **cible fonctionnelle**, pas l'état du
 > code. Les exigences non encore livrées y restent volontairement : elles
@@ -93,7 +94,8 @@ Un club de football amateur gère une ou plusieurs **catégories jeunes** (forma
 - Simulation de compositions
 - Logistique des déplacements (point de RDV, covoiturage, GPS)
 - Sondages de présence avec distinction intention joueur / confirmation parent
-- Notifications in-app
+- Compte joueur (mineur), ouvert par le consentement d'un parent, pour saisir sa propre intention de présence (mode connecté)
+- Notifications in-app et push PWA (push en mode connecté)
 - Intégration calendrier externe (flux iCal)
 - Intégration fédération (calendrier et résultats)
 - Gestion des rôles et des droits
@@ -107,7 +109,6 @@ Un club de football amateur gère une ou plusieurs **catégories jeunes** (forma
 - Données médicales sensibles (ordonnances, diagnostics)
 - Vidéo ou analyse tactique avancée
 - Application mobile native (iOS / Android store)
-- Compte utilisateur pour les joueurs mineurs (V2)
 
 ---
 
@@ -152,6 +153,17 @@ Représentant légal d'un ou plusieurs joueurs.
 - Abonnement au flux iCal de son enfant
 - Aucun droit de création, modification ou suppression de données sportives
 - Accès strictement limité aux informations de ses enfants
+- Ouverture et révocation du **compte joueur** de son enfant — c'est son consentement (§ 18.7)
+
+#### Joueur (compte joueur — mode connecté)
+
+Joueur mineur dont un parent lié a ouvert le compte (code d'invitation, § 18.7).
+
+- Consultation de **sa propre fiche**, des **matchs et entraînements de ses équipes**, des **sondages de ses équipes** et de **sa propre réponse** — rien d'autre
+- Saisie de **son intention** de présence sur les sondages ouverts de ses équipes : c'est sa seule écriture, et elle reste indicative (§ 15.1)
+- Voit la confirmation de son parent et, le cas échéant, la divergence
+- Jamais les contacts, les blessures, les indisponibilités, les compositions, le covoiturage, ni la fiche d'un autre joueur
+- Ne reçoit pas de notification (§ 16.1 ne le compte pas parmi les destinataires)
 
 ### 3.2 Cumul de rôles
 
@@ -203,6 +215,11 @@ Un utilisateur peut cumuler plusieurs rôles. Exemples :
 | Gérer les notifications              |  ✅   |  ✅ (ses équipes)  |    ✅ (ses préférences)     |
 | Export RGPD                          |  ✅   |         ❌         |      ✅ (ses données)       |
 
+> **Le rôle Joueur n'a pas de colonne** : il n'a qu'un droit d'écriture, son
+> intention (ligne « Exprimer une intention joueur », qu'il exerce lui-même en
+> V2), et ses lectures sont énumérées au § 3.1. Le parent garde la saisie de
+> l'intention pour un enfant qui n'a pas de compte.
+
 ### 3.4 Règles de gestion des rôles
 
 - **RG-ROLE-01** : Un utilisateur doit avoir au moins un rôle.
@@ -210,6 +227,8 @@ Un utilisateur peut cumuler plusieurs rôles. Exemples :
 - **RG-ROLE-03** : Un coach ne peut accéder qu'aux équipes explicitement affectées à son compte.
 - **RG-ROLE-04** : Un parent n'accède qu'aux informations des joueurs auxquels il est rattaché via un lien de filiation validé.
 - **RG-ROLE-05** : La suppression d'un utilisateur ne supprime pas les données sportives associées.
+- **RG-ROLE-06** : Un compte joueur n'existe que par le consentement d'un parent lié au joueur ; ce parent (ou l'admin) peut le retirer à tout moment, ce qui ferme le compte.
+- **RG-ROLE-07** : Un utilisateur ne modifie ni ses rôles, ni ses rattachements (équipes, joueur), ni ses liens de filiation : c'est le rôle de l'admin (RG-ROLE-02 étendu), imposé en base.
 
 ---
 
@@ -1000,7 +1019,7 @@ Le coach dispose d'un tableau de bord par sondage :
 ### 15.7 Règles de gestion
 
 - **RG-SONDAGE-01** : La confirmation du parent est la **seule valeur officielle**. L'intention du joueur est informative uniquement et n'entraîne aucune action automatique.
-- **RG-SONDAGE-02** : En V1, c'est le parent qui saisit à la fois l'intention du joueur et sa propre confirmation, depuis son espace. Les deux champs sont distincts dans le formulaire.
+- **RG-SONDAGE-02** : En V1, c'est le parent qui saisit à la fois l'intention du joueur et sa propre confirmation, depuis son espace. Les deux champs sont distincts dans le formulaire. **En V2** (compte joueur, mode connecté), le joueur saisit lui-même son intention ; le parent la saisit toujours pour un enfant sans compte. La confirmation du parent n'est jamais écrite par le joueur.
 - **RG-SONDAGE-03** : Un parent peut modifier sa réponse tant que le sondage est ouvert (`statut = ouvert`). Après la deadline, la modification reste possible mais le coach est informé que la réponse est tardive.
 - **RG-SONDAGE-04** : Un sondage peut être créé **automatiquement** lors de la création d'un match (configurable au niveau du club). La question par défaut est générée automatiquement.
 - **RG-SONDAGE-05** : La clôture d'un sondage (manuelle ou automatique à la deadline) envoie optionnellement un récapitulatif au coach.
@@ -1067,8 +1086,13 @@ Un joueur peut avoir plusieurs contacts avec un compte utilisateur (ex. père et
 
 > **Point ouvert PO-03** : Les notifications par email ou SMS sont-elles dans le périmètre ?
 >
-> Le **push PWA** n'est pas implémenté à ce jour : seul le centre de
-> notifications in-app existe.
+> Le **push PWA est livré en mode connecté** : chaque notification créée part
+> vers les appareils abonnés de son seul destinataire, selon ses préférences
+> (§ 16.3). Il reste **à activer** par l'administrateur du projet (clés VAPID,
+> fonction, webhook — `docs/supabase.md` § 7). Il sert les mêmes destinataires
+> que le centre in-app : aujourd'hui l'encadrement de l'équipe, les parents
+> n'étant pas encore destinataires des notifications (§ 21.2). En mode local,
+> il n'existe pas.
 
 ### 16.3 Paramétrage utilisateur
 
@@ -1082,6 +1106,12 @@ Chaque utilisateur peut depuis ses préférences :
 
 - L'activation des **notifications push** requiert un consentement explicite distinct du consentement RGPD principal.
 - Ce consentement est stocké et révocable à tout moment.
+
+> **Comment c'est tenu.** Le consentement au push est donné **appareil par
+> appareil**, dans les préférences, où le texte le dit ; l'abonnement enregistré
+> en est la trace (avec sa date). Il se retire au même endroit, et il est retiré
+> d'office à la déconnexion (un appareil de famille se partage) et avec le
+> compte.
 
 ---
 
@@ -1183,6 +1213,12 @@ Synchroniser automatiquement le calendrier officiel des matchs et les résultats
 > **Reste non outillé** : la suppression d'un JOUEUR par un administrateur (il
 > n'existe d'action de suppression que pour les contacts), et la purge de fin
 > de conservation. Ces deux-là supposent encore une intervention en base.
+>
+> **Et le compte joueur (§ 18.7).** Un parent qui efface son compte retire son
+> consentement avec lui : les comptes joueurs ouverts par ses codes sont
+> fermés, et ses invitations — la trace de ce consentement — sont effacées. Un
+> joueur peut effacer son propre compte depuis l'écran qui s'affiche quand son
+> accès a été retiré.
 
 ### 18.5 Traçabilité du consentement
 
@@ -1212,6 +1248,24 @@ Synchroniser automatiquement le calendrier officiel des matchs et les résultats
 > un export de fichier (§ 13.5). La durée de conservation n'est pas encore
 > outillée : aucune purge automatique n'est implémentée.
 
+### 18.7 Compte joueur et consentement parental
+
+Le joueur est mineur : son compte (§ 3.1) n'existe que par le **consentement
+d'un parent lié** (fiche de contact rattachée au joueur), donné en créant un
+**code d'invitation** — après un texte qui dit ce que l'enfant verra et que le
+consentement se retire.
+
+| Règle                | Application                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Qui consent          | Un parent lié au joueur, et lui seul — ni l'entraîneur, ni l'admin                                                                                      |
+| Le code              | 12 caractères, à usage unique, valable 7 jours ; montré une fois au parent, gardé **haché** ; un nouveau code remplace le précédent                     |
+| La trace             | Pour chaque code : le joueur, le parent qui a consenti, la date du consentement, l'expiration, l'utilisation, la révocation (qui, quand)                |
+| Un compte par joueur | Pour en ouvrir un autre, on ferme d'abord le premier                                                                                                    |
+| Minimisation         | Le joueur ne lit que sa fiche, les matchs, entraînements et sondages de ses équipes, et sa réponse ; son adresse n'est visible que de lui et de l'admin |
+| Retrait              | À tout moment, par le parent (ou l'admin) : le code en attente ne sert plus, la fiche du compte est effacée ; les réponses déjà données restent au club |
+| Fin du consentement  | Un parent qui efface son compte ferme les comptes ouverts par ses codes (§ 18.4)                                                                        |
+| Vérification         | Imposé en base, prouvé par `supabase/tests/compte-joueur.test.sql`                                                                                      |
+
 ---
 
 ## 19. Modèle de données conceptuel
@@ -1232,9 +1286,10 @@ EQUIPE
 USER
  ├── id / email / firstName / lastName
  ├── authId       (→ session d'authentification ; résout le rôle)
- ├── roles[]      (admin | coach | parent)
+ ├── roles[]      (admin | coach | parent | player)
  ├── teamIds[]  →  EQUIPE
- └── contactId  →  CONTACT
+ ├── contactId  →  CONTACT
+ └── playerId   →  JOUEUR (opt. — compte joueur)
 
 JOUEUR
  ├── id / firstName / lastName / dateOfBirth
@@ -1342,12 +1397,24 @@ NOTIFICATION
  ├── id / type / message / read / createdAt
  ├── relatedId / relatedType  (opt. — lien vers l'événement d'origine)
  └── userId  →  USER
+
+INVITATION_JOUEUR  (le consentement parental, § 18.7)
+ ├── id / codeHash / consentedAt / expiresAt
+ ├── playerId    →  JOUEUR
+ ├── createdBy   →  USER (le parent qui consent)
+ ├── redeemedAt / redeemedBy  →  USER (le compte ouvert)
+ └── revokedAt / revokedBy    →  USER
+
+ABONNEMENT_PUSH  (un par appareil, § 16.4)
+ ├── endpoint / p256dh / auth / userAgent / createdAt
+ └── userId  →  compte d'authentification
 ```
 
 > Ce modèle est **conceptuel**. Sa traduction physique est le schéma Postgres
 > de `supabase/migrations/0001_schema.sql`, qui le reflète entité par entité et
 > y ajoute les tables de paramétrage (`club_settings`,
-> `notification_preferences`). L'historique des postes est enregistré **par
+> `notification_preferences`) ; `0006` ajoute `users."playerId"` et
+> `player_invitations`, `0007` `push_subscriptions`. L'historique des postes est enregistré **par
 > période**, sans granularité à la minute (cf. PO-01, § 22.1).
 
 ---
@@ -1589,6 +1656,22 @@ Then une alerte ⚠️ "Réponses divergentes entre tuteurs" est affichée pour 
 
 ---
 
+**US-SONDAGE-06 — Répondre soi-même (compte joueur, V2)**
+
+```
+Given je suis connecté avec mon compte joueur
+When j'ouvre l'application
+Then je vois les sondages ouverts de mes équipes et mes prochains événements
+  And rien d'autre : ni contacts, ni blessures, ni autres joueurs
+
+When je choisis Présent / Absent / Incertain sur un sondage ouvert
+Then mon intention est enregistrée, et seulement elle
+  And la confirmation de mon parent, si elle existe, est affichée
+  And si elle diffère de mon intention, un message me dit que c'est la sienne qui compte
+```
+
+---
+
 ### 20.5 Calendrier externe
 
 ---
@@ -1629,6 +1712,26 @@ Then je vois matchs, entraînements et tournois de mon enfant
 
 ---
 
+**US-PARENT-02 — Ouvrir (et fermer) le compte de son enfant**
+
+```
+Given je suis connecté avec un compte parent lié à mon enfant
+When j'ouvre "Paramètres > Compte joueur" et je crée un code d'invitation
+Then un texte me dit ce que mon enfant verra, et que mon accord se retire
+  And après mon accord, un code à usage unique s'affiche une fois, valable 7 jours
+  And je peux le copier ou le partager
+
+Given mon enfant a créé son compte et saisi le code
+When je reviens sur "Compte joueur"
+Then je vois "Compte actif depuis le …"
+
+When je coupe l'accès et je confirme
+Then son compte ne voit plus rien
+  And ses réponses déjà données restent au club
+```
+
+---
+
 ## 21. État de livraison
 
 Le découpage MVP / V1 initial est caduc : le périmètre annoncé en V1 a été
@@ -1655,7 +1758,9 @@ livraison, à mettre à jour au fil des développements.
 | Logistique               | Point de RDV, navigation GPS, covoiturage simplifié                 |
 | Sondages de présence     | Création, intention joueur + confirmation tuteur, synthèse coach    |
 | Notifications in-app     | Événements principaux, préférences par utilisateur                  |
-| Authentification & rôles | Supabase Auth, rôles admin / coach / parent appliqués en base (RLS) |
+| Notifications push PWA   | **Mode connecté, à activer** — détail ci-dessous                    |
+| Compte joueur            | **Mode connecté** — détail ci-dessous                               |
+| Authentification & rôles | Supabase Auth, rôles admin / coach / parent / joueur, en base (RLS) |
 | Calendrier externe       | Export `.ics` **par fichier** — pas de flux d'abonnement (§ 13.5)   |
 | Export PDF               | Feuille de match et rapport d'assiduité — détail ci-dessous         |
 | Navigation               | PWA installable, français / anglais, thème clair / sombre           |
@@ -1676,25 +1781,47 @@ téléchargés sinon :
   période (la saison par défaut) : par joueur, présences, absences, excusés,
   séances saisies et taux, puis le total de l'équipe — en colonnes chiffrées.
 
+**Compte joueur** (mode connecté ; en mode local, les réglages disent qu'il n'y
+existe pas). Livré de bout en bout : le parent lié crée un code d'invitation —
+c'est son consentement, tracé (§ 18.7) —, l'enfant crée son compte, saisit le
+code, et arrive sur **sa** page : ses sondages ouverts avec les trois boutons
+de son intention, la confirmation de son parent et la divergence le cas
+échéant (§ 15.5), ses prochains matchs et entraînements. Le parent coupe
+l'accès quand il veut ; l'admin voit les comptes joueurs et qui y a consenti.
+Ce que le joueur lit et écrit est imposé **en base** et prouvé par pgTAP
+(§ 18.7). **Rien à activer**, sinon garder les inscriptions ouvertes sur le
+projet Supabase (`docs/supabase.md` § 6).
+
+**Notifications push PWA** (mode connecté ; en mode local, les réglages
+disent qu'elles n'y existent pas). Livré : l'abonnement appareil par appareil
+dans les préférences — qui dit clairement quand le navigateur ne peut pas
+(iPhone hors écran d'accueil, permission refusée, navigateur incapable) —, le
+service worker qui affiche et ouvre la bonne page, et l'Edge Function qui
+envoie chaque notification aux seuls appareils de son destinataire, selon ses
+préférences, et purge les abonnements expirés. **Reste à activer par
+l'administrateur du projet**, dans cet ordre (`docs/supabase.md` § 7) :
+générer les clés VAPID, poser les secrets de la fonction, la déployer, créer
+le webhook de base avec son en-tête secret, puis poser
+`VITE_VAPID_PUBLIC_KEY` au build — ce qui suppose que le build de production
+passe en mode connecté, ce qu'il ne fait pas aujourd'hui.
+
 ### 21.2 Partiellement livré
 
-| Module                 | Ce qui manque                                                                                                                                                           |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mode match live        | Fenêtre J-0 (RG-LIVE-01) et fonctionnement hors-ligne (RG-LIVE-02) — § 7.5.6                                                                                            |
-| Calendrier externe     | Flux d'abonnement avec URL et token, au lieu d'un export ponctuel — § 13.5                                                                                              |
-| Notifications          | Rappels automatiques J-1 : aucune tâche planifiée n'existe (§ 16.1)                                                                                                     |
-| RGPD                   | Consentement tracé, export, import et **suppression de son compte** livrés ; suppression d'un joueur par l'admin et purge de fin de conservation non outillées (§ 18.4) |
-| Intégration fédération | Flux **simulé** pour démontrer le rapprochement. Aucune API publique autorisée n'est connue du projet : le branchement réel attend un accès, pas du code (PO-04)        |
-| Photos de joueurs      | Champ prévu au modèle, stockage de fichiers non branché                                                                                                                 |
+| Module                 | Ce qui manque                                                                                                                                                                                              |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mode match live        | Fenêtre J-0 (RG-LIVE-01) et fonctionnement hors-ligne (RG-LIVE-02) — § 7.5.6                                                                                                                               |
+| Calendrier externe     | Flux d'abonnement avec URL et token, au lieu d'un export ponctuel — § 13.5                                                                                                                                 |
+| Notifications          | Rappels automatiques J-1 : aucune tâche planifiée n'existe (§ 16.1). Les **parents** ne sont destinataires d'aucune notification — ni in-app, ni push : le client ne notifie que l'encadrement de l'équipe |
+| RGPD                   | Consentement tracé, export, import et **suppression de son compte** livrés ; suppression d'un joueur par l'admin et purge de fin de conservation non outillées (§ 18.4)                                    |
+| Intégration fédération | Flux **simulé** pour démontrer le rapprochement. Aucune API publique autorisée n'est connue du projet : le branchement réel attend un accès, pas du code (PO-04)                                           |
+| Photos de joueurs      | Champ prévu au modèle, stockage de fichiers non branché                                                                                                                                                    |
 
 ### 21.3 Évolutions ultérieures
 
 | Module                      | Description                                              |
 | --------------------------- | -------------------------------------------------------- |
-| Notifications push PWA      | VAPID + Web Push API                                     |
 | Notifications email / SMS   | Canal complémentaire (PO-03)                             |
 | Organisation tournoi maison | Gestion terrains, équipes adverses, planning             |
-| Compte joueur               | Saisie de l'intention par le joueur lui-même (sondage)   |
 | Analyse tactique            | Annotations, schémas dessinés                            |
 | Application native          | Publication iOS / Android                                |
 | Multi-club                  | Gestion de plusieurs clubs depuis un seul compte admin   |
@@ -1740,6 +1867,6 @@ qu'elle est effectivement appliquée ; elle reste révisable.
 
 ---
 
-_Document v1.3 — 11/08/2026 — cible fonctionnelle de référence. Les exigences
+_Document v1.4 — 25/09/2026 — cible fonctionnelle de référence. Les exigences
 non encore livrées sont conservées volontairement : l'état d'avancement réel est
 en § 21._

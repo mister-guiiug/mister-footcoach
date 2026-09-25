@@ -25,15 +25,29 @@ const rpc = vi.fn<(name: string) => Reponse>(() =>
   Promise.resolve({ error: null })
 );
 const signOut = vi.fn(() => Promise.resolve());
+const signUp = vi.fn<
+  (args: unknown) => Promise<{
+    data: { session: unknown };
+    error: { message: string } | null;
+  }>
+>(() => Promise.resolve({ data: { session: null }, error: null }));
+// La session que rend `getSession` : nulle, sauf pour un test qui la pose.
+const sessionEnCours = vi.hoisted(() => ({ value: null as unknown }));
+// Le retrait de l'abonnement push à la déconnexion (`../lib/push`, chargé
+// par un `import()`).
+const disablePush = vi.hoisted(() => vi.fn(() => Promise.resolve()));
+vi.mock('../lib/push', () => ({ disablePush }));
 const client = {
   auth: {
-    getSession: () => Promise.resolve({ data: { session: null } }),
+    getSession: () =>
+      Promise.resolve({ data: { session: sessionEnCours.value } }),
     onAuthStateChange: () => ({
       data: { subscription: { unsubscribe: () => {} } },
     }),
     signInWithOtp,
     signInWithPassword,
     signOut,
+    signUp,
   },
   rpc,
 };
@@ -43,7 +57,8 @@ const getSupabase = vi.fn(() => Promise.resolve(client));
 vi.mock('../backend/config', () => ({ BACKEND: 'supabase' }));
 vi.mock('../lib/supabase', () => ({ getSupabase: () => getSupabase() }));
 
-const { AuthProvider, useAuth } = await import('./AuthContext');
+const { AuthProvider, useAuth, useSessionUserId } =
+  await import('./AuthContext');
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <AuthProvider>{children}</AuthProvider>
@@ -56,6 +71,10 @@ afterEach(() => {
   rpc.mockClear();
   rpc.mockImplementation(() => Promise.resolve({ error: null }));
   signOut.mockClear();
+  signUp.mockClear();
+  disablePush.mockClear();
+  disablePush.mockImplementation(() => Promise.resolve());
+  sessionEnCours.value = null;
   getSupabase.mockClear();
 });
 
@@ -75,6 +94,22 @@ describe('AuthProvider', () => {
       },
     });
     expect(signInWithPassword).not.toHaveBeenCalled();
+  });
+
+  it('signIn transmet l’adresse et le mot de passe, et remonte un refus', async () => {
+    signInWithPassword.mockImplementationOnce(() =>
+      Promise.resolve({ error: { message: 'Invalid login credentials' } })
+    );
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(async () => {});
+
+    expect(await result.current.signIn('coach@exemple.fr', 'faux')).toEqual({
+      error: 'Invalid login credentials',
+    });
+    expect(signInWithPassword).toHaveBeenCalledWith({
+      email: 'coach@exemple.fr',
+      password: 'faux',
+    });
   });
 
   it('remonte le message de Supabase quand le lien ne part pas', async () => {
@@ -161,5 +196,138 @@ describe('client introuvable', () => {
     expect(await screen.findByText('frontière atteinte')).toBeInTheDocument();
     expect(screen.queryByText('enfant')).not.toBeInTheDocument();
     spy.mockRestore();
+  });
+});
+
+/**
+ * L'INSCRIPTION — celle du joueur, et seulement la sienne. Même retour que le
+ * lien de connexion (l'origine SERVIE), et l'écran doit savoir si un lien de
+ * confirmation est parti : sans session, l'enfant a un e-mail à ouvrir.
+ */
+describe('signUp', () => {
+  it('crée le compte avec un retour vers l’origine servie ; sans session, un lien de confirmation est parti', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(async () => {});
+
+    expect(
+      await result.current.signUp('lucas@exemple.fr', 'motdepasse')
+    ).toEqual({
+      confirmationSent: true,
+    });
+    expect(signUp).toHaveBeenCalledWith({
+      email: 'lucas@exemple.fr',
+      password: 'motdepasse',
+      options: {
+        emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
+      },
+    });
+  });
+
+  it('une session tout de suite : rien à confirmer', async () => {
+    signUp.mockImplementationOnce(() =>
+      Promise.resolve({ data: { session: { user: { id: 'x' } } }, error: null })
+    );
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(async () => {});
+
+    expect(
+      await result.current.signUp('lucas@exemple.fr', 'motdepasse')
+    ).toEqual({
+      confirmationSent: false,
+    });
+  });
+
+  it('remonte le motif d’un refus', async () => {
+    signUp.mockImplementationOnce(() =>
+      Promise.resolve({
+        data: { session: null },
+        error: { message: 'Password should be at least 8 characters' },
+      })
+    );
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(async () => {});
+
+    expect(await result.current.signUp('lucas@exemple.fr', 'court')).toEqual({
+      error: 'Password should be at least 8 characters',
+    });
+  });
+});
+
+/**
+ * SE DÉCONNECTER SUR UN APPAREIL DE FAMILLE. L'abonnement push appartient à
+ * l'appareil : il part AVANT la session (sa suppression en base en exige
+ * une), et son échec ne retient jamais la déconnexion.
+ */
+describe('signOut', () => {
+  it('retire l’abonnement push de l’appareil, PUIS ferme la session', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(async () => {});
+
+    await result.current.signOut();
+
+    expect(disablePush).toHaveBeenCalledOnce();
+    expect(signOut).toHaveBeenCalledOnce();
+    expect(disablePush.mock.invocationCallOrder[0]!).toBeLessThan(
+      signOut.mock.invocationCallOrder[0]!
+    );
+  });
+
+  it('une panne du push ne retient pas la déconnexion', async () => {
+    disablePush.mockImplementationOnce(() =>
+      Promise.reject(new Error('push : désabonnement impossible'))
+    );
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(async () => {});
+
+    await result.current.signOut();
+
+    expect(signOut).toHaveBeenCalledOnce();
+  });
+});
+
+describe('useSessionUserId', () => {
+  it('sans fournisseur : null, sans lever — les écrans testés en mode local n’en ont pas', () => {
+    const { result } = renderHook(() => useSessionUserId());
+    expect(result.current).toBeNull();
+  });
+
+  it('avec une session : son identité d’authentification', async () => {
+    sessionEnCours.value = { user: { id: 'auth-lucas' } };
+    const { result } = renderHook(() => useSessionUserId(), { wrapper });
+    await act(async () => {});
+    expect(result.current).toBe('auth-lucas');
+  });
+});
+
+/**
+ * DANS UN BUILD LOCAL, l'inscription du joueur et le retrait de l'abonnement
+ * push n'existent pas : leur condition, sur `import.meta.env`, est repliée à
+ * la transformation. Rien ne part vers Supabase, rien n'importe `lib/push`.
+ */
+describe('hors d’un build connecté', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it('signUp ne crée rien', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(async () => {});
+    vi.stubEnv('MODE', 'production');
+    vi.stubEnv('VITE_BACKEND', 'local');
+
+    expect(await result.current.signUp('lucas@exemple.fr', 'x')).toEqual({
+      error: 'unsupported',
+    });
+    expect(signUp).not.toHaveBeenCalled();
+  });
+
+  it('signOut ne touche pas au push', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(async () => {});
+    vi.stubEnv('MODE', 'production');
+    vi.stubEnv('VITE_BACKEND', 'local');
+
+    await result.current.signOut();
+
+    expect(disablePush).not.toHaveBeenCalled();
+    expect(signOut).toHaveBeenCalledOnce();
   });
 });

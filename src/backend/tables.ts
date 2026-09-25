@@ -1,6 +1,11 @@
 import { EMPTY_APP_STATE, type AppState } from '../store/AppContext';
 import { getSupabase } from '../lib/supabase';
-import type { Season, ClubSettings, NotificationPreferences } from '../types';
+import type {
+  Season,
+  ClubSettings,
+  NotificationPreferences,
+  SurveyResponse,
+} from '../types';
 
 /** AppData array keys ↔ Postgres table names. */
 export const ARRAY_TABLES: { table: string; key: keyof AppState }[] = [
@@ -46,6 +51,20 @@ export async function loadAllFromSupabase(): Promise<AppState> {
   ARRAY_TABLES.forEach((t, i) => {
     mutable[t.key as string] = results[i]?.data ?? [];
   });
+
+  // LE COMPTE JOUEUR NE LIT PAS LA TABLE DES RÉPONSES : elle porte la note du
+  // coach (§ 15.4). Les siennes lui arrivent par `my_survey_responses()`, qui
+  // n'en rend que les colonnes qui le regardent — et rien à tout autre compte,
+  // qui les a déjà lues ci-dessus. Une base sans la migration 0006 répond par
+  // une erreur : elle est ignorée, et l'app se charge comme avant.
+  const { data: own } = await sb.rpc('my_survey_responses');
+  if (Array.isArray(own) && own.length > 0) {
+    const known = new Set(state.surveyResponses.map(r => r.id));
+    state.surveyResponses = [
+      ...state.surveyResponses,
+      ...(own as SurveyResponse[]).filter(r => !known.has(r.id)),
+    ];
+  }
 
   const { data: seasons } = await sb.from('seasons').select('*');
   const seasonRows = (seasons ?? []) as Season[];

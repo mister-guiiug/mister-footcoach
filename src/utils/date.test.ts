@@ -9,6 +9,7 @@ import {
   today,
   isActiveUnavailability,
   addDays,
+  formatDay,
 } from './date';
 
 describe('addDays', () => {
@@ -28,6 +29,16 @@ describe('formatDate', () => {
     const result = formatDate('2026-05-10');
     expect(result).toMatch(/10/);
     expect(result).toMatch(/mai|05/i);
+    expect(result).toMatch(/2026/);
+  });
+});
+
+describe('formatDay', () => {
+  it('lit un horodatage de la base tel quel, année comprise', () => {
+    // Midi UTC : le même jour dans tous les fuseaux habités.
+    const result = formatDay('2026-10-02T12:00:00+00:00');
+    expect(result).toMatch(/02/);
+    expect(result).toMatch(/oct/i);
     expect(result).toMatch(/2026/);
   });
 });

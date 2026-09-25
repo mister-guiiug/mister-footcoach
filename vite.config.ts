@@ -1,4 +1,4 @@
-import { defineConfig, type PluginOption } from 'vite';
+import { defineConfig, loadEnv, type PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -13,10 +13,19 @@ const analyze = process.env.ANALYZE === '1';
 // GitHub Pages : https://mister-guiiug.github.io/mister-footcoach/
 // `VITE_BASE_PATH` (injecté par le reusable `pwa-deploy.yml`) override la valeur
 // par défaut. Sans la variable, on garde `/mister-footcoach/` au build et `/` en dev.
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
   const basePath =
     process.env.VITE_BASE_PATH ??
     (command === 'build' ? '/mister-footcoach/' : '/');
+
+  // LES GESTIONNAIRES PUSH N'ENTRENT QUE DANS UN BUILD CONNECTÉ. Le push
+  // n'existe qu'avec le backend Supabase ; en mode local — le défaut, et la
+  // production aujourd'hui — le service worker reste exactement celui
+  // d'avant : il n'importe rien de plus, et ne précache pas `push-sw.js`.
+  // `loadEnv` lit la variable des fichiers `.env*` ET de l'environnement du
+  // build (le `build-env` de la CI).
+  const pushHandlers =
+    loadEnv(mode, process.cwd(), 'VITE_').VITE_BACKEND === 'supabase';
 
   return {
     base: basePath,
@@ -72,6 +81,11 @@ export default defineConfig(({ command }) => {
             // pages chargent d'emblée : payé à chaque ouverture pour un
             // bouton pressé une fois par match. Même règle que miss-uwh.
             if (norm.includes('/dev-pwa-config/pdf')) return 'pdf';
+            // Le module push du socle n'est tiré que par `src/lib/push.ts`,
+            // chargé à l'ouverture des réglages ou à la déconnexion, et
+            // seulement dans un build connecté. Sans cette ligne il tomberait
+            // dans `vendor`, PRÉCHARGÉ par chaque visiteur.
+            if (norm.includes('/dev-pwa-config/push/')) return 'push';
             if (
               norm.includes('/react-dom/') ||
               norm.includes('/node_modules/react/') ||
@@ -142,7 +156,15 @@ export default defineConfig(({ command }) => {
            * l’avoir hors ligne est sans conséquence : rapporter une erreur
            * demande le réseau.
            */
-          globIgnores: ['**/sentry.js', '**/sentry-*.js'],
+          globIgnores: [
+            '**/sentry.js',
+            '**/sentry-*.js',
+            ...(pushHandlers ? [] : ['push-sw.js']),
+          ],
+          // Les gestionnaires Web Push (`public/push-sw.js`), ajoutés au
+          // worker engendré sans changer sa stratégie de cache — le montage
+          // de mister-doc. Build connecté seulement (voir `pushHandlers`).
+          ...(pushHandlers ? { importScripts: ['push-sw.js'] } : {}),
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,

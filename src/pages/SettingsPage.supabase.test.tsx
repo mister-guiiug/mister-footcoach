@@ -46,9 +46,26 @@ vi.mock('../auth/AuthContext', () => ({
     loading: false,
     signIn: vi.fn(),
     signInWithLink: vi.fn(),
+    signUp: vi.fn(),
     signOut: vi.fn(),
     deleteAccount,
   }),
+  useSessionUserId: () => null,
+}));
+// Les deux cartes du mode connecté qui parlent au réseau : leurs propres
+// tests les éprouvent (`PushSetting.test.tsx`, `PlayerAccountsCard.test.tsx`).
+// Ici, ni clé VAPID, ni invitation — l'écran doit s'afficher quand même.
+vi.mock('../lib/push', () => ({
+  pushDeployed: () => false,
+  pushBrowserSupport: () => ({ supported: true, reason: null }),
+  pushPermissionDenied: () => false,
+  currentPushEndpoint: vi.fn(() => Promise.resolve(null)),
+  enablePush: vi.fn(),
+  disablePush: vi.fn(),
+}));
+vi.mock('../backend/playerAccounts', async importOriginal => ({
+  ...(await importOriginal<typeof import('../backend/playerAccounts')>()),
+  listInvitations: vi.fn(() => Promise.resolve([])),
 }));
 
 function renderWithSupabaseBackend() {
@@ -103,6 +120,24 @@ describe('Réglages avec le backend Supabase', () => {
     expect(screen.getByText('Données de démonstration')).toBeInTheDocument();
   });
 
+  it('monte le réglage push à la place de la ligne du mode local', async () => {
+    renderWithSupabaseBackend();
+    // Chargé à la demande : il arrive après le premier rendu.
+    expect(await screen.findByText('Notifications push')).toBeInTheDocument();
+    // Sans clé VAPID posée au build, il le dit.
+    expect(
+      screen.getByText(
+        'Les notifications push ne sont pas encore activées sur cette installation.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/elles n'existent qu'avec un compte du club/)
+    ).not.toBeInTheDocument();
+    // Et pas la carte de repli du compte joueur : sans fiche rattachée à la
+    // session, `PlayerAccountsCard` ne rend rien.
+    expect(screen.queryByText(/la fonction n'y existe pas/)).toBeNull();
+  });
+
   it('offre la zone dangereuse, fermée', () => {
     renderWithSupabaseBackend();
 
@@ -126,6 +161,10 @@ describe('Réglages avec le backend Supabase', () => {
     // moitié du travail.
     expect(screen.getByText(/Seront effacés/)).toBeInTheDocument();
     expect(screen.getByText(/Resteront au club/)).toBeInTheDocument();
+    // Et le consentement donné pour un enfant part avec le compte (0006).
+    expect(
+      screen.getByText(/comptes joueurs que vous avez autorisés/)
+    ).toBeInTheDocument();
   });
 
   it('REFUSE tant que l’adresse n’est pas retapée — et ne supprime rien', async () => {

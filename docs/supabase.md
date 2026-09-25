@@ -31,8 +31,16 @@ Dans **SQL Editor**, exécute dans l'ordre :
    la suppression de son compte.
 5. `supabase/migrations/0005_nom_du_club.sql` — le nom du club
    (`club_settings."clubName"`), imprimé en tête des exports PDF.
+6. `supabase/migrations/0006_compte_joueur.sql` — le compte joueur (§ 6
+   ci-dessous) : rôle `player`, invitations, RPC, et la fermeture des droits
+   qu'il suppose.
+7. `supabase/migrations/0007_notifications_push.sql` — les abonnements push
+   (§ 7 ci-dessous), et qui peut notifier qui.
 
 (ou `supabase db push` avec la CLI si tu utilises le projet lié.)
+
+Les migrations `0006` et `0007` sont **additives et rejouables** : aucune
+table ni colonne n'est supprimée, et les rejouer ne change rien.
 
 ## 3. Créer ton compte et le lier au profil
 
@@ -69,6 +77,185 @@ npm run dev
 
 L'écran de connexion apparaît (mode `supabase`). Connecte-toi avec le compte
 créé à l'étape 3.
+
+Un compte qui n'est rattaché à aucune fiche (`users."authId"`) ne voit **plus**
+une application vide : un écran lui dit de demander son rattachement à
+l'administrateur — ou, s'il s'agit d'un enfant, d'y saisir son code
+d'invitation (§ 6).
+
+## 6. Compte joueur — ce qui est livré, et le seul réglage à vérifier
+
+**Livré** (migration `0006`, écrans, tests pgTAP) : un joueur a son propre
+compte et y indique **lui-même** son intention de réponse aux sondages. La
+réponse du parent reste la seule officielle, et prévaut toujours.
+
+1. **Le parent** (lié au joueur par sa fiche de contact) ouvre _Paramètres ›
+   Compte joueur_, choisit l'enfant, accepte le texte de consentement : un
+   code de 12 caractères s'affiche, **une seule fois**, valable 7 jours, à
+   copier ou partager. La base n'en garde que le haché, avec qui a consenti et
+   quand.
+2. **L'enfant** ouvre l'application, choisit _J'ai un code d'invitation
+   joueur_, crée son compte (e-mail + mot de passe), puis saisit le code : son
+   compte est rattaché à sa fiche, avec le seul rôle `player`.
+3. **Il voit** sa fiche, les matchs, entraînements et sondages de ses équipes,
+   et sa propre réponse. **Jamais** les contacts, les blessures, les
+   indisponibilités ni la fiche d'un autre joueur. Il n'écrit que son
+   intention, par la RPC `set_player_intention`.
+4. **Le parent coupe l'accès** quand il veut, au même endroit : le code en
+   attente ne sert plus, la fiche du compte (l'adresse d'un mineur) est
+   effacée. L'administrateur le peut aussi, et voit la liste des comptes
+   joueurs avec la trace du consentement.
+
+**À vérifier dans le tableau de bord — Authentication → Sign In / Providers →
+Email :**
+
+- **« Allow new users to sign up » doit rester ACTIVÉ.** C'est l'enfant qui
+  crée son compte. Ce n'est pas une ouverture : depuis `0006`, un compte sans
+  fiche ne lit rien (ni annuaire, ni équipes, ni club), et ne peut rien écrire.
+- **« Confirm email »** : recommandé. L'enfant reçoit alors un lien de
+  confirmation, qui le ramène dans l'application ; l'adresse de retour doit
+  figurer dans _Authentication → URL Configuration_, comme pour le lien de
+  connexion.
+
+Aucun secret, aucune fonction à déployer pour le compte joueur.
+
+> **Ce que `0006` ferme en passant**, parce que le compte joueur en dépendait :
+> un compte ne peut plus modifier ses propres rôles ni ses rattachements
+> (`users`), un parent ne peut plus s'ajouter un enfant sur sa fiche de contact
+> (`contacts."playerIds"`), et les tables lisibles par « tout compte
+> authentifié » (`users`, `teams`, `clubs`, `seasons`, `club_settings`,
+> `exercises`) ne le sont plus que par les membres du club. Le détail est en
+> tête de la migration ; les preuves dans `supabase/tests/compte-joueur.test.sql`.
+
+## 7. Notifications push — à activer, dans cet ordre
+
+**Livré** (migration `0007`, Edge Function `supabase/functions/push`, service
+worker, réglage) : chaque ligne insérée dans `notifications` part en
+notification push vers les appareils **de son seul destinataire**, selon ses
+préférences (notifications coupées, catégorie décochée : rien ne part). Les
+abonnements expirés (404/410) sont purgés. Chacun active le push appareil par
+appareil, dans _Paramètres › Notifications_.
+
+```
+notifications (INSERT) ─webhook─▶ Edge Function « push » ─Web Push─▶ appareil
+```
+
+**Rien de tout cela ne fonctionne tant que les cinq gestes ci-dessous ne sont
+pas faits** — et aucun ne se signale dans l'application, sauf le dernier.
+Aucune valeur n'est dans le dépôt : elles sont à toi.
+
+### 7.1 Générer les clés VAPID et le secret du webhook
+
+Une paire VAPID est un couple de clés P-256, et `WEBHOOK_SECRET` une chaîne
+aléatoire. `node:crypto` suffit, sans rien installer ; la sortie est au format
+`.env`, applicable telle quelle à l'étape suivante :
+
+```bash
+node -e "const c=require('crypto');const {privateKey}=c.generateKeyPairSync('ec',{namedCurve:'prime256v1'});const j=privateKey.export({format:'jwk'});const b=s=>Buffer.from(s,'base64url');console.log('VAPID_PUBLIC_KEY='+Buffer.concat([Buffer.from([4]),b(j.x),b(j.y)]).toString('base64url'));console.log('VAPID_PRIVATE_KEY='+b(j.d).toString('base64url'));console.log('WEBHOOK_SECRET='+c.randomBytes(32).toString('base64url'))" > push-secrets.local
+```
+
+- `VAPID_PUBLIC_KEY` — **publique** : elle ira aussi dans le bundle (7.5).
+- `VAPID_PRIVATE_KEY` — **jamais** dans le bundle, ni dans le dépôt.
+- `WEBHOOK_SECRET` — partagé entre la fonction et l'en-tête du webhook (7.4).
+
+`push-secrets.local` est ignoré par git (`*.local`). Recopie-le dans un
+gestionnaire de mots de passe : c'est l'unique copie de la clé privée, et la
+perdre oblige à régénérer la paire — ce qui invalide tous les abonnements.
+
+### 7.2 Poser les secrets de la fonction
+
+Complète `push-secrets.local` avec les deux valeurs qui n'ont rien d'aléatoire :
+
+```
+VAPID_SUBJECT=mailto:contact@votre-club.fr
+APP_URL=https://mister-guiiug.github.io/mister-footcoach/
+```
+
+puis :
+
+```bash
+supabase secrets set --project-ref <ref> --env-file push-secrets.local
+```
+
+(ou _Project Settings → Edge Functions → Secrets_). `SUPABASE_URL` et
+`SUPABASE_SERVICE_ROLE_KEY` sont fournis par la plateforme.
+
+### 7.3 Déployer la fonction
+
+```bash
+supabase functions deploy push --project-ref <ref>
+```
+
+`supabase/config.toml` porte `verify_jwt = false` pour `push` : un webhook n'a
+pas de session. Sa seule protection est donc `WEBHOOK_SECRET`, comparé à temps
+constant et **fermé par défaut** — sans lui, la fonction refuse tout (`500`).
+La fonction relit la notification **en base** par son identifiant : même
+avec le secret, on ne lui fait pousser que ce qui est dans `notifications`.
+
+### 7.4 Créer le webhook de base, avec son en-tête secret
+
+_Database → Webhooks → Create a new hook_ :
+
+- Table `public.notifications`, évènement **Insert** seulement ;
+- Type **HTTP Request**, méthode `POST`, URL
+  `https://<ref>.supabase.co/functions/v1/push` ;
+- En-tête HTTP **obligatoire** : `x-webhook-secret` = la valeur de
+  `WEBHOOK_SECRET`, **au caractère près** (un espace de trop donne un `401`
+  silencieux : la notification apparaît dans la cloche, rien ne part).
+
+Un seul hook sur cette table : deux enverraient deux push par notification.
+
+### 7.5 Poser `VITE_VAPID_PUBLIC_KEY` au build
+
+La clé **publique** est lue **au build** (`.env.example` la documente) :
+
+- en local, dans `.env.local` : `VITE_VAPID_PUBLIC_KEY=<VAPID_PUBLIC_KEY>` ;
+- en production, comme **variable** Actions (_Settings → Secrets and
+  variables → Actions → Variables_), et passée au build par `deploy.yml` :
+  `VITE_VAPID_PUBLIC_KEY=${{ vars.VITE_VAPID_PUBLIC_KEY }}` dans `build-env`.
+  Aujourd'hui `deploy.yml` ne transmet ni celle-ci, ni `VITE_BACKEND`,
+  `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` : **la production est en mode
+  local**, où ni le push ni le compte joueur n'existent. Les quatre lignes
+  s'ajoutent ensemble, le jour où le mode connecté est mis en service.
+
+> **Ce jour-là, le budget du bundle cassera le déploiement.** `pwa-deploy.yml`
+> lance `npm run build`, qui finit par `pwa-bundle-budget` : un build connecté
+> dépasse `bundleBudget` (`package.json`) — **déjà sur `main`**, parce que le
+> SDK Supabase tombe dans `vendor`, que chaque visiteur précharge. Mesuré le
+> 25/09/2026 avec des variables fictives : `main` précharge 221,0 kB gzip pour
+> 172 permis, et pèse 459,9 kB au total pour 435 ; le compte joueur et le push
+> y ajoutent 6,4 kB préchargés et 16,5 kB au total (227,4 et 476,4 kB). Il
+> faudra alors revoir le budget, ou ce qu'un build connecté précharge — une
+> décision à prendre, pas un chiffre à pousser pour passer au vert. Détail :
+> `docs/conception-technique.md` § 11.1.
+
+La même clé publique doit figurer dans les secrets de la fonction (7.1) et au
+build : une paire dépareillée fait refuser les envois par les services de push.
+
+Sans cette variable, le réglage l'annonce : « Les notifications push ne sont
+pas encore activées sur cette installation. » C'est le seul maillon que
+l'application sait signaler.
+
+### 7.6 Vérifier
+
+Une sonde valide les maillons serveur (secret, clés, lecture en base) sans
+rien envoyer — l'identifiant n'existe pas :
+
+```bash
+curl -i -X POST "https://<ref>.supabase.co/functions/v1/push" -H "Content-Type: application/json" -H "x-webhook-secret: <WEBHOOK_SECRET>" -d '{"record":{"id":"sonde"}}'
+```
+
+`200 {"sent":0,"reason":"unknown"}` : le serveur est prêt. `401` : le secret
+diffère ; `500` : un secret manque (le message dit lequel). Reste à l'essayer
+pour de vrai : activer le push dans les réglages, puis créer un match sur une
+équipe dont on est l'encadrement.
+
+> **Limites connues.** Sur iPhone et iPad, le push exige que l'application soit
+> installée sur l'écran d'accueil (iOS 16.4+) : le réglage le dit. Le texte
+> poussé est celui de la notification, écrit dans la langue de qui l'a
+> déclenchée. Et les destinataires sont ceux de l'action `NOTIFY` du client —
+> l'encadrement de l'équipe : les parents ne sont pas encore notifiés (§ 16.1
+> des spécifications), ni en in-app, ni en push.
 
 ## Automatisé via la CLI (alternative aux étapes 1–2)
 

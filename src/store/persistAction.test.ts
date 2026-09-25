@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 type Call = [string, ...unknown[]];
 
-const { calls, fromImpl, setError } = vi.hoisted(() => {
+const { calls, fromImpl, rpcImpl, setError } = vi.hoisted(() => {
   const calls: Call[] = [];
   let error: { message: string } | null = null;
   const result = () => Promise.resolve({ error });
@@ -33,12 +33,16 @@ const { calls, fromImpl, setError } = vi.hoisted(() => {
   function setError(e: { message: string } | null) {
     error = e;
   }
-  return { calls, fromImpl, setError };
+  function rpcImpl(name: string, args: unknown) {
+    calls.push(['rpc', name, args]);
+    return result();
+  }
+  return { calls, fromImpl, rpcImpl, setError };
 });
 
 // La fabrique du socle rend le client dans une PROMESSE : le double aussi.
 vi.mock('../lib/supabase', () => ({
-  getSupabase: () => Promise.resolve({ from: fromImpl }),
+  getSupabase: () => Promise.resolve({ from: fromImpl, rpc: rpcImpl }),
 }));
 
 import { persistAction } from './persistAction';
@@ -127,6 +131,43 @@ describe('persistAction routing', () => {
         { id: 'default', autoSurveyOnMatch: true, clubName: '' },
       ],
     ]);
+  });
+
+  it('l’intention d’un joueur passe par SA RPC, jamais par la table', async () => {
+    // La table des réponses n'est pas ouverte au compte joueur (0006) : un
+    // `upsert` y serait refusé. La RPC retrouve le joueur de la session et
+    // n'écrit que l'intention — le `playerId` de l'action ne part donc pas.
+    await persistAction(
+      {
+        type: 'SET_PLAYER_INTENTION',
+        surveyId: 'sv1',
+        playerId: 'p1',
+        value: 'absent',
+      },
+      state
+    );
+    expect(calls).toEqual([
+      [
+        'rpc',
+        'set_player_intention',
+        { p_survey_id: 'sv1', p_intention: 'absent' },
+      ],
+    ]);
+  });
+
+  it('un refus de la RPC (sondage fermé) remonte, pour que l’écran se réaligne', async () => {
+    setError({ message: 'sondage_ferme' });
+    await expect(
+      persistAction(
+        {
+          type: 'SET_PLAYER_INTENTION',
+          surveyId: 'sv1',
+          playerId: 'p1',
+          value: 'present',
+        },
+        state
+      )
+    ).rejects.toThrow('sondage_ferme');
   });
 
   it('does nothing for local-only actions', async () => {

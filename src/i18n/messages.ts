@@ -776,6 +776,14 @@ export const messages = {
         "L'application utilise des données de démonstration stockées localement. La réinitialisation restaure les données d'exemple originales.",
       resetData: 'Réinitialiser les données',
       resetConfirm: 'Réinitialiser toutes les données de démonstration ?',
+      // Mode LOCAL seulement : ce qu'il faut dire là où apparaîtraient le
+      // compte joueur et le push, qui n'existent qu'en mode connecté. Leurs
+      // vrais libellés vivent dans `messages.connected.ts`.
+      playerAccount: 'Compte joueur',
+      playerAccountLocal:
+        "Avec un compte du club (mode connecté), un parent peut ouvrir à son enfant un accès pour répondre lui-même aux sondages. Cette installation fonctionne sans compte : la fonction n'y existe pas.",
+      pushLocal:
+        "Notifications push : elles n'existent qu'avec un compte du club (mode connecté).",
       danger: {
         title: 'Zone dangereuse',
         body: 'Supprimer votre compte est définitif : rien ne permet de revenir en arrière, et personne ne peut le faire à votre place ensuite.',
@@ -1585,6 +1593,11 @@ export const messages = {
         'The app uses demo data stored locally. Resetting restores the original sample data.',
       resetData: 'Reset the data',
       resetConfirm: 'Reset all demo data?',
+      playerAccount: 'Player account',
+      playerAccountLocal:
+        'With a club account (connected mode), a parent can give their child access to answer polls themselves. This installation works without an account: the feature does not exist here.',
+      pushLocal:
+        'Push notifications: they only exist with a club account (connected mode).',
       danger: {
         title: 'Danger zone',
         body: 'Deleting your account is permanent: there is no way back, and nobody can do it for you afterwards.',

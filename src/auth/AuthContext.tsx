@@ -20,6 +20,19 @@ interface AuthValue {
    * défaut.
    */
   signInWithLink: (email: string) => Promise<{ error?: string }>;
+  /**
+   * L'inscription — la seule, et elle sert au COMPTE JOUEUR : l'enfant crée
+   * son compte, puis le rattache au club avec le code de son parent
+   * (`redeem_player_invitation`). Les adultes, eux, sont créés par
+   * l'administrateur. Un compte sans fiche ne voit rien (migration 0006).
+   *
+   * `confirmationSent` : le projet exige de confirmer l'adresse, il n'y a
+   * donc pas encore de session — un lien est parti.
+   */
+  signUp: (
+    email: string,
+    password: string
+  ) => Promise<{ error?: string; confirmationSent?: boolean }>;
   signOut: () => Promise<void>;
   /**
    * Le droit à l'effacement (RGPD art. 17), sans écrire au mainteneur.
@@ -108,7 +121,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message };
   }
 
+  async function signUp(
+    email: string,
+    password: string
+  ): Promise<{ error?: string; confirmationSent?: boolean }> {
+    // L'inscription du joueur n'existe que dans un build connecté : repliée
+    // dès la transformation (voir `signOut`), la suite sort du morceau
+    // d'entrée du mode local, que chaque visiteur télécharge.
+    if (
+      import.meta.env.VITE_BACKEND !== 'supabase' &&
+      import.meta.env.MODE !== 'test'
+    )
+      return { error: 'unsupported' };
+    const sb = await getSupabase();
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      // Même retour que le lien de connexion : l'origine SERVIE.
+      options: {
+        emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
+      },
+    });
+    if (error) return { error: error.message };
+    return { confirmationSent: !data.session };
+  }
+
   async function signOut() {
+    // UN APPAREIL DE FAMILLE SE PARTAGE, un abonnement push appartient à
+    // l'appareil. Le laisser en partant, c'est livrer les notifications de ce
+    // compte à qui ouvrira la session suivante sur cet écran — un parent,
+    // puis son enfant. Il est donc retiré AVANT de fermer la session (sa
+    // suppression en base en exige une). Au mieux : une panne ici ne retient
+    // jamais la déconnexion. Le module n'est chargé qu'à ce moment — et
+    // n'existe que dans un build connecté : la condition sur
+    // `import.meta.env`, repliée dans CE module dès la transformation, fait
+    // sortir du build local l'import ET son morceau (voir `RoleSwitch`).
+    if (
+      import.meta.env.VITE_BACKEND === 'supabase' ||
+      import.meta.env.MODE === 'test'
+    ) {
+      try {
+        const { disablePush } = await import('../lib/push');
+        await disablePush();
+      } catch {
+        // Hors ligne, ou aucun abonnement : on se déconnecte quand même.
+      }
+    }
     const sb = await getSupabase();
     await sb.auth.signOut();
   }
@@ -132,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         signIn,
         signInWithLink,
+        signUp,
         signOut,
         deleteAccount,
       }}
@@ -145,4 +204,14 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
+}
+
+/**
+ * L'identité d'authentification de la session, ou `null` — sans exiger de
+ * fournisseur. C'est elle qui désigne la fiche `users` de l'utilisateur en
+ * mode `supabase` (`users."authId"`) ; en mode local, il n'y a pas de
+ * session, et les écrans testés sans `AuthProvider` reçoivent `null`.
+ */
+export function useSessionUserId(): string | null {
+  return useContext(AuthContext)?.session?.user.id ?? null;
 }

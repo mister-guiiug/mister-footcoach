@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { ReactNode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ToastProvider } from '@mister-guiiug/dev-pwa-config/react/toast';
@@ -40,11 +41,18 @@ vi.mock('../backend/tables', async importOriginal => ({
   loadAllFromSupabase,
 }));
 vi.mock('./persistAction', () => ({ persistAction }));
+// L'aiguillage par rôle a ses propres tests (`RoleSwitch.test.tsx`). Ici, on
+// ne vérifie que QUAND le fournisseur le pose : un marqueur suffit.
+vi.mock('../player/RoleSwitch', () => ({
+  RoleSwitch: ({ children }: { children: ReactNode }) => (
+    <div data-testid="role-switch">{children}</div>
+  ),
+}));
 
 import { SupabaseAppProvider } from './SupabaseAppProvider';
 
 function Sonde() {
-  const { state, dispatch } = useAppContext();
+  const { state, dispatch, refresh } = useAppContext();
   return (
     <>
       <p>équipes : {state.teams.length}</p>
@@ -53,6 +61,7 @@ function Sonde() {
       >
         écrire
       </button>
+      <button onClick={() => void refresh?.()}>relire</button>
     </>
   );
 }
@@ -126,6 +135,29 @@ describe('SupabaseAppProvider', () => {
       )
     ).toBeInTheDocument();
     await waitFor(() => expect(loadAllFromSupabase).toHaveBeenCalledTimes(2));
+    journal.mockRestore();
+  });
+
+  it('une base qui a répondu : l’aiguillage par rôle entoure l’application', async () => {
+    monter();
+    await screen.findByText('équipes : 0');
+    expect(screen.getByTestId('role-switch')).toBeInTheDocument();
+  });
+
+  it('une base muette : PAS d’aiguillage — un entraîneur hors ligne n’est pas un compte sans fiche', async () => {
+    loadAllFromSupabase.mockImplementationOnce(() =>
+      Promise.reject(new Error('Failed to fetch'))
+    );
+    const journal = vi.spyOn(console, 'error').mockImplementation(() => {});
+    monter();
+    expect(await screen.findByText('équipes : 0')).toBeInTheDocument();
+    expect(screen.queryByTestId('role-switch')).not.toBeInTheDocument();
+
+    // La relecture qu'un écran demande (`refresh`) rétablit l'aiguillage dès
+    // que la base répond.
+    await userEvent.click(screen.getByRole('button', { name: 'relire' }));
+    expect(await screen.findByTestId('role-switch')).toBeInTheDocument();
+    expect(loadAllFromSupabase).toHaveBeenCalledTimes(2);
     journal.mockRestore();
   });
 

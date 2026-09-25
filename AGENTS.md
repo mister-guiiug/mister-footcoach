@@ -13,7 +13,10 @@ PWA de coaching football : React 19 + TypeScript + Vite, Tailwind v4.
   `SupabaseAppProvider` hydrate le même état depuis Postgres.
 - **i18n** : aucun libellé en dur dans les composants. Tout passe par
   `src/i18n/messages.ts`, où `fr` fait foi et `en` doit refléter exactement les
-  mêmes clés.
+  mêmes clés. Les écrans qui n'existent qu'en mode `supabase` (compte joueur,
+  push) ont leurs libellés dans `src/i18n/messages.connected.ts`, fusionné au
+  catalogue seulement en mode connecté — pour ne rien peser sur le premier
+  chargement du mode local. Mêmes règles, et aucun groupe en commun.
 - **Socle partagé** : `@mister-guiiug/dev-pwa-config` fournit les configs
   ESLint, Prettier, lint-staged et Vitest, ainsi que les composants UI et le
   thème. Les fichiers de config locaux ne font que les ré-exporter : étendre le
