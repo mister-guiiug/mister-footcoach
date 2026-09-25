@@ -17,6 +17,13 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL?: string;
   readonly VITE_SUPABASE_ANON_KEY?: string;
   readonly VITE_SENTRY_DSN?: string;
+  /**
+   * Clé PUBLIQUE VAPID des notifications push (mode `supabase`). Publique par
+   * conception — elle part dans le bundle, donc `vars` et jamais `secrets`.
+   * Absente, le réglage push le dit et rien ne part. La clé PRIVÉE, elle, ne
+   * vit que dans les secrets de l'Edge Function `push`.
+   */
+  readonly VITE_VAPID_PUBLIC_KEY?: string;
 }
 
 interface ImportMeta {

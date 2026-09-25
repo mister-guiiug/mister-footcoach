@@ -1,7 +1,7 @@
 # Document de Conception Technique — Mister Footcoach
 
-**Version :** 2.0  
-**Date :** 11/08/2026  
+**Version :** 2.1  
+**Date :** 25/09/2026  
 **Statut :** Aligné sur le code du dépôt  
 **Application :** Mister Footcoach — PWA de gestion d'équipes jeunes de football  
 **Référence :** Spécifications fonctionnelles v1.2
@@ -62,7 +62,7 @@
                                      │                            │
                                      │   ┌────────────────────┐   │
                                      │   │  Postgres + RLS    │   │
-                                     │   │  (24 tables, §4.1) │   │
+                                     │   │  (26 tables, §4.1) │   │
                                      │   └────────────────────┘   │
                                      │   ┌────────────────────┐   │
                                      │   │  Realtime          │   │
@@ -71,12 +71,21 @@
                                      │   ┌────────────────────┐   │
                                      │   │  Auth (email/mdp)  │   │
                                      │   └────────────────────┘   │
+                                     │   ┌────────────────────┐   │
+                                     │   │  Edge Function     │   │
+                                     │   │  « push » (§ 4.6)  │   │
+                                     │   └────────────────────┘   │
                                      └────────────────────────────┘
 ```
 
-Il n'y a **pas de code serveur écrit par le projet** : toute la logique métier
-vit dans le client, et la sécurité est déléguée aux politiques RLS de Postgres
-(§ 4.5). Le seul artefact déployé est un bundle statique.
+La logique métier vit dans le client, et la sécurité est déléguée aux
+politiques RLS de Postgres (§ 4.5). Deux exceptions, toutes deux en mode
+`supabase` : ce que le client ne doit pas pouvoir décider seul passe par des
+**fonctions SQL** (RPC `security definer`) qui vérifient elles-mêmes leur
+appelant — l'effacement d'un compte (§ 8.5), le compte joueur (§ 8.6) ; et
+**une Edge Function**, `push` (§ 4.6), qui ne décide de rien : elle livre les
+notifications déjà écrites. Le seul artefact déployé par la CI reste un bundle
+statique ; la fonction se déploie à la main (`docs/supabase.md` § 7).
 
 ### 1.2 Principes directeurs
 
@@ -158,12 +167,16 @@ Les tests unitaires sont **colocalisés** avec le code (`Foo.tsx` +
 mister-footcoach/
 │
 ├── supabase/
-│   └── migrations/
-│       ├── 0001_schema.sql          # 24 tables + 21 index (source de vérité)
-│       ├── 0002_rls.sql             # Row Level Security + fonctions d'aide
-│       ├── 0003_seed.sql            # Jeu de données minimal
-│       ├── 0004_supprimer_son_compte.sql # delete_my_account() (§ 8.5)
-│       └── 0005_nom_du_club.sql     # club_settings."clubName" (§ 6.5)
+│   ├── migrations/
+│   │   ├── 0001_schema.sql          # 24 tables + 21 index (source de vérité)
+│   │   ├── 0002_rls.sql             # Row Level Security + fonctions d'aide
+│   │   ├── 0003_seed.sql            # Jeu de données minimal
+│   │   ├── 0004_supprimer_son_compte.sql # delete_my_account() (§ 8.5)
+│   │   ├── 0005_nom_du_club.sql     # club_settings."clubName" (§ 6.5)
+│   │   ├── 0006_compte_joueur.sql   # Rôle player, invitations, RPC (§ 8.6)
+│   │   └── 0007_notifications_push.sql # push_subscriptions (§ 4.6)
+│   ├── functions/push/              # Edge Function (Deno) : index.ts + logic.ts
+│   └── tests/                       # pgTAP (§ 10.6)
 │
 ├── src/
 │   ├── main.tsx                     # Point d'entrée — chaîne de providers
@@ -173,15 +186,22 @@ mister-footcoach/
 │   │
 │   ├── backend/
 │   │   ├── config.ts                # BACKEND = 'local' | 'supabase'
-│   │   └── tables.ts                # Mapping tables Postgres ↔ AppState, chargement
+│   │   ├── tables.ts                # Mapping tables Postgres ↔ AppState, chargement
+│   │   └── playerAccounts.ts        # RPC du compte joueur (§ 8.6)
 │   │
 │   ├── lib/
-│   │   └── supabase.ts              # Client supabase-js (créé paresseusement)
+│   │   ├── supabase.ts              # Client supabase-js (créé paresseusement)
+│   │   └── push.ts                  # Web Push : module et transport du socle
 │   │
 │   ├── auth/
-│   │   ├── AuthContext.tsx          # Session Supabase, signIn / signOut
+│   │   ├── AuthContext.tsx          # Session Supabase, signIn / signUp / signOut
 │   │   ├── AuthGate.tsx             # Exige une session en mode supabase
-│   │   └── LoginPage.tsx            # Écran de connexion e-mail / mot de passe
+│   │   └── LoginPage.tsx            # Connexion, et inscription du joueur
+│   │
+│   ├── player/                      # Mode supabase seulement (§ 8.6)
+│   │   ├── RoleSwitch.tsx           # Application / page du joueur / rattachement
+│   │   ├── PlayerHomePage.tsx       # Sondages et événements du joueur
+│   │   └── LinkAccountPage.tsx      # Saisie du code d'invitation
 │   │
 │   ├── store/
 │   │   ├── AppContext.tsx           # Reducer + AppProvider local + hooks métier
@@ -214,7 +234,8 @@ mister-footcoach/
 │   │
 │   ├── i18n/
 │   │   ├── index.ts                 # createI18n famille — locales fr / en
-│   │   └── messages.ts              # Catalogue de traductions
+│   │   ├── messages.ts              # Catalogue de traductions
+│   │   └── messages.connected.ts    # Libellés du mode supabase (§ 11.1)
 │   │
 │   ├── pdf/                         # Export PDF : fabriques pures, mise en
 │   │                                # page, livraison (§ 6.5)
@@ -285,7 +306,9 @@ migrations, rattachement du compte auth) est décrite dans
 
 ### 4.1 Schéma de données (`supabase/migrations/0001_schema.sql`)
 
-24 tables et 21 index. Deux partis pris structurent le schéma :
+24 tables et 21 index dans `0001`, deux tables de plus depuis : `player_invitations`
+(`0006`, § 8.6) et `push_subscriptions` (`0007`, § 4.6). Deux partis pris
+structurent le schéma :
 
 - **Colonnes en camelCase quotées** — le schéma reflète 1:1 les types de
   `src/types/index.ts`, donc un `select *` se mappe directement sur les types
@@ -503,9 +526,18 @@ const dispatch = useCallback(
 ```
 
 > **Pas de fonctions planifiées.** Les rappels J-1 décrits dans les
-> spécifications ne sont pas implémentés : il n'y a ni cron, ni Edge Function,
-> ni `pg_cron`. Les notifications sont créées côté client par l'action `NOTIFY`,
-> qui insère une ligne par destinataire éligible dans `notifications`.
+> spécifications ne sont pas implémentés : il n'y a ni cron, ni `pg_cron`.
+> L'unique Edge Function (`push`, § 4.6) est déclenchée par un webhook, pas par
+> une horloge. Les notifications sont créées côté client par l'action `NOTIFY`,
+> qui insère une ligne par destinataire éligible dans `notifications` — les
+> membres de l'**encadrement** de l'équipe (`users."teamIds"`) : les parents,
+> que § 16.1 des spécifications compte parmi les destinataires, ne le sont pas
+> encore.
+>
+> **Le temps réel suppose une publication.** Aucune migration n'ajoute les
+> tables à `supabase_realtime` : sans ce réglage du projet, `postgres_changes`
+> ne diffuse rien, et seuls les rechargements explicites rafraîchissent l'état.
+> C'est pourquoi les écrans qui écrivent par RPC appellent `refresh` (§ 8.6).
 
 ### 4.5 Vérification des permissions (RLS)
 
@@ -562,7 +594,91 @@ create policy unavailabilities_write on unavailabilities for all to authenticate
 ```
 
 Le modèle de rôles est : **admin** (tout), **coach** (ses équipes via
-`users."teamIds"`), **parent** (ses enfants via `contacts."playerIds"`).
+`users."teamIds"`), **parent** (ses enfants via `contacts."playerIds"`), et
+depuis `0006` **player** (sa fiche via `users."playerId"`, § 8.6).
+
+**Le joueur n'hérite PAS de `app_can_access_team`.** Cette fonction ouvre aux
+parents tout ce qui est « de l'équipe », et `app_can_access_player` en dérive :
+fiches, indisponibilités, assiduité, réponses aux sondages des coéquipiers.
+Étendue au joueur, elle lui aurait ouvert tout cela. Il a donc ses propres
+politiques, table par table :
+
+| Table                                                                                                                                                                                                                                            | Ce que lit le joueur                                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `players`                                                                                                                                                                                                                                        | Sa fiche (`players_read_own_player`), active seulement                                                     |
+| `matches`, `trainings`, `surveys`                                                                                                                                                                                                                | Ceux de ses équipes, principale et secondaire (`*_read_player`)                                            |
+| `teams`                                                                                                                                                                                                                                          | Ses équipes seulement (restrictive `teams_members_only`)                                                   |
+| `users`                                                                                                                                                                                                                                          | Sa fiche seulement (restrictive `users_read_scope`)                                                        |
+| `clubs`, `seasons`, `club_settings`                                                                                                                                                                                                              | Oui (données de référence, aucune donnée personnelle)                                                      |
+| `survey_responses`                                                                                                                                                                                                                               | **Rien** par la table — elle porte la note du coach ; sa réponse arrive par la RPC `my_survey_responses()` |
+| `contacts`, `injuries`, `unavailabilities`, `attendances`, `position_history`, `match_events`, `lineups`, `carpool_offers`, `tournaments`, `tournament_groups`, `exercises`, `notification_preferences`, `training_blocks`, `player_invitations` | **Rien**                                                                                                   |
+
+Il **n'écrit dans aucune table** : des politiques **restrictives** (qui
+s'ajoutent en ET aux permissives de `0002` au lieu de les réécrire) lui
+ferment `users`, `contacts`, `carpool_offers` et `notification_preferences`,
+et `0007` ferme `notifications` et `push_subscriptions`. Sa seule écriture
+est la RPC `set_player_intention`.
+
+**Ce que `0006` a dû fermer pour que ça tienne.** L'enfant crée son compte :
+les inscriptions restent ouvertes. Or `0002` accordait la lecture de
+`users`, `teams`, `clubs`, `seasons`, `club_settings` et `exercises` à
+**tout** compte authentifié — un inconnu inscrit lisait l'annuaire du club —,
+`users_self` laissait chacun réécrire ses propres rôles, et `contacts_write`
+laissait un parent s'ajouter n'importe quel enfant. Les lectures passent donc
+par une restrictive `app_is_member()`, et deux déclencheurs
+(`users_guard_columns`, `contacts_guard_links`) refusent aux rôles de l'API,
+hors administrateur, de modifier rôles, rattachements et liens de filiation.
+
+**Les fonctions neuves ne sont pas atteignables par `anon`.** Une fonction de
+`public` est exécutable d'office par `anon` et `authenticated` (privilèges par
+défaut de Supabase) : chaque fonction de `0006` et `0007` retire `public` et
+`anon`, et les fonctions internes retirent aussi `authenticated`. Aucune vue :
+une vue tourne sous son propriétaire, donc sans RLS.
+
+### 4.6 Notifications push (Edge Function `push`)
+
+```
+client : NOTIFY ──insert──▶ notifications ──webhook (INSERT)──▶ Edge Function « push »
+                                                                  │  relit la ligne, son destinataire,
+                                                                  │  ses préférences, ses abonnements
+                                                                  ▼
+                                   appareil ◀──Web Push (VAPID)── services de push
+```
+
+- **Abonnements** : `push_subscriptions` (`0007`), au schéma exact du transport
+  Supabase du socle (`endpoint`, `user_id` = identité d'authentification,
+  `p256dh`, `auth`, `user_agent`). Chacun ne lit, ne crée et ne retire que les
+  siens ; créer demande d'être membre et pas seulement joueur. La suppression
+  d'un compte les emporte (cascade depuis `auth.users`).
+- **Qui peut notifier qui** : `notifications_insert` (`0002`) acceptait toute
+  ligne de tout compte. Avec le push, c'était un message libre sur l'écran
+  verrouillé de n'importe qui. La restrictive `notifications_insert_scope`
+  (`app_can_notify`) réduit l'insertion au périmètre exact de `NOTIFY` :
+  l'admin notifie qui il veut, un entraîneur ou un parent l'encadrement des
+  équipes auxquelles il a accès.
+- **La fonction** (`supabase/functions/push/index.ts`, Deno, `npm:web-push`) :
+  déployée sans vérification de JWT (un webhook n'a pas de session), elle exige
+  l'en-tête `x-webhook-secret` — `WEBHOOK_SECRET`, comparé à temps constant,
+  **fermé par défaut**. Elle **relit la notification en base** par son
+  identifiant plutôt que de croire le corps de la requête, n'envoie qu'aux
+  abonnements de son destinataire, applique ses préférences (tout coupé ou
+  catégorie décochée : rien), et purge les abonnements expirés (404/410). Ses
+  journaux ne portent ni nom, ni message, ni point de livraison complet.
+- **La logique pure** (`logic.ts` : catégorie d'un type, décision selon les
+  préférences, page à ouvrir, charge utile) est importée par la fonction ET par
+  un test Vitest de l'app (`src/utils/pushLogic.test.ts`), qui la tient
+  identique à `src/utils/notifications.ts`.
+- **Le service worker** : `public/push-sw.js` (affichage, clic qui ouvre la
+  page), importé par Workbox (`importScripts`) **dans les seuls builds
+  connectés** — en mode local, le worker est celui d'avant (§ 7.1).
+- **Le client** (`src/lib/push.ts`) : module `push` du socle ET son transport
+  Supabase, branchés sur notre client ; le réglage vit dans les préférences de
+  notification (`PushSetting`), la clé publique vient de
+  `VITE_VAPID_PUBLIC_KEY`. À la déconnexion, l'abonnement de l'appareil est
+  retiré avant la session : un appareil de famille se partage.
+
+L'activation (clés, secrets, déploiement, webhook, variable de build) est une
+suite de gestes de l'administrateur du projet : `docs/supabase.md` § 7.
 
 ---
 
@@ -953,6 +1069,11 @@ libellés de l'i18n de l'app et son positionnement.
 La seule règle de `runtimeCaching` concerne les Google Fonts. **Les appels
 Supabase ne sont pas mis en cache** par le service worker.
 
+Dans un build **connecté** (`VITE_BACKEND=supabase`, lu par `loadEnv` dans
+`vite.config.ts`), Workbox importe en plus `public/push-sw.js` : les
+gestionnaires `push` et `notificationclick` (§ 4.6). En mode local, ni import
+ni précache : le worker est exactement celui d'avant.
+
 ### 7.2 Ce qui fonctionne hors-ligne — et ce qui ne fonctionne pas
 
 | Cas                                           | Comportement réel                                                            |
@@ -1103,11 +1224,24 @@ export function AuthGate({ children }: { children: ReactNode }) {
 En mode `local` c'est un passe-plat transparent — ce qui permet aux tests et aux
 e2e de tourner sans authentification.
 
+**Puis l'aiguillage par rôle** (`src/player/RoleSwitch.tsx`), monté par
+`SupabaseAppProvider` une fois la base lue : un membre adulte reçoit
+l'application entière ; un compte **qui n'est que joueur** reçoit sa page, hors
+du routeur (§ 8.6) ; un compte sans fiche (l'enfant qui vient de s'inscrire,
+l'adulte pas encore rattaché) reçoit l'écran de rattachement. Tant que la base
+n'a pas répondu, pas d'aiguillage : un entraîneur hors ligne n'est pas un
+compte sans fiche. Ce n'est pas une barrière de sécurité — la RLS en est une.
+
+**Une inscription, une seule** : celle du joueur (`signUp`, e-mail et mot de
+passe), sur l'écran de connexion. Les adultes restent créés par
+l'administrateur, et le lien de connexion garde `shouldCreateUser: false`.
+
 ### 8.4 Rôles
 
-Les rôles (`admin`, `coach`, `parent`) sont stockés dans la colonne
-`users.roles` (`text[]`), et les rattachements dans `users."teamIds"` (coach) ou
-`contacts."playerIds"` (parent). Ils sont consommés :
+Les rôles (`admin`, `coach`, `parent`, et `player` depuis `0006`) sont stockés
+dans la colonne `users.roles` (`text[]`), et les rattachements dans
+`users."teamIds"` (coach), `contacts."playerIds"` (parent) ou
+`users."playerId"` (joueur). Ils sont consommés :
 
 - **côté serveur** par les fonctions `app_is_admin()`, `app_coach_team_ids()`,
   `app_parent_player_ids()` et les politiques RLS (§ 4.5) — c'est là que se joue
@@ -1116,9 +1250,13 @@ Les rôles (`admin`, `coach`, `parent`) sont stockés dans la colonne
 
 > En mode `local`, l'utilisateur courant est figé :
 > `CURRENT_USER_ID = 'u1'` (`src/constants/session.ts`), le coach de l'équipe
-> « U13 A » du jeu de données mock. Il n'y a pas encore de résolution du profil
-> `users` à partir de la session Supabase côté client : `useCurrentUser()` lit
-> cette constante dans les deux modes.
+> « U13 A » du jeu de données mock. **En mode `supabase`, c'est la session qui
+> désigne la fiche** (`users."authId"`, comme `app_current_user_id()` en base) :
+> `useCurrentUser()` et les hooks de notifications et de préférences la lisent
+> par `useSessionUserId()`. Ils lisaient la constante du mode local, donc la
+> fiche de quelqu'un d'autre. Reste un écart : les auteurs que les formulaires
+> écrivent (`createdBy`, `declaredBy`, `offeredBy`) viennent encore de la
+> constante (§ 14.2).
 
 ### 8.5 Supprimer son compte
 
@@ -1177,23 +1315,70 @@ n'est pas superutilisateur.
 > contre un projet en production. Personne, sur ce parc, n'a encore effacé un
 > compte hébergé par cette voie.
 
+Depuis `0006`, la fonction ferme aussi les comptes joueurs ouverts par les
+invitations du partant, puis efface ces invitations (la trace de son
+consentement) ; un joueur qui s'efface détache l'invitation qui l'avait ouvert
+(§ 8.6).
+
+### 8.6 Le compte joueur
+
+**Données** (`0006`). Le rôle `player` dans `users.roles`, le lien
+`users."playerId"`, et `player_invitations` : le code HACHÉ (SHA-256), le joueur,
+le parent qui a consenti et quand, l'expiration (7 jours), l'utilisation, la
+révocation. Des horodatages `timestamptz`, et non le texte ISO du reste du
+schéma : l'expiration se compare à `now()` en base. `authenticated` ne lit
+que les colonnes nommées de cette table — pas le haché — et n'y écrit rien.
+
+**Les RPC**, toutes `security definer`, propriété de `postgres`, exécutables
+par `authenticated` seulement, et chacune vérifie son appelant :
+
+| RPC                                | Qui                                 | Ce qu'elle vérifie, puis fait                                                                                                        |
+| ---------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `create_player_invitation(player)` | Parent lié (`contacts."playerIds"`) | Fiche active, pas de compte ouvert ; révoque les codes en attente ; tire 12 caractères (pgcrypto, 60 bits) ; rend le code UNE fois   |
+| `redeem_player_invitation(code)`   | Le compte connecté, sans fiche      | Code ni inconnu, ni expiré, ni utilisé, ni révoqué (un même message) ; parent toujours lié ; crée la fiche `player` ; marque le code |
+| `revoke_player_access(player)`     | Parent lié, ou admin                | Révoque les codes en attente et celui du compte ouvert ; efface la fiche du compte (son e-mail de mineur) — l'authentification reste |
+| `set_player_intention(sondage, v)` | Le joueur (`app_player_id()`)       | Sondage de SES équipes, ouvert, valeur connue ; n'écrit que `intentionJoueur` et sa date — jamais la confirmation du parent          |
+| `my_survey_responses()`            | Le joueur (vide pour tout autre)    | Ses réponses, sans la note du coach ni le détail des tuteurs                                                                         |
+
+**Le client.** Le parent et l'admin passent par la carte « Compte joueur » des
+réglages (`PlayerAccountsCard`) : consentement dans une boîte qui dit ce que
+l'enfant verra, code montré une fois, copie ou partage, révocation ; l'admin y
+voit les comptes et la trace du consentement. L'enfant s'inscrit sur l'écran de
+connexion, saisit son code (`LinkAccountPage`), puis arrive sur sa page
+(`PlayerHomePage`) : ses sondages ouverts avec les trois boutons de SON
+intention, la confirmation de son parent et la divergence (§ 15.5 des
+spécifications), ses prochains événements. Son intention part par l'action
+`SET_PLAYER_INTENTION`, que `persistAction` traduit en RPC — jamais en
+`upsert`. Ces écrans sont chargés à la demande et n'existent pas dans un build
+local (§ 11.1).
+
+**La preuve** : `supabase/tests/compte-joueur.test.sql` (104 assertions) joue
+chaque identité — admin, entraîneur, parent lié, autre parent, inconnu, enfant
+— par `set local role` et les claims du JWT, et vérifie le mécanisme (propriété,
+`security definer`, aucune fonction pour `anon`, haché illisible), le
+consentement (qui peut créer un code, que le lien ne se fabrique pas, et qu'un
+lien ou un identifiant NUL ne contourne aucun refus), le code (haché, refusé
+expiré, utilisé ou révoqué), la minimisation table par table, l'écriture, la
+révocation, et la suppression d'un compte parent ou enfant.
+
 ---
 
 ## 9. Sécurité
 
 ### 9.1 Règles par couche
 
-| Couche           | Mesure                                                                                  |
-| ---------------- | --------------------------------------------------------------------------------------- |
-| Transport        | HTTPS obligatoire (GitHub Pages + Supabase)                                             |
-| Authentification | Supabase Auth (e-mail + mot de passe), JWT porté par `supabase-js`                      |
-| Autorisation     | Row Level Security Postgres sur les 24 tables — aucune confiance côté client (§ 4.5)    |
-| Données mineurs  | Cloisonnement par rôle en base : `app_can_access_player()` / `app_can_manage_team()`    |
-| Résidence        | Projet Supabase en région Frankfurt (`eu-central-1`) — données hébergées dans l'UE      |
-| Clé `anon`       | Publique par conception : embarquée dans le bundle statique, sans pouvoir hors RLS      |
-| CSP              | Durcie au build (`cspPlugin`) — `script-src` par hash SHA-256, `frame-ancestors 'none'` |
-| XSS              | React échappe nativement — pas de `dangerouslySetInnerHTML`                             |
-| Supply chain     | Lockfile vérifié en CI ; dépendances suivies par Renovate                               |
+| Couche           | Mesure                                                                                    |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| Transport        | HTTPS obligatoire (GitHub Pages + Supabase)                                               |
+| Authentification | Supabase Auth (e-mail + mot de passe), JWT porté par `supabase-js`                        |
+| Autorisation     | Row Level Security Postgres sur les 26 tables — aucune confiance côté client (§ 4.5)      |
+| Données mineurs  | Cloisonnement par rôle en base ; compte joueur réduit à sa fiche et à ses équipes (§ 8.6) |
+| Fonctions        | `security definer` : chacune vérifie son appelant ; aucune neuve exécutable par `anon`    |
+| Résidence        | Projet Supabase en région Frankfurt (`eu-central-1`) — données hébergées dans l'UE        |
+| Clé `anon`       | Publique par conception : embarquée dans le bundle statique, sans pouvoir hors RLS        |
+| CSP              | Durcie au build (`cspPlugin`) — `script-src` par hash SHA-256, `frame-ancestors 'none'`   |
+| XSS              | React échappe nativement — pas de `dangerouslySetInnerHTML`                               |
+| Supply chain     | Lockfile vérifié en CI ; dépendances suivies par Renovate                                 |
 
 La CSP autorise explicitement le backend, et rien d'autre :
 
@@ -1214,8 +1399,10 @@ d'abonnement, ni token à protéger. Les photos de joueurs ne sont pas stockées
 ### 9.2 Variables d'environnement
 
 Toutes les variables du frontend sont **publiques** par construction : elles
-sont inlinées dans le bundle statique. Il n'existe aucun secret côté serveur,
-puisqu'il n'y a pas de serveur applicatif.
+sont inlinées dans le bundle statique — y compris `VITE_VAPID_PUBLIC_KEY`, la
+clé PUBLIQUE du push. Les seuls secrets du projet sont ceux de l'Edge Function
+`push` (§ 4.6) : `VAPID_PRIVATE_KEY` et `WEBHOOK_SECRET`, posés dans les
+secrets Supabase par l'administrateur, jamais dans le dépôt ni dans le bundle.
 
 ```bash
 # .env.local
@@ -1232,6 +1419,9 @@ VITE_PUBLIC_SITE_ORIGIN=https://mister-guiiug.github.io
 
 # Optionnel : monitoring d'erreurs Sentry. Vide = désactivé (no-op).
 VITE_SENTRY_DSN=
+
+# Optionnel (mode supabase) : clé PUBLIQUE VAPID des notifications push.
+# VITE_VAPID_PUBLIC_KEY=BLxx...
 ```
 
 Le token d'accès Supabase utilisé par la CLI (`SUPABASE_ACCESS_TOKEN`) et le
@@ -1261,7 +1451,7 @@ le terminal de l'opérateur (cf. [`docs/supabase.md`](./supabase.md)).
 └─────────────────────────────────────────────────────┘
 ```
 
-53 fichiers de test, **colocalisés** avec le code qu'ils couvrent. Tout tourne
+88 fichiers de test, **colocalisés** avec le code qu'ils couvrent. Tout tourne
 en mode `local` : aucun test n'atteint Supabase, et il n'y a **pas de MSW** —
 les rares dépendances externes sont mockées avec `vi.mock` (§ 10.2).
 
@@ -1464,7 +1654,10 @@ donc, jusqu'ici, que **relues** — et une politique se relit vite et se trompe 
 même.
 
 `supabase/tests/*.sql` s'exécute sur une pile Supabase **jetable**, montée par
-le runner, qui applique les migrations depuis zéro :
+le runner, qui applique les migrations depuis zéro. Trois fichiers :
+`suppression-compte.test.sql` (29 assertions, § 8.5),
+`compte-joueur.test.sql` (104, § 8.6) et `notifications-push.test.sql` (26 :
+les droits sur `push_subscriptions`, et qui peut notifier qui, § 4.6).
 
 ```bash
 supabase start   # exige Docker — absent du poste de développement
@@ -1520,6 +1713,52 @@ L'extrait omet les morceaux mis à l'écart du chargement initial : `sentry` et
 `posthog` (chargés après coup), et `pdf` — le générateur du socle, que seul
 l'export PDF tire, par un `import()` au clic (§ 6.5). Sans sa ligne, il
 tomberait dans `vendor`, chargé d'emblée.
+
+**Le mode connecté ne pèse presque rien sur le premier chargement du mode
+local**, et il a fallu deux techniques pour cela, parce que le bundler ne
+replie pas tout au même moment.
+
+- **Le code importé statiquement** peut dépendre de `BACKEND`, constante d'un
+  autre module : le bundler finit par replier la condition et retire le code
+  mort. En mode local, `SupabaseAppProvider` — et avec lui l'aiguillage par
+  rôle — sort du bundle, de même que le catalogue
+  `src/i18n/messages.connected.ts`, que `i18n/index.ts` ne fusionne que si
+  `BACKEND === 'supabase'` (vérifié : aucune de leurs chaînes dans `dist/`).
+- **Un `import()`, non : il est replié trop tard.** L'`import()` mort émet
+  quand même son morceau — précaché par le service worker — et ses
+  dépendances de `node_modules` tombent dans `vendor`, qui est PRÉCHARGÉ.
+  Mesuré au build local : écrites avec `BACKEND`, les conditions de
+  `RoleSwitch` (page du joueur, rattachement) et de `SettingsPage` (réglage
+  push, carte des invitations) coûtaient 1,4 kB gzip préchargés et 8 fichiers
+  de plus au précache, pour des écrans que personne n'y verrait. Elles portent
+  donc sur `import.meta.env` en toutes lettres, DANS le module qui déclare
+  l'`import()` :
+  `import.meta.env.VITE_BACKEND === 'supabase' || import.meta.env.MODE === 'test'`.
+  Vite la remplace à la transformation : la branche meurt avant que le bundler
+  ne lise l'`import()`, et le morceau n'existe pas. `MODE === 'test'` garde ces
+  écrans testables sous Vitest ; un build vaut toujours `production`. La même
+  condition garde l'`import()` de `lib/push` à la déconnexion, l'inscription
+  et le cas `SET_PLAYER_INTENTION` du reducer — ces deux derniers vivent dans
+  le morceau d'entrée.
+- **Le module push du socle** a son propre morceau (`push`, ligne de
+  `manualChunks`), chargé avec `lib/push` à l'ouverture des réglages.
+
+Mesuré le 25/09/2026 (`pwa-bundle-budget`) : en mode local, le préchargé passe
+de 163,4 à 163,8 kB gzip et le total de 402,2 à 402,7 kB ; `vendor`,
+`react-vendor`, `router`, `lucide` et la feuille de style sont identiques à
+l'octet à ceux de `main`, et le précache compte toujours 58 entrées. Les
+0,4 kB restants sont dans l'entrée : les libellés FR/EN qui disent, en mode
+local, que ces fonctions n'y existent pas, et la plomberie (gardes, lecture de
+la session). `public/push-sw.js` est copié dans `dist/` comme tout `public/`,
+mais aucun worker local ne l'importe ni ne le précache.
+
+**Un build connecté dépasse le budget — déjà sur `main`.** Le SDK Supabase
+tombe dans `vendor`, préchargé : mesuré avec des variables fictives, `main`
+précharge 221,0 kB (budget 172) pour 459,9 kB au total (budget 435). Le compte
+joueur et le push y ajoutent 6,4 kB préchargés (227,4 kB : surtout le catalogue
+du mode connecté, dans l'entrée) et 16,5 kB au total (476,4 kB). Personne ne
+construit ce build aujourd'hui ; `bundleBudget` sera à revoir le jour où la
+production passe en mode `supabase` (`docs/supabase.md` § 7.5).
 
 L'analyse du bundle est disponible à la demande via
 `npm run build:analyze` (`ANALYZE=1` active `rollup-plugin-visualizer`, qui écrit
@@ -1744,53 +1983,57 @@ activer côté Supabase si le besoin apparaît.
 
 ### 14.1 Fait
 
-| Tâche                                     | Détail                                                                |
-| ----------------------------------------- | --------------------------------------------------------------------- |
-| Squelette Vite 8 + React 19 + Tailwind v4 | Configuration héritée de `@mister-guiiug/dev-pwa-config`              |
-| Types TypeScript domaine                  | `src/types/index.ts`                                                  |
-| Mode `local` (`localStorage` + mock)      | Défaut ; sert au dev, aux tests et à la démo hors-ligne               |
-| Magasin local versionné                   | Enveloppe `{ v, data }`, migration 0 → 1, copie de côté (§ 5.3.1)     |
-| Export / import de la base locale         | Carte « Mes données » des réglages, mode `local` (§ 5.3.2)            |
-| Indicateur de connectivité                | Bandeau du socle, mode `supabase` seulement (§ 7.3)                   |
-| 18 pages métier                           | Dashboard, équipes, joueurs, matchs, entraînements, tournois…         |
-| Simulateur de composition                 | Terrain interactif, formations foot à 8 (`LineupPage`)                |
-| Mode match live                           | Événements, score, historique des postes (en ligne)                   |
-| Sondages de présence                      | Intention joueur / confirmation tuteur, divergences                   |
-| Logistique des déplacements               | Point de RDV + covoiturage                                            |
-| Flux iCal                                 | Génération RFC 5545 **côté client** (`src/utils/ical.ts`)             |
-| Export PDF                                | Module `pdf` du socle, **pas jsPDF** ; chargé au clic (§ 6.5)         |
-| Backend Supabase                          | Schéma, RLS, seed, realtime, persistance (§ 4)                        |
-| Authentification                          | Supabase Auth + `AuthGate`, rôles admin / coach / parent              |
-| Supprimer son compte                      | `delete_my_account()` + « Zone dangereuse », prouvée en pgTAP (§ 8.5) |
-| Notifications in-app                      | Table `notifications` + préférences par utilisateur                   |
-| i18n                                      | Français / anglais (`src/i18n`)                                       |
-| Thème clair / sombre / système            | `ThemeContext` + anti-FOUC inline                                     |
-| PWA installable                           | Manifest + SW Workbox, bandeau de mise à jour                         |
-| Tests Vitest 4                            | 53 fichiers, seuils de couverture en cliquet (§ 10.2)                 |
-| CI/CD                                     | Déléguée au reusable famille + Lighthouse CI (§ 12.1)                 |
-| Tests pgTAP                               | Pile jetable en CI : les migrations s'exécutent enfin (§ 10.6)        |
+| Tâche                                     | Détail                                                                  |
+| ----------------------------------------- | ----------------------------------------------------------------------- |
+| Squelette Vite 8 + React 19 + Tailwind v4 | Configuration héritée de `@mister-guiiug/dev-pwa-config`                |
+| Types TypeScript domaine                  | `src/types/index.ts`                                                    |
+| Mode `local` (`localStorage` + mock)      | Défaut ; sert au dev, aux tests et à la démo hors-ligne                 |
+| Magasin local versionné                   | Enveloppe `{ v, data }`, migration 0 → 1, copie de côté (§ 5.3.1)       |
+| Export / import de la base locale         | Carte « Mes données » des réglages, mode `local` (§ 5.3.2)              |
+| Indicateur de connectivité                | Bandeau du socle, mode `supabase` seulement (§ 7.3)                     |
+| 18 pages métier                           | Dashboard, équipes, joueurs, matchs, entraînements, tournois…           |
+| Simulateur de composition                 | Terrain interactif, formations foot à 8 (`LineupPage`)                  |
+| Mode match live                           | Événements, score, historique des postes (en ligne)                     |
+| Sondages de présence                      | Intention joueur / confirmation tuteur, divergences                     |
+| Logistique des déplacements               | Point de RDV + covoiturage                                              |
+| Flux iCal                                 | Génération RFC 5545 **côté client** (`src/utils/ical.ts`)               |
+| Export PDF                                | Module `pdf` du socle, **pas jsPDF** ; chargé au clic (§ 6.5)           |
+| Backend Supabase                          | Schéma, RLS, seed, realtime, persistance (§ 4)                          |
+| Authentification                          | Supabase Auth + `AuthGate` + aiguillage par rôle, dont joueur (§ 8.3)   |
+| Supprimer son compte                      | `delete_my_account()` + « Zone dangereuse », prouvée en pgTAP (§ 8.5)   |
+| Compte joueur                             | Invitation (consentement), RPC, RLS minimale, page du joueur (§ 8.6)    |
+| Notifications push PWA                    | `push_subscriptions`, Edge Function `push`, réglage — à activer (§ 4.6) |
+| Utilisateur courant en mode `supabase`    | Résolu par la session (`users."authId"`), et non plus figé (§ 8.4)      |
+| Notifications in-app                      | Table `notifications` + préférences par utilisateur                     |
+| i18n                                      | Français / anglais (`src/i18n`)                                         |
+| Thème clair / sombre / système            | `ThemeContext` + anti-FOUC inline                                       |
+| PWA installable                           | Manifest + SW Workbox, bandeau de mise à jour                           |
+| Tests Vitest 4                            | 88 fichiers, seuils de couverture en cliquet (§ 10.2)                   |
+| CI/CD                                     | Déléguée au reusable famille + Lighthouse CI (§ 12.1)                   |
+| Tests pgTAP                               | Pile jetable en CI : 3 fichiers, 159 assertions (§ 10.6)                |
 
 ### 14.2 Écarts connus avec les spécifications
 
-| Manque                         | Détail                                                                                                             |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| Rappels J-1                    | Aucune tâche planifiée : ni cron, ni Edge Function, ni `pg_cron` (§ 4.4)                                           |
-| File d'attente hors-ligne      | Le mode live ne survit pas à une coupure réseau en mode `supabase` (§ 7.2)                                         |
-| Photos de joueurs              | Colonnes présentes, Supabase Storage non branché (§ 11.4)                                                          |
-| Profil utilisateur côté client | `useCurrentUser()` lit encore `CURRENT_USER_ID` figé (§ 8.4)                                                       |
-| E2E fonctionnels               | Une seule spec a11y, non exécutée en CI (§ 10.5)                                                                   |
-| Garde d'écriture partiel       | Seules les quatre suppressions par corbeille sont gardées ; les formulaires et le mode live ne le sont pas (§ 7.4) |
+| Manque                        | Détail                                                                                                                  |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Rappels J-1                   | Aucune tâche planifiée : ni cron, ni `pg_cron` ; l'Edge Function `push` répond à un webhook, pas à une horloge (§ 4.4)  |
+| File d'attente hors-ligne     | Le mode live ne survit pas à une coupure réseau en mode `supabase` (§ 7.2)                                              |
+| Photos de joueurs             | Colonnes présentes, Supabase Storage non branché (§ 11.4)                                                               |
+| Auteur des saisies (supabase) | `createdBy`, `declaredBy`, `offeredBy` viennent encore de `CURRENT_USER_ID` — la lecture, elle, suit la session (§ 8.4) |
+| Notifications aux parents     | `NOTIFY` ne vise que l'encadrement de l'équipe : les parents ne reçoivent ni in-app ni push (§ 4.4)                     |
+| Push à activer                | Clés VAPID, secrets, déploiement de la fonction, webhook, variable de build : gestes de l'administrateur (§ 4.6)        |
+| Temps réel                    | Aucune migration ne publie les tables dans `supabase_realtime` (§ 4.4)                                                  |
+| E2E fonctionnels              | Une seule spec a11y, non exécutée en CI (§ 10.5)                                                                        |
+| Garde d'écriture partiel      | Seules les quatre suppressions par corbeille sont gardées ; les formulaires et le mode live ne le sont pas (§ 7.4)      |
 
 ### 14.3 Évolutions futures
 
 | Tâche                         | Détail                                                                                                                                                                                         |
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Notifications Push PWA        | VAPID + Web Push API                                                                                                                                                                           |
 | Intégration fédération réelle | **Bloquée par l'accès, pas par le code.** Aucune API publique autorisée n'est connue du projet : aucune ligne de code ne la débloque. Le flux de `src/data/federation.ts` reste simulé (PO-04) |
-| Compte joueur                 | Saisie de l'intention de sondage en direct                                                                                                                                                     |
 | Merge realtime ligne à ligne  | Éviter la réhydratation complète à chaque changement                                                                                                                                           |
 
 ---
 
-_Document v2.0 — 11/08/2026 — aligné sur le code du dépôt. À réviser à chaque
+_Document v2.1 — 25/09/2026 — aligné sur le code du dépôt. À réviser à chaque
 changement structurant de la stack._

@@ -53,3 +53,12 @@ enable_anonymous_sign_ins = false
 [auth.email]
 enable_signup = true
 enable_confirmations = false
+
+# L'Edge Function `push` (notifications push, migration 0007) est appelée par
+# un WEBHOOK DE BASE, qui n'a pas de session : aucun JWT à vérifier. Sa seule
+# protection est `WEBHOOK_SECRET`, comparé à temps constant et FERMÉ PAR
+# DÉFAUT (sans secret posé, elle refuse tout). Ce réglage accompagne
+# `supabase functions deploy push` ; la pile locale des tests ne démarre pas
+# l'exécuteur de fonctions.
+[functions.push]
+verify_jwt = false

@@ -1,4 +1,10 @@
-export type Role = 'admin' | 'coach' | 'parent';
+/**
+ * `player` : le compte d'un JOUEUR (mineur), ouvert par le code d'invitation
+ * d'un parent (mode `supabase` seulement, migration 0006). Il ne voit que sa
+ * fiche, les matchs, entraînements et sondages de ses équipes, et n'écrit
+ * que son intention de réponse.
+ */
+export type Role = 'admin' | 'coach' | 'parent' | 'player';
 
 export type Position =
   'GK' | 'DD' | 'DC' | 'DG' | 'MD' | 'MC' | 'MO' | 'ATD' | 'ATG' | 'AT';
@@ -126,6 +132,32 @@ export interface User {
   roles: Role[];
   teamIds: string[];
   contactId?: string;
+  /**
+   * L'identité Supabase Auth (`auth.users.id`) — c'est elle qui relie une
+   * session à cette fiche. Absente en mode local, où l'utilisateur est figé.
+   */
+  authId?: string;
+  /** Compte joueur : la fiche du joueur à laquelle ce compte est rattaché. */
+  playerId?: string;
+}
+
+/**
+ * Une invitation à ouvrir un compte joueur — le consentement d'un parent
+ * (`player_invitations`, migration 0006). Le code lui-même n'y figure pas :
+ * seul son haché est gardé, et il ne se lit pas. Horodatages ISO.
+ */
+export interface PlayerInvitation {
+  id: string;
+  playerId: string;
+  /** Le parent qui a consenti (`users.id`). */
+  createdBy: string;
+  consentedAt: string;
+  expiresAt: string;
+  redeemedAt: string | null;
+  /** Le compte ouvert par ce code, tant qu'il existe. */
+  redeemedBy: string | null;
+  revokedAt: string | null;
+  revokedBy: string | null;
 }
 
 // ── Unavailabilities & Injuries ──────────────────────────────────────

@@ -25,15 +25,18 @@ import type {
   Injury,
   NotificationPreferences,
   ClubSettings,
+  SurveyResponseValue,
+  User,
 } from '../types';
 import { MOCK_DATA } from '../data/mock';
-import { genId, nowIso } from '../utils/id';
+import { genId, nowDate, nowIso } from '../utils/id';
 import { CURRENT_USER_ID } from '../constants/session';
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   isNotificationAllowed,
 } from '../utils/notifications';
 import { BACKEND } from '../backend/config';
+import { useSessionUserId } from '../auth/AuthContext';
 import { SupabaseAppProvider } from './SupabaseAppProvider';
 import { loadState, saveState, type AppState } from './storage';
 
@@ -69,6 +72,18 @@ type Action =
   | { type: 'ADD_SURVEY'; survey: Survey }
   | { type: 'ADD_SURVEY_RESPONSE'; response: SurveyResponse }
   | { type: 'UPDATE_SURVEY_RESPONSE'; response: SurveyResponse }
+  /**
+   * L'intention d'un compte JOUEUR (mode `supabase`) : la seule écriture qui
+   * lui soit permise, et par la RPC `set_player_intention`, jamais par la
+   * table. Elle ne touche que l'intention et sa date — la confirmation du
+   * parent prévaut toujours (§ 15.1).
+   */
+  | {
+      type: 'SET_PLAYER_INTENTION';
+      surveyId: string;
+      playerId: string;
+      value: SurveyResponseValue;
+    }
   | { type: 'ADD_TOURNAMENT'; tournament: Tournament }
   | { type: 'UPDATE_TOURNAMENT'; tournament: Tournament }
   | { type: 'ADD_TOURNAMENT_GROUP'; group: TournamentGroup }
@@ -241,6 +256,51 @@ export function reducer(state: AppState, action: Action): AppState {
           r.id === action.response.id ? action.response : r
         ),
       };
+
+    case 'SET_PLAYER_INTENTION': {
+      // Seule la page du joueur l'envoie, et elle n'existe que dans un build
+      // connecté : ailleurs, la condition — remplacée par Vite dans CE module
+      // — est fausse dès la transformation, et le reste du cas sort du
+      // morceau d'entrée que chaque visiteur télécharge.
+      if (
+        import.meta.env.VITE_BACKEND !== 'supabase' &&
+        import.meta.env.MODE !== 'test'
+      )
+        return state;
+      // Repérée par (sondage, joueur), comme le fait la RPC : l'identifiant
+      // de la ligne est celui du serveur, que l'état optimiste ignore.
+      const date = nowDate();
+      const existing = state.surveyResponses.find(
+        r => r.surveyId === action.surveyId && r.playerId === action.playerId
+      );
+      if (existing) {
+        return {
+          ...state,
+          surveyResponses: state.surveyResponses.map(r =>
+            r === existing
+              ? {
+                  ...r,
+                  intentionJoueur: action.value,
+                  dateIntentionJoueur: date,
+                }
+              : r
+          ),
+        };
+      }
+      return {
+        ...state,
+        surveyResponses: [
+          ...state.surveyResponses,
+          {
+            id: genId('sr'),
+            surveyId: action.surveyId,
+            playerId: action.playerId,
+            intentionJoueur: action.value,
+            dateIntentionJoueur: date,
+          },
+        ],
+      };
+    }
 
     case 'ADD_UNAVAILABILITY':
       return {
@@ -417,6 +477,13 @@ export function reducer(state: AppState, action: Action): AppState {
 export interface AppContextValue {
   state: AppState;
   dispatch: React.Dispatch<Action>;
+  /**
+   * Relit toute la base (mode `supabase`). Pour les écrans qui écrivent HORS
+   * du reducer — une RPC qui rattache un compte, qui coupe un accès — et ne
+   * peuvent compter sur le temps réel : ce qu'ils changent n'est pas toujours
+   * lisible par l'appelant, donc jamais annoncé. Absent en mode local.
+   */
+  refresh?: () => Promise<void>;
 }
 
 export type AppAction = Action;
@@ -638,14 +705,50 @@ export function useContactsForPlayer(playerId: string) {
   return state.contacts.filter(c => c.playerIds.includes(playerId));
 }
 
+/**
+ * La fiche de l'utilisateur connecté.
+ *
+ * EN MODE `supabase`, C'EST LA SESSION QUI LA DÉSIGNE — `users."authId"`,
+ * comme en base (`app_current_user_id()`). Elle lisait jusqu'ici la constante
+ * du mode local (`u1`, puis la première fiche venue), c'est-à-dire la fiche de
+ * QUELQU'UN D'AUTRE : les préférences s'enregistraient à son nom (et la RLS
+ * les refusait), la cloche comptait ses notifications. Le compte joueur ne
+ * pouvait pas s'en accommoder — il faut savoir QUI est connecté pour savoir
+ * quoi lui montrer. Sans fiche rattachée à la session : `undefined`.
+ *
+ * En mode local, rien ne change : l'utilisateur est figé (`CURRENT_USER_ID`).
+ */
+function currentUserOf(
+  users: User[],
+  sessionUserId: string | null
+): User | undefined {
+  if (BACKEND === 'supabase') {
+    return sessionUserId
+      ? users.find(u => u.authId === sessionUserId)
+      : undefined;
+  }
+  return users.find(u => u.id === CURRENT_USER_ID) ?? users[0];
+}
+
 export function useCurrentUser() {
   const { state } = useAppContext();
-  return state.users.find(u => u.id === CURRENT_USER_ID) ?? state.users[0];
+  return currentUserOf(state.users, useSessionUserId());
+}
+
+/** L'identifiant applicatif de l'utilisateur connecté (voir `useCurrentUser`). */
+function useCurrentUserId(): string {
+  const { state } = useAppContext();
+  const sessionUserId = useSessionUserId();
+  if (BACKEND === 'supabase') {
+    return currentUserOf(state.users, sessionUserId)?.id ?? '';
+  }
+  return CURRENT_USER_ID;
 }
 
 export function useNotifications(userId?: string) {
   const { state } = useAppContext();
-  const target = userId ?? CURRENT_USER_ID;
+  const currentUserId = useCurrentUserId();
+  const target = userId ?? currentUserId;
   return [...state.notifications]
     .filter(n => n.userId === target)
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
@@ -653,13 +756,15 @@ export function useNotifications(userId?: string) {
 
 export function useUnreadNotificationCount(userId?: string) {
   const { state } = useAppContext();
-  const target = userId ?? CURRENT_USER_ID;
+  const currentUserId = useCurrentUserId();
+  const target = userId ?? currentUserId;
   return state.notifications.filter(n => n.userId === target && !n.read).length;
 }
 
 export function useNotificationPreferences(userId?: string) {
   const { state } = useAppContext();
-  const target = userId ?? CURRENT_USER_ID;
+  const currentUserId = useCurrentUserId();
+  const target = userId ?? currentUserId;
   return (
     state.notificationPreferences[target] ?? DEFAULT_NOTIFICATION_PREFERENCES
   );

@@ -22,6 +22,7 @@ import {
 } from '../backend/tables';
 import { persistAction } from './persistAction';
 import { Spinner } from '../components/ui/Spinner';
+import { RoleSwitch } from '../player/RoleSwitch';
 import { useToast } from '@mister-guiiug/dev-pwa-config/react/toast';
 import { useI18n } from '../i18n';
 import { createLogger } from '@mister-guiiug/dev-pwa-config/logger';
@@ -37,6 +38,10 @@ const log = createLogger('store');
 export function SupabaseAppProvider({ children }: { children: ReactNode }) {
   const [state, localDispatch] = useReducer(reducer, EMPTY_APP_STATE);
   const [ready, setReady] = useState(false);
+  // La base a-t-elle répondu au moins une fois ? Tant que non, l'absence de
+  // fiche ne prouve rien : un entraîneur hors ligne n'est pas un compte sans
+  // fiche, et ne doit pas se voir proposer un code d'invitation.
+  const [hydrated, setHydrated] = useState(false);
   const toast = useToast();
   const { t } = useI18n();
 
@@ -55,13 +60,23 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // Une relecture RÉUSSIE vaut preuve que la base répond : c'est ce que
+  // `RoleSwitch` attend avant de conclure qu'un compte n'a pas de fiche. Et
+  // c'est ce que les écrans qui écrivent par RPC appellent (`refresh`).
+  const refresh = useCallback(async () => {
+    await reload();
+    setHydrated(true);
+  }, [reload]);
+
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     reload()
       .then(() => {
-        if (!cancelled) setReady(true);
+        if (cancelled) return;
+        setHydrated(true);
+        setReady(true);
       })
       .catch((e: unknown) => {
         log.error('Supabase hydrate failed', { error: e });
@@ -87,7 +102,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
             { event: '*', schema: 'public', table },
             () => {
               if (timer) clearTimeout(timer);
-              timer = setTimeout(() => void reload(), 300);
+              timer = setTimeout(() => void refresh(), 300);
             }
           );
         }
@@ -102,7 +117,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       if (timer) clearTimeout(timer);
       if (sb && channel) void sb.removeChannel(channel);
     };
-  }, [reload]);
+  }, [reload, refresh]);
 
   // Optimistic local update + persistence to Supabase. On failure (e.g. an RLS
   // denial), reconcile back to the server truth and tell the user, instead of
@@ -125,9 +140,13 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   if (!ready) return <Spinner fullscreen />;
 
+  // QUI est connecté décide de ce qui s'affiche : l'application entière, la
+  // page du joueur, ou le rattachement d'un compte sans fiche. Le choix se
+  // fait ICI, et pas dans `App`, parce que ce fournisseur n'existe qu'en mode
+  // `supabase` : le bundler l'écarte du mode local, et `RoleSwitch` avec lui.
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
-      {children}
+    <AppContext.Provider value={{ state, dispatch, refresh }}>
+      {hydrated ? <RoleSwitch>{children}</RoleSwitch> : children}
     </AppContext.Provider>
   );
 }

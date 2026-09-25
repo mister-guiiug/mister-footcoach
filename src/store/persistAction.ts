@@ -105,6 +105,17 @@ export async function persistAction(
     case 'UPDATE_SURVEY_RESPONSE':
       await upsert('survey_responses', action.response as unknown as Row);
       return;
+    case 'SET_PLAYER_INTENTION':
+      // Jamais un `upsert` : la table n'est pas ouverte au compte joueur.
+      // La RPC retrouve elle-même le joueur de la session, vérifie l'équipe
+      // et que le sondage est ouvert, et n'écrit que l'intention (0006).
+      await run(
+        (await getSupabase()).rpc('set_player_intention', {
+          p_survey_id: action.surveyId,
+          p_intention: action.value,
+        })
+      );
+      return;
     case 'ADD_TOURNAMENT':
     case 'UPDATE_TOURNAMENT':
       await upsert('tournaments', action.tournament as unknown as Row);

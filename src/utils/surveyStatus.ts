@@ -19,22 +19,28 @@ export interface RetainedStatus {
 }
 
 export function retainedStatus(resp?: SurveyResponse): RetainedStatus {
+  // UNE LIGNE DE POSTGRES PORTE `null`, PAS `undefined`. Sans ce repli, une
+  // réponse lue en base où seul le parent a répondu passait pour une
+  // « divergence » (`null` ≠ « absent »), et une réponse vide pour une
+  // confirmation. Le type du domaine ne le dit pas ; la donnée, si.
+  const intention = resp?.intentionJoueur ?? undefined;
+  const confirmation = resp?.confirmationParent ?? undefined;
   const divergence =
-    resp?.intentionJoueur !== undefined &&
-    resp?.confirmationParent !== undefined &&
-    resp.intentionJoueur !== resp.confirmationParent;
+    intention !== undefined &&
+    confirmation !== undefined &&
+    intention !== confirmation;
 
-  if (resp?.confirmationParent !== undefined) {
+  if (confirmation !== undefined) {
     return {
-      value: resp.confirmationParent,
+      value: confirmation,
       confirmed: true,
       answered: true,
       divergence,
     };
   }
-  if (resp?.intentionJoueur !== undefined) {
+  if (intention !== undefined) {
     return {
-      value: resp.intentionJoueur,
+      value: intention,
       confirmed: false,
       answered: true,
       divergence: false,

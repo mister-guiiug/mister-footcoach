@@ -16,6 +16,20 @@ export function formatDateShort(dateStr: string): string {
   });
 }
 
+/**
+ * Le jour d'un HORODATAGE complet (`2026-09-25T14:05:00+00:00`), dans le
+ * fuseau de l'appareil. Les dates du modèle sont des jours ISO que
+ * `formatDate` lit à minuit local ; un horodatage de la base — l'expiration
+ * d'une invitation — se lit, lui, tel quel.
+ */
+export function formatDay(iso: string): string {
+  return new Date(iso).toLocaleDateString(getDefaultLocale(), {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 export function formatDateFull(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString(getDefaultLocale(), {

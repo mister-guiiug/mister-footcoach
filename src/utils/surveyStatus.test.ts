@@ -19,6 +19,36 @@ describe('retainedStatus', () => {
     expect(s.value).toBeNull();
   });
 
+  it('lit une ligne de Postgres (des null) comme une ligne sans réponse', () => {
+    // Ce que `select *` et `my_survey_responses()` rendent : `null`, pas
+    // `undefined`. Sans le repli, ni réponse, ni confirmation passait pour
+    // une confirmation — et « null ≠ absent » pour une divergence.
+    const vide = retainedStatus({
+      ...resp({}),
+      intentionJoueur: null,
+      confirmationParent: null,
+    } as unknown as SurveyResponse);
+    expect(vide).toEqual({
+      value: null,
+      confirmed: false,
+      answered: false,
+      divergence: false,
+    });
+
+    const parentSeul = retainedStatus({
+      ...resp({ confirmationParent: 'absent' }),
+      intentionJoueur: null,
+    } as unknown as SurveyResponse);
+    expect(parentSeul.divergence).toBe(false);
+    expect(parentSeul.value).toBe('absent');
+
+    const joueurSeul = retainedStatus({
+      ...resp({ intentionJoueur: 'present' }),
+      confirmationParent: null,
+    } as unknown as SurveyResponse);
+    expect(joueurSeul).toMatchObject({ value: 'present', confirmed: false });
+  });
+
   it('uses the parent confirmation as the official value', () => {
     const s = retainedStatus(resp({ confirmationParent: 'absent' }));
     expect(s.value).toBe('absent');

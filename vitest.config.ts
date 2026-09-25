@@ -248,11 +248,28 @@ export default defineConfig({
       // les branches (408 → 407, `StatsPage` sans équipe). Mesures :
       // statements 1606/2058 → 2046/2498, branches 1275/1683 → 1580/1987,
       // functions 567/778 → 668/879, lines 1455/1857 → 1852/2254.
+      // REMONTÉ le 25/09/2026 avec le compte joueur et les notifications push
+      // (mode supabase). Tout ce qui est ajouté est couvert — la page du
+      // joueur, le rattachement, l'aiguillage par rôle, la carte des
+      // invitations, le réglage push, `lib/push`, les appels du compte joueur,
+      // l'intention par RPC — et deux angles morts de `main` le sont enfin :
+      // `loadAllFromSupabase` (lecture de la base, désormais éprouvée avec sa
+      // RPC) et `signIn`. Les gardes qui sortent ce code d'un build LOCAL
+      // (conditions sur `import.meta.env`, repliées à la transformation) sont
+      // couvertes de leurs deux côtés : chaque module concerné est réévalué
+      // une fois comme dans ce build. La preuve : le nombre d'unités NON
+      // couvertes BAISSE sur les quatre axes (statements 452 → 424, branches
+      // 407 → 398, functions 211 → 204, lines 402 → 376). La partie serveur
+      // n'est pas mesurable ici : elle est prouvée par pgTAP
+      // (`supabase/tests/compte-joueur.test.sql`, `notifications-push.test.sql`).
+      // Mesures (poste, binaires au lockfile) : statements 2046/2498 →
+      // 2453/2877, branches 1580/1987 → 1921/2319, functions 668/879 →
+      // 792/996, lines 1852/2254 → 2226/2602.
       thresholds: {
-        statements: 81.9,
-        branches: 79.51,
-        functions: 75.99,
-        lines: 82.16,
+        statements: 85.26,
+        branches: 82.83,
+        functions: 79.51,
+        lines: 85.54,
       },
     },
   },
