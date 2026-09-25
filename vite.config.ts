@@ -66,6 +66,12 @@ export default defineConfig(({ command }) => {
             // téléchargée chez un visiteur qui refuse. C'est `preloadGzipKb`
             // qui le voit, jamais le total.
             if (norm.includes('/posthog-js/')) return 'posthog';
+            // Le générateur PDF du socle n'est tiré que par l'export PDF
+            // (`src/pdf/exportPdf.ts`), lui-même chargé par un `import()` au
+            // clic. Sans cette ligne il tomberait dans `vendor`, que les
+            // pages chargent d'emblée : payé à chaque ouverture pour un
+            // bouton pressé une fois par match. Même règle que miss-uwh.
+            if (norm.includes('/dev-pwa-config/pdf')) return 'pdf';
             if (
               norm.includes('/react-dom/') ||
               norm.includes('/node_modules/react/') ||

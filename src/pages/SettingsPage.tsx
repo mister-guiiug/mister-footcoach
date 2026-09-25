@@ -29,6 +29,7 @@ import {
 import { exportState, importState } from '../store/storage';
 import { BACKEND } from '../backend/config';
 import { DangerZoneCard } from '../components/features/settings/DangerZoneCard';
+import { ClubNameField } from '../components/features/settings/ClubNameField';
 import type { NotificationPreferences, ReminderDelay } from '../types';
 import { NOTIFICATION_CATEGORIES } from '../utils/notifications';
 import {
@@ -327,6 +328,7 @@ export default function SettingsPage() {
         <p className="text-sm font-semibold text-fg-heading mb-3">
           {t('settings.club')}
         </p>
+        <ClubNameField />
         <button
           onClick={() =>
             dispatch({

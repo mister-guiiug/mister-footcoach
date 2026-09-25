@@ -1079,7 +1079,9 @@ export const MOCK_DATA: AppData = {
   surveyResponses,
   notifications,
   notificationPreferences: {},
-  clubSettings: { autoSurveyOnMatch: true },
+  // Le club des données de démonstration : celui des adresses des comptes
+  // (`@fc-exemple.fr`) et de l'organisateur du tournoi maison.
+  clubSettings: { autoSurveyOnMatch: true, clubName: 'FC Exemple' },
   unavailabilities,
   injuries,
 };

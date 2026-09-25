@@ -232,11 +232,27 @@ export default defineConfig({
       // 1574/2080 → 1551/2057 (−23 dont −23 couverts), branches 1262/1685 →
       // 1252/1675 (−10 dont −10), functions 559/786 → 551/778 (−8 dont −8),
       // lines 1430/1876 → 1410/1856 (−20 dont −20).
+      // REMONTÉ le 25/09/2026 avec l'export PDF (feuille de match, rapport
+      // d'assiduité, nom du club dans les réglages). Deux mouvements, dits
+      // séparément parce qu'un seul est de cette branche.
+      // Le premier était déjà sur `main` : la CI y mesurait 78,03 / 75,75 /
+      // 72,87 / 78,35 (run 36066800092, et le poste, binaires au lockfile,
+      // rend les mêmes chiffres au centième sur ce commit) quand les seuils
+      // valaient encore 75,40 / 74,74 / 70,82 / 75,96 — le cliquet n'avait pas
+      // suivi les tests arrivés depuis le 20/09.
+      // Le second est l'export : `src/pdf/` et les trois composants qui
+      // l'appellent (bouton, carte du rapport, champ du nom du club) sont
+      // couverts à 100 % — statements, branches, functions — par 101 tests.
+      // La preuve, comme au 20/09 : le nombre d'unités NON couvertes ne bouge
+      // pas (statements 452, functions 211, lines 402) et baisse d'une pour
+      // les branches (408 → 407, `StatsPage` sans équipe). Mesures :
+      // statements 1606/2058 → 2046/2498, branches 1275/1683 → 1580/1987,
+      // functions 567/778 → 668/879, lines 1455/1857 → 1852/2254.
       thresholds: {
-        statements: 75.4,
-        branches: 74.74,
-        functions: 70.82,
-        lines: 75.96,
+        statements: 81.9,
+        branches: 79.51,
+        functions: 75.99,
+        lines: 82.16,
       },
     },
   },

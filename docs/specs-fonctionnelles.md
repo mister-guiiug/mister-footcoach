@@ -1657,7 +1657,24 @@ livraison, à mettre à jour au fil des développements.
 | Notifications in-app     | Événements principaux, préférences par utilisateur                  |
 | Authentification & rôles | Supabase Auth, rôles admin / coach / parent appliqués en base (RLS) |
 | Calendrier externe       | Export `.ics` **par fichier** — pas de flux d'abonnement (§ 13.5)   |
+| Export PDF               | Feuille de match et rapport d'assiduité — détail ci-dessous         |
 | Navigation               | PWA installable, français / anglais, thème clair / sombre           |
+
+**Export PDF.** Deux documents A4, dans la langue de l'application, partagés
+par la feuille de partage du système quand elle accepte les fichiers,
+téléchargés sinon :
+
+- **Feuille de match**, depuis l'écran d'un match : club (nom saisi dans les
+  paramètres) et équipe, adversaire, date, coup d'envoi, lieu, domicile /
+  extérieur, rendez-vous ; titulaires poste par poste selon la formation,
+  remplaçants, joueurs indisponibles le jour du match avec leur **seul motif**
+  (ni note, ni nature de blessure : ce document circule, et les joueurs sont
+  mineurs) ; encadrement et zone de signatures ; score et buteurs si le match
+  est joué. La composition retenue est celle rattachée au match, sinon la plus
+  récente de l'équipe — le document dit laquelle, et sa date.
+- **Rapport d'assiduité**, depuis les statistiques d'une équipe, sur une
+  période (la saison par défaut) : par joueur, présences, absences, excusés,
+  séances saisies et taux, puis le total de l'équipe — en colonnes chiffrées.
 
 ### 21.2 Partiellement livré
 
@@ -1667,7 +1684,7 @@ livraison, à mettre à jour au fil des développements.
 | Calendrier externe     | Flux d'abonnement avec URL et token, au lieu d'un export ponctuel — § 13.5                                                                                              |
 | Notifications          | Rappels automatiques J-1 : aucune tâche planifiée n'existe (§ 16.1)                                                                                                     |
 | RGPD                   | Consentement tracé, export, import et **suppression de son compte** livrés ; suppression d'un joueur par l'admin et purge de fin de conservation non outillées (§ 18.4) |
-| Intégration fédération | Flux **simulé** pour démontrer le rapprochement ; pas d'API réelle branchée (PO-04)                                                                                     |
+| Intégration fédération | Flux **simulé** pour démontrer le rapprochement. Aucune API publique autorisée n'est connue du projet : le branchement réel attend un accès, pas du code (PO-04)        |
 | Photos de joueurs      | Champ prévu au modèle, stockage de fichiers non branché                                                                                                                 |
 
 ### 21.3 Évolutions ultérieures
@@ -1681,7 +1698,6 @@ livraison, à mettre à jour au fil des développements.
 | Analyse tactique            | Annotations, schémas dessinés                            |
 | Application native          | Publication iOS / Android                                |
 | Multi-club                  | Gestion de plusieurs clubs depuis un seul compte admin   |
-| Export PDF                  | Feuille de match, rapport d'assiduité                    |
 | Estimation de trajet        | Durée et distance — nécessiterait une API tierce (PO-16) |
 
 ---

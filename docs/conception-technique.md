@@ -161,7 +161,9 @@ mister-footcoach/
 │   └── migrations/
 │       ├── 0001_schema.sql          # 24 tables + 21 index (source de vérité)
 │       ├── 0002_rls.sql             # Row Level Security + fonctions d'aide
-│       └── 0003_seed.sql            # Jeu de données minimal
+│       ├── 0003_seed.sql            # Jeu de données minimal
+│       ├── 0004_supprimer_son_compte.sql # delete_my_account() (§ 8.5)
+│       └── 0005_nom_du_club.sql     # club_settings."clubName" (§ 6.5)
 │
 ├── src/
 │   ├── main.tsx                     # Point d'entrée — chaîne de providers
@@ -202,8 +204,8 @@ mister-footcoach/
 │   │   │   ├── Spinner.tsx
 │   │   │   └── Toast.tsx
 │   │   └── features/                # Dialogues et sections métier
-│   │       ├── contacts/  exercises/  logistics/  matches/
-│   │       └── players/   surveys/    tournaments/ trainings/
+│   │       ├── contacts/  exercises/  export/      logistics/  matches/
+│   │       └── players/   settings/   surveys/     tournaments/ trainings/
 │   │
 │   ├── pages/                       # 18 pages (Dashboard, Teams, Matches,
 │   │                                # MatchLive, Trainings, Lineup, Tournaments,
@@ -213,6 +215,9 @@ mister-footcoach/
 │   ├── i18n/
 │   │   ├── index.ts                 # createI18n famille — locales fr / en
 │   │   └── messages.ts              # Catalogue de traductions
+│   │
+│   ├── pdf/                         # Export PDF : fabriques pures, mise en
+│   │                                # page, livraison (§ 6.5)
 │   │
 │   ├── theme/
 │   │   └── ThemeContext.tsx         # Clair / Sombre / Système
@@ -272,7 +277,7 @@ mister-footcoach/
 ## 4. Backend Supabase (Postgres)
 
 Le backend n'est **pas** du code applicatif : c'est un schéma Postgres, un jeu
-de politiques RLS et l'API REST/Realtime générée par Supabase. Les trois
+de politiques RLS et l'API REST/Realtime générée par Supabase. Les
 migrations de `supabase/migrations/` constituent la totalité du backend
 versionné. La procédure d'installation (création du projet, application des
 migrations, rattachement du compte auth) est décrite dans
@@ -343,6 +348,11 @@ Les tables couvrent : `clubs`, `seasons`, `users`, `teams`, `players`,
 > La colonne `players."photoStorageId"` existe dans le schéma mais **Supabase
 > Storage n'est pas encore branché** : aucun upload ni URL signée n'est
 > implémenté côté client (cf. § 11.4).
+
+> `club_settings."clubName"` n'est pas dans `0001` : elle vient de
+> `0005_nom_du_club.sql`, pour le nom du club imprimé en tête des exports PDF
+> (§ 6.5). Le client ne lit pas la table `clubs` ; la migration recopie son
+> nom dans le réglage, sans rien écraser.
 
 ### 4.2 Lecture — hydratation complète
 
@@ -706,7 +716,7 @@ résultat sans le dire, par son `throw` qui rendait `createClient(…)`
 inatteignable.
 
 Les étapes complètes (création du projet en région Frankfurt, application des
-trois migrations, rattachement du compte auth au profil `users`) sont dans
+migrations, rattachement du compte auth au profil `users`) sont dans
 [`docs/supabase.md`](./supabase.md).
 
 ---
@@ -857,6 +867,43 @@ de stockage `mister_footcoach_theme` et `attribute: 'class'` —, qui pose la
 classe `dark` sur `<html>` ; un script inline dans `index.html` lit la même clé
 et applique le thème avant le premier rendu pour éviter le flash (son hash
 SHA-256 est repris dans la CSP, § 9.1).
+
+### 6.5 Export PDF (`src/pdf/`)
+
+La feuille de match (écran d'un match) et le rapport d'assiduité (statistiques
+d'une équipe) sont fabriqués **dans le navigateur**, en mode `local` comme en
+mode `supabase` : ils ne lisent que l'état déjà chargé.
+
+Le générateur est le module **`pdf` du socle**
+(`@mister-guiiug/dev-pwa-config/pdf`), sans dépendance : rectangles, traits et
+texte Helvetica sur A4. **Pas de jsPDF**, que la version précédente de ce
+document prévoyait. Ce que le socle ne fait pas — retour à la ligne,
+pagination, pied de page — est dans `src/pdf/render.ts`.
+
+| Fichier                                | Rôle                                                                                     |
+| -------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `matchSheet.ts`, `attendanceReport.ts` | Fabriques **pures** : données → `PdfDocument` (titres, champs, tableaux)                 |
+| `document.ts`                          | Le modèle intermédiaire, testé sans relire d'octets                                      |
+| `render.ts`                            | Mise en page : ligne de tableau jamais coupée, en-tête répété, titre gardé avec la suite |
+| `text.ts`                              | Encodage WinAnsi, dates en toutes lettres, noms de fichier                               |
+| `deliver.ts`                           | `navigator.share` avec le fichier quand `canShare` l'accepte, téléchargement sinon       |
+| `exportPdf.ts`                         | L'entrée, chargée par `import()` au clic                                                 |
+
+Trois contraintes structurent le module :
+
+- **Encodage.** Le socle écrit en WinAnsi (CP1252) et remplace tout autre
+  caractère par « ? ». Les libellés imprimés (groupe `pdf` de l'i18n) s'y
+  tiennent, ce qu'un test vérifie dans les deux langues ; les saisies passent
+  par `toPdfText` : accents conservés, émojis retirés, lettre d'une autre
+  écriture rendue « ? ».
+- **Données de mineurs.** D'une indisponibilité, seul le motif est imprimé ;
+  la fabrique ne reçoit pas les suivis de blessure, et ne lit ni note, ni
+  coordonnée.
+- **Poids.** Le générateur a son morceau `pdf` (§ 11.1) et `src/pdf/` n'est
+  importé que dynamiquement : rien n'entre dans le chemin critique.
+
+Le nom du club imprimé en tête vient de `ClubSettings.clubName`, saisi dans les
+paramètres ; en base, la colonne `club_settings."clubName"` (migration `0005`).
 
 ---
 
@@ -1469,6 +1516,11 @@ build: {
 },
 ```
 
+L'extrait omet les morceaux mis à l'écart du chargement initial : `sentry` et
+`posthog` (chargés après coup), et `pdf` — le générateur du socle, que seul
+l'export PDF tire, par un `import()` au clic (§ 6.5). Sans sa ligne, il
+tomberait dans `vendor`, chargé d'emblée.
+
 L'analyse du bundle est disponible à la demande via
 `npm run build:analyze` (`ANALYZE=1` active `rollup-plugin-visualizer`, qui écrit
 `dist/stats.html`).
@@ -1706,6 +1758,7 @@ activer côté Supabase si le besoin apparaît.
 | Sondages de présence                      | Intention joueur / confirmation tuteur, divergences                   |
 | Logistique des déplacements               | Point de RDV + covoiturage                                            |
 | Flux iCal                                 | Génération RFC 5545 **côté client** (`src/utils/ical.ts`)             |
+| Export PDF                                | Module `pdf` du socle, **pas jsPDF** ; chargé au clic (§ 6.5)         |
 | Backend Supabase                          | Schéma, RLS, seed, realtime, persistance (§ 4)                        |
 | Authentification                          | Supabase Auth + `AuthGate`, rôles admin / coach / parent              |
 | Supprimer son compte                      | `delete_my_account()` + « Zone dangereuse », prouvée en pgTAP (§ 8.5) |
@@ -1730,13 +1783,12 @@ activer côté Supabase si le besoin apparaît.
 
 ### 14.3 Évolutions futures
 
-| Tâche                         | Détail                                               |
-| ----------------------------- | ---------------------------------------------------- |
-| Notifications Push PWA        | VAPID + Web Push API                                 |
-| Intégration fédération réelle | Remplace le flux simulé de `src/data/federation.ts`  |
-| Compte joueur                 | Saisie de l'intention de sondage en direct           |
-| Export PDF                    | jsPDF côté client                                    |
-| Merge realtime ligne à ligne  | Éviter la réhydratation complète à chaque changement |
+| Tâche                         | Détail                                                                                                                                                                                         |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Notifications Push PWA        | VAPID + Web Push API                                                                                                                                                                           |
+| Intégration fédération réelle | **Bloquée par l'accès, pas par le code.** Aucune API publique autorisée n'est connue du projet : aucune ligne de code ne la débloque. Le flux de `src/data/federation.ts` reste simulé (PO-04) |
+| Compte joueur                 | Saisie de l'intention de sondage en direct                                                                                                                                                     |
+| Merge realtime ligne à ligne  | Éviter la réhydratation complète à chaque changement                                                                                                                                           |
 
 ---
 

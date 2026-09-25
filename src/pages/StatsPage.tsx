@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader } from '@mister-guiiug/dev-pwa-config/react/card';
 import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
+import { AttendanceReportCard } from '../components/features/export/AttendanceReportCard';
 import { useTeams, usePlayers, useAppContext } from '../store/AppContext';
 import { computeTeamStats, computePlayerStats } from '../utils/stats';
 import { useI18n } from '../i18n';
@@ -12,6 +13,7 @@ export default function StatsPage() {
   const { state } = useAppContext();
   const [teamId, setTeamId] = useState(teams[0]?.id ?? '');
   const players = usePlayers(teamId);
+  const selectedTeam = teams.find(x => x.id === teamId);
 
   const teamStats = computeTeamStats(
     teamId,
@@ -84,6 +86,11 @@ export default function StatsPage() {
           </span>
         </div>
       </Card>
+
+      {/* Rapport d'assiduité en PDF (specs § 21.1), pour l'équipe filtrée.
+          La période choisie survit à un changement d'équipe : comparer deux
+          équipes sur les mêmes dates est l'usage attendu. */}
+      {selectedTeam && <AttendanceReportCard team={selectedTeam} />}
 
       {/* Top scorers */}
       {teamStats.topScorers.length > 0 && (
