@@ -249,18 +249,23 @@ export default function MatchLivePage() {
           <div className="flex-1">
             <p className="text-xs text-fg-muted mb-1">{usHome}</p>
             <div className="flex items-center justify-center gap-2">
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="sm"
+                iconOnly
+                aria-label={t('live.scoreDown', { team: usHome })}
                 onClick={() => setScoreHome(v => Math.max(0, v - 1))}
-                className="touch-target rounded-full border border-border-ui flex items-center justify-center hover:bg-surface-muted"
               >
                 <Minus size={14} />
-              </button>
+              </Button>
               <span className="text-4xl font-bold text-fg-heading w-12 text-center">
                 {scoreHome}
               </span>
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="sm"
+                iconOnly
+                aria-label={t('live.scoreUp', { team: usHome })}
                 onClick={() => {
                   const v = scoreHome + 1;
                   setScoreHome(v);
@@ -271,10 +276,9 @@ export default function MatchLivePage() {
                     scoreAway,
                   });
                 }}
-                className="touch-target rounded-full border border-border-ui flex items-center justify-center hover:bg-surface-muted"
               >
                 <Plus size={14} />
-              </button>
+              </Button>
             </div>
           </div>
           <div className="flex flex-col items-center">
@@ -284,18 +288,23 @@ export default function MatchLivePage() {
           <div className="flex-1">
             <p className="text-xs text-fg-muted mb-1">{usAway}</p>
             <div className="flex items-center justify-center gap-2">
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="sm"
+                iconOnly
+                aria-label={t('live.scoreDown', { team: usAway })}
                 onClick={() => setScoreAway(v => Math.max(0, v - 1))}
-                className="touch-target rounded-full border border-border-ui flex items-center justify-center hover:bg-surface-muted"
               >
                 <Minus size={14} />
-              </button>
+              </Button>
               <span className="text-4xl font-bold text-fg-heading w-12 text-center">
                 {scoreAway}
               </span>
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="sm"
+                iconOnly
+                aria-label={t('live.scoreUp', { team: usAway })}
                 onClick={() => {
                   const v = scoreAway + 1;
                   setScoreAway(v);
@@ -306,10 +315,9 @@ export default function MatchLivePage() {
                     scoreAway: v,
                   });
                 }}
-                className="touch-target rounded-full border border-border-ui flex items-center justify-center hover:bg-surface-muted"
               >
                 <Plus size={14} />
-              </button>
+              </Button>
             </div>
           </div>
         </div>

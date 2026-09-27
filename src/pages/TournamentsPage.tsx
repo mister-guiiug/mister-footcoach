@@ -85,17 +85,19 @@ export default function TournamentsPage() {
                         {t(`tournamentStatus.${tournament.status}`)}
                       </Badge>
                     </div>
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      iconOnly
                       onClick={() => {
                         setEditing(tournament);
                         setFormOpen(true);
                       }}
                       aria-label={t('tournaments.editAria')}
-                      className="touch-target flex flex-shrink-0 items-center justify-center rounded-lg text-fg-faint hover:bg-surface-muted hover:text-primary"
+                      className="flex-shrink-0"
                     >
                       <Pencil size={14} />
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="space-y-1.5 text-sm">
