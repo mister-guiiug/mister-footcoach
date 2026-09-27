@@ -53,7 +53,7 @@ Les joueurs sont souvent mineurs : ne notez que ce qui sert au suivi sportif. Un
 
 ## Comment Mister Footcoach vous aide
 
-Mister Footcoach est une application web gratuite pour l'entraîneur d'une équipe de football. Au premier lancement, elle affiche une **saison de démonstration fictive**, avec deux équipes U13 inventées, pour découvrir les écrans : ces données ne sont pas réelles.
+[Mister Footcoach](https://mister-guiiug.github.io/mister-footcoach/) est une application web gratuite pour l'entraîneur d'une équipe de football. Au premier lancement, elle affiche une **saison de démonstration fictive**, avec deux équipes U13 inventées, pour découvrir les écrans : ces données ne sont pas réelles.
 
 - **Une feuille de présence par entraînement** : chaque joueur passe de présent à absent, puis à excusé, d'un toucher.
 - **Des entraînements planifiés d'avance**, répétés chaque semaine si vous le souhaitez, avec un contenu de séance en blocs et une bibliothèque d'exercices.
