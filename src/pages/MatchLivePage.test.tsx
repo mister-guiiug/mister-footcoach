@@ -56,17 +56,10 @@ describe('MatchLivePage', () => {
       initialPath: '/matchs/m1/live',
       routePattern: '/matchs/:id/live',
     });
-    // Find minus buttons and click - on home score (starts at 0)
-    const buttons = document.querySelectorAll('button');
-    // First minus button (Minus icon) decrements home score
-    const minusButtons = Array.from(buttons).filter(
-      b => b.classList.contains('rounded-full') && b.querySelector('svg')
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Retirer un point à U13 A' })
     );
-    if (minusButtons[0]) {
-      await userEvent.click(minusButtons[0]);
-      // Score should still be 0
-      expect(screen.getAllByText('0').length).toBeGreaterThan(0);
-    }
+    expect(screen.getAllByText('0').length).toBeGreaterThan(0);
   });
 
   it('clicking event button "But" selects it', async () => {
@@ -228,15 +221,10 @@ describe('MatchLivePage', () => {
       initialPath: '/matchs/m1/live',
       routePattern: '/matchs/:id/live',
     });
-    // Find plus buttons by looking for rounded-full buttons containing svg
-    const roundedBtns = Array.from(
-      document.querySelectorAll('button.rounded-full')
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Ajouter un point à U13 A' })
     );
-    // First two are home score: [minus, plus], next two are away score: [minus, plus]
-    if (roundedBtns[1]) {
-      await userEvent.click(roundedBtns[1] as HTMLElement);
-      expect(screen.getByText('1')).toBeInTheDocument();
-    }
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 
   it('away score manual + button increments', async () => {
@@ -244,13 +232,10 @@ describe('MatchLivePage', () => {
       initialPath: '/matchs/m1/live',
       routePattern: '/matchs/:id/live',
     });
-    const roundedBtns = Array.from(
-      document.querySelectorAll('button.rounded-full')
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Ajouter un point à FC Rivale' })
     );
-    if (roundedBtns[3]) {
-      await userEvent.click(roundedBtns[3] as HTMLElement);
-      expect(screen.getByText('1')).toBeInTheDocument();
-    }
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 
   it('validates a but event on away match increments away score', async () => {
@@ -327,14 +312,11 @@ describe('MatchLivePage', () => {
       initialPath: '/matchs/m2/live',
       routePattern: '/matchs/:id/live',
     });
-    const roundedBtns = Array.from(
-      document.querySelectorAll('button.rounded-full')
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Retirer un point à U13 A' })
     );
-    if (roundedBtns[2]) {
-      await userEvent.click(roundedBtns[2] as HTMLElement);
-      // scoreAway was 3 for m2, should decrease to 2
-      expect(screen.getAllByText('2').length).toBeGreaterThan(0);
-    }
+    // scoreAway was 3 for m2, should decrease to 2
+    expect(screen.getAllByText('2').length).toBeGreaterThan(0);
   });
 
   it('renders the chronometer and toggles it (§7.5.4)', async () => {
