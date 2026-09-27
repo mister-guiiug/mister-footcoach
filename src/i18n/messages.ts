@@ -256,6 +256,8 @@ export const messages = {
       btnSub: 'Rempl.',
       btnInjury: 'Blessure',
       btnHalf: 'Mi-temps',
+      scoreDown: 'Retirer un point à {team}',
+      scoreUp: 'Ajouter un point à {team}',
     },
     trainings: {
       title: 'Entraînements',
@@ -1083,6 +1085,8 @@ export const messages = {
       btnSub: 'Sub',
       btnInjury: 'Injury',
       btnHalf: 'Half-time',
+      scoreDown: 'Remove a point from {team}',
+      scoreUp: 'Add a point to {team}',
     },
     trainings: {
       title: 'Training',
