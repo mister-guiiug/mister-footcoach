@@ -1,17 +1,26 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronRight, AlertTriangle, Plus, Download } from 'lucide-react';
+import {
+  ChevronRight,
+  AlertTriangle,
+  Plus,
+  Download,
+  Pencil,
+} from 'lucide-react';
 import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
 import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { EmptyState } from '@mister-guiiug/dev-pwa-config/react/empty-state';
 import { PlayerFormDialog } from '../components/features/players/PlayerFormDialog';
+import { TeamFormDialog } from '../components/features/teams/TeamFormDialog';
 import {
   useTeam,
   usePlayers,
+  useInactivePlayers,
   useMatches,
   useTrainings,
   useUnavailabilities,
   useTournaments,
+  useAppContext,
 } from '../store/AppContext';
 import {
   formatDateShort,
@@ -82,7 +91,10 @@ export default function TeamDetailPage() {
   const trainings = useTrainings(id);
   const unavailabilities = useUnavailabilities();
   const tournaments = useTournaments();
+  const inactivePlayers = useInactivePlayers(id!);
+  const { dispatch } = useAppContext();
   const [playerFormOpen, setPlayerFormOpen] = useState(false);
+  const [teamFormOpen, setTeamFormOpen] = useState(false);
 
   function exportICal() {
     const tournamentName = (tid?: string) =>
@@ -130,14 +142,29 @@ export default function TeamDetailPage() {
             {team.name.charAt(0)}
           </span>
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-fg-heading">{team.name}</h1>
           <p className="text-sm text-fg-muted">
             {team.category} ·{' '}
             {t('teams.playersCount', { count: players.length })}
           </p>
         </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => setTeamFormOpen(true)}
+        >
+          <Pencil size={14} /> {t('common.edit')}
+        </Button>
       </div>
+
+      {teamFormOpen && (
+        <TeamFormDialog
+          open
+          onClose={() => setTeamFormOpen(false)}
+          team={team}
+        />
+      )}
 
       {playerFormOpen && (
         <PlayerFormDialog
@@ -220,6 +247,41 @@ export default function TeamDetailPage() {
           }
         </Card>
       </section>
+
+      {/* Joueurs retirés : leur historique reste, on peut les réintégrer. */}
+      {inactivePlayers.length > 0 && (
+        <section>
+          <h2 className="text-sm font-semibold text-fg-heading mb-2">
+            {t('teams.removedPlayers')}
+          </h2>
+          <Card padding={false}>
+            <ul className="divide-y divide-border-ui">
+              {inactivePlayers.map(player => (
+                <li
+                  key={player.id}
+                  className="flex items-center justify-between gap-3 px-4 py-3"
+                >
+                  <span className="text-sm text-fg-muted truncate">
+                    {player.firstName} {player.lastName}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() =>
+                      dispatch({
+                        type: 'UPDATE_PLAYER',
+                        player: { ...player, active: true },
+                      })
+                    }
+                  >
+                    {t('players.reinstate')}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </section>
+      )}
 
       {/* Upcoming matches */}
       {upcomingMatches.length > 0 && (

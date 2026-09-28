@@ -7,10 +7,13 @@ import {
   CalendarOff,
   Plus,
   Download,
+  UserMinus,
+  UserPlus,
 } from 'lucide-react';
 import { Card, CardHeader } from '@mister-guiiug/dev-pwa-config/react/card';
 import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
 import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
+import { ConfirmDialog } from '@mister-guiiug/dev-pwa-config/react/confirm-dialog';
 import { EmptyState } from '@mister-guiiug/dev-pwa-config/react/empty-state';
 import { PlayerFormDialog } from '../components/features/players/PlayerFormDialog';
 import { UnavailabilityFormDialog } from '../components/features/players/UnavailabilityFormDialog';
@@ -49,6 +52,7 @@ export default function PlayerDetailPage() {
   const [unavailOpen, setUnavailOpen] = useState(false);
   const [injuryOpen, setInjuryOpen] = useState(false);
   const [editingInjury, setEditingInjury] = useState<Injury | undefined>();
+  const [removeOpen, setRemoveOpen] = useState(false);
 
   if (!player) {
     return (
@@ -116,6 +120,9 @@ export default function PlayerDetailPage() {
               {player.firstName} {player.lastName}
             </h1>
             {player.number && <Badge tone="brand">#{player.number}</Badge>}
+            {!player.active && (
+              <Badge tone="muted">{t('players.removed')}</Badge>
+            )}
           </div>
           <p className="text-sm text-fg-muted mt-0.5">
             {t(`position.${player.preferredPosition}`)} ·{' '}
@@ -206,6 +213,50 @@ export default function PlayerDetailPage() {
       >
         <Download size={15} /> {t('players.exportRgpd')}
       </Button>
+
+      {/* Retirer de l'effectif, RÉVERSIBLE (décision du propriétaire,
+          28/09/2026) : le joueur passe inactif, quitte les listes et les
+          feuilles de présence, et garde son historique. On le réintègre ici
+          ou depuis la fiche de son équipe. */}
+      {player.active ? (
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => setRemoveOpen(true)}
+        >
+          <UserMinus size={15} /> {t('players.remove')}
+        </Button>
+      ) : (
+        <Button
+          variant="secondary"
+          className="w-full"
+          onClick={() =>
+            dispatch({
+              type: 'UPDATE_PLAYER',
+              player: { ...player, active: true },
+            })
+          }
+        >
+          <UserPlus size={15} /> {t('players.reinstate')}
+        </Button>
+      )}
+      <ConfirmDialog
+        open={removeOpen}
+        title={t('players.removeConfirmTitle', {
+          name: `${player.firstName} ${player.lastName}`,
+        })}
+        message={t('players.removeConfirmBody')}
+        confirmLabel={t('players.remove')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={() => {
+          dispatch({
+            type: 'UPDATE_PLAYER',
+            player: { ...player, active: false },
+          });
+          setRemoveOpen(false);
+        }}
+        onCancel={() => setRemoveOpen(false)}
+      />
 
       {/* Unavailability alert */}
       {activeUnavail && (
