@@ -7,6 +7,7 @@ import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { EmptyState } from '@mister-guiiug/dev-pwa-config/react/empty-state';
 import { TrainingFormDialog } from '../components/features/trainings/TrainingFormDialog';
 import { TrainingBlocksSection } from '../components/features/trainings/TrainingBlocksSection';
+import { AttendanceSheet } from '../components/features/attendance/AttendanceSheet';
 import {
   useTraining,
   useTeam,
@@ -15,24 +16,8 @@ import {
   useTrainings,
   useAppContext,
 } from '../store/AppContext';
-import { type AttendanceStatus } from '../types';
 import { formatDateFull, isUpcoming } from '../utils/date';
 import { useI18n } from '../i18n';
-
-const attendanceTone: Record<
-  AttendanceStatus,
-  'success' | 'danger' | 'warning'
-> = {
-  present: 'success',
-  absent: 'danger',
-  excuse: 'warning',
-};
-
-const nextStatus: Record<AttendanceStatus, AttendanceStatus> = {
-  present: 'absent',
-  absent: 'excuse',
-  excuse: 'present',
-};
 
 export default function TrainingDetailPage() {
   const { t } = useI18n();
@@ -78,25 +63,6 @@ export default function TrainingDetailPage() {
       relatedType: 'training',
     });
   }
-
-  function toggleAttendance(playerId: string) {
-    const existing = attendances.find(a => a.playerId === playerId);
-    const currentStatus: AttendanceStatus = existing?.status ?? 'present';
-    dispatch({
-      type: 'SET_ATTENDANCE',
-      attendance: {
-        id: existing?.id ?? `att-${Date.now()}-${playerId}`,
-        sessionType: 'training',
-        sessionId: id!,
-        playerId,
-        status: nextStatus[currentStatus],
-      },
-    });
-  }
-
-  const presentCount = attendances.filter(a => a.status === 'present').length;
-  const absentCount = attendances.filter(a => a.status === 'absent').length;
-  const excuseCount = attendances.filter(a => a.status === 'excuse').length;
 
   return (
     <div className="px-4 py-4 space-y-4">
@@ -187,56 +153,14 @@ export default function TrainingDetailPage() {
       {/* Session content (specs §8.5) */}
       <TrainingBlocksSection trainingId={id!} />
 
-      {/* Attendance summary */}
-      {attendances.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
-          <Card className="text-center">
-            <p className="text-xl font-bold text-green-600">{presentCount}</p>
-            <p className="text-xs text-fg-muted">{t('trainings.present')}</p>
-          </Card>
-          <Card className="text-center">
-            <p className="text-xl font-bold text-red-600">{absentCount}</p>
-            <p className="text-xs text-fg-muted">{t('trainings.absent')}</p>
-          </Card>
-          <Card className="text-center">
-            <p className="text-xl font-bold text-amber-600">{excuseCount}</p>
-            <p className="text-xs text-fg-muted">{t('trainings.excused')}</p>
-          </Card>
-        </div>
-      )}
-
       {/* Player attendance */}
-      <Card padding={false}>
-        <div className="px-4 py-3 border-b border-border-ui">
-          <h3 className="text-sm font-semibold text-fg-heading">
-            {t('trainings.attendanceSheet')}
-          </h3>
-          <p className="text-xs text-fg-muted mt-0.5">
-            {t('trainings.tapToChange')}
-          </p>
-        </div>
-        <ul className="divide-y divide-border-ui">
-          {players.map(player => {
-            const att = attendances.find(a => a.playerId === player.id);
-            const status: AttendanceStatus = att?.status ?? 'present';
-            return (
-              <li key={player.id}>
-                <button
-                  onClick={() => toggleAttendance(player.id)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-muted transition-colors"
-                >
-                  <span className="text-sm text-fg">
-                    {player.firstName} {player.lastName}
-                  </span>
-                  <Badge tone={attendanceTone[status]}>
-                    {t(`attendance.${status}`)}
-                  </Badge>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </Card>
+      <AttendanceSheet
+        sessionType="training"
+        sessionId={id!}
+        title={t('trainings.attendanceSheet')}
+        players={players}
+        attendances={attendances}
+      />
     </div>
   );
 }

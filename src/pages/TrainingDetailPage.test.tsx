@@ -1,8 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderAtRoute } from '../test/helpers';
 import TrainingDetailPage from './TrainingDetailPage';
+
+/** The figure shown above a counter label of the attendance sheet. */
+function counter(label: string): string | null | undefined {
+  return screen.getByText(label, { selector: 'p' }).previousElementSibling
+    ?.textContent;
+}
 
 describe('TrainingDetailPage', () => {
   beforeEach(() => localStorage.clear());
@@ -63,21 +69,61 @@ describe('TrainingDetailPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('cycles attendance status on player click', async () => {
+  it('cycles attendance status on player click, starting from « Non saisi »', async () => {
     renderAtRoute(<TrainingDetailPage />, {
       initialPath: '/entrainements/tr1',
       routePattern: '/entrainements/:id',
     });
-    // Click Lucas to cycle: present → absent
+    const lucasBtn = screen.getByText('Lucas Dupont').closest('button')!;
+    // tr1 has no attendance: nothing is shown as present.
+    expect(within(lucasBtn).getByText('Non saisi')).toBeInTheDocument();
+    // Non saisi → présent (it used to jump straight to absent)
+    await userEvent.click(lucasBtn);
+    expect(within(lucasBtn).getByText('Présent')).toBeInTheDocument();
+    // présent → absent → excusé → présent
+    await userEvent.click(lucasBtn);
+    expect(within(lucasBtn).getByText('Absent')).toBeInTheDocument();
+    await userEvent.click(lucasBtn);
+    expect(within(lucasBtn).getByText('Excusé')).toBeInTheDocument();
+    await userEvent.click(lucasBtn);
+    expect(within(lucasBtn).getByText('Présent')).toBeInTheDocument();
+  });
+
+  it('shows unrecorded players as « Non saisi », counted apart', () => {
+    renderAtRoute(<TrainingDetailPage />, {
+      initialPath: '/entrainements/tr1',
+      routePattern: '/entrainements/:id',
+    });
+    const rows = screen.getAllByRole('listitem');
+    expect(rows.length).toBe(11);
+    expect(screen.queryAllByText('Présent')).toHaveLength(0);
+    expect(screen.getAllByText('Non saisi')).toHaveLength(11);
+    expect(counter('Non saisis')).toBe('11');
+    expect(counter('Présents')).toBe('0');
+  });
+
+  it('marks the others present in one gesture, after the absentees', async () => {
+    renderAtRoute(<TrainingDetailPage />, {
+      initialPath: '/entrainements/tr1',
+      routePattern: '/entrainements/:id',
+    });
+    // The coach taps only the absentee: présent, then absent.
     const lucasBtn = screen.getByText('Lucas Dupont').closest('button')!;
     await userEvent.click(lucasBtn);
-    expect(screen.getByText('Absent')).toBeInTheDocument();
-    // Click again: absent → excusé
     await userEvent.click(lucasBtn);
-    expect(screen.getByText('Excusé')).toBeInTheDocument();
-    // Click again: excusé → présent
-    await userEvent.click(lucasBtn);
-    expect(screen.getAllByText('Présent').length).toBeGreaterThan(0);
+    expect(within(lucasBtn).getByText('Absent')).toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Marquer les autres présents (10)' })
+    );
+    expect(counter('Présents')).toBe('10');
+    expect(counter('Absents')).toBe('1');
+    expect(counter('Non saisis')).toBe('0');
+    expect(within(lucasBtn).getByText('Absent')).toBeInTheDocument();
+    // Nothing left to mark: the button goes away.
+    expect(
+      screen.queryByRole('button', { name: /Marquer les autres présents/ })
+    ).not.toBeInTheDocument();
   });
 
   it('toggles existing attendance status', async () => {
