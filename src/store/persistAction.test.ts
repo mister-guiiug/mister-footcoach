@@ -70,6 +70,21 @@ describe('persistAction routing', () => {
     expect(calls).toEqual([['upsert', 'matches', { id: 'm1' }]]);
   });
 
+  it('upserts a team on ADD_TEAM and on UPDATE_TEAM', async () => {
+    await persistAction(
+      { type: 'ADD_TEAM', team: { id: 't9' } as never },
+      state
+    );
+    await persistAction(
+      { type: 'UPDATE_TEAM', team: { id: 't9', name: 'U15' } as never },
+      state
+    );
+    expect(calls).toEqual([
+      ['upsert', 'teams', { id: 't9' }],
+      ['upsert', 'teams', { id: 't9', name: 'U15' }],
+    ]);
+  });
+
   it('deletes a contact on DELETE_CONTACT', async () => {
     await persistAction({ type: 'DELETE_CONTACT', contactId: 'c1' }, state);
     expect(calls).toEqual([['delete', 'contacts', 'id', 'c1']]);

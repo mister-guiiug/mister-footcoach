@@ -15,6 +15,7 @@ import {
 } from '../store/AppContext';
 import { type MatchEventType, type PositionHistory } from '../types';
 import { genId } from '../utils/id';
+import { ATTENDANCE_ANCHOR } from '../utils/attendance';
 import { useI18n } from '../i18n';
 
 export default function MatchLivePage() {
@@ -485,7 +486,9 @@ export default function MatchLivePage() {
             trackEvent(GESTES.PARTIE, { etape: 'terminee' });
             setIsLive(false);
           }
-          navigate(`/matchs/${id}`);
+          // Droit à la feuille de présence : le bouton promet la saisie, la
+          // fiche du match n'en avait aucune.
+          navigate(`/matchs/${id}#${ATTENDANCE_ANCHOR}`);
         }}
       >
         {t('live.closeAndRecord')}

@@ -48,6 +48,11 @@ export async function persistAction(
   state: AppState
 ): Promise<void> {
   switch (action.type) {
+    case 'ADD_TEAM':
+    case 'UPDATE_TEAM':
+      // RLS : `teams_admin`, les administrateurs du club.
+      await upsert('teams', action.team as unknown as Row);
+      return;
     case 'ADD_PLAYER':
     case 'UPDATE_PLAYER':
       await upsert('players', action.player as unknown as Row);

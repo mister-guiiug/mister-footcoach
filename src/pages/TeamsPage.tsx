@@ -1,17 +1,37 @@
-import { Link } from 'react-router-dom';
-import { Users, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Users, ChevronRight, Plus } from 'lucide-react';
 import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
+import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
+import { TeamFormDialog } from '../components/features/teams/TeamFormDialog';
 import { useTeams, usePlayers } from '../store/AppContext';
 import { useI18n } from '../i18n';
 
 export default function TeamsPage() {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const teams = useTeams();
   const allPlayers = usePlayers();
+  const [formOpen, setFormOpen] = useState(false);
 
   return (
     <div className="px-4 py-4 space-y-4">
-      <h1 className="text-xl font-bold text-fg-heading">{t('teams.title')}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-fg-heading">
+          {t('teams.title')}
+        </h1>
+        <Button size="sm" variant="secondary" onClick={() => setFormOpen(true)}>
+          <Plus size={14} /> {t('teams.addTeam')}
+        </Button>
+      </div>
+
+      {formOpen && (
+        <TeamFormDialog
+          open
+          onClose={() => setFormOpen(false)}
+          onSaved={id => navigate(`/equipes/${id}`)}
+        />
+      )}
 
       <div className="space-y-3">
         {teams.map(team => {

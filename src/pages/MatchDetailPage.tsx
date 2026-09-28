@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import {
   MapPin,
   Clock,
@@ -17,6 +17,7 @@ import { MatchFormDialog } from '../components/features/matches/MatchFormDialog'
 import { MeetingPointDialog } from '../components/features/logistics/MeetingPointDialog';
 import { CarpoolSection } from '../components/features/logistics/CarpoolSection';
 import { PdfExportButton } from '../components/features/export/PdfExportButton';
+import { AttendanceSheet } from '../components/features/attendance/AttendanceSheet';
 import {
   useMatch,
   useMatchEvents,
@@ -25,7 +26,8 @@ import {
   useAttendances,
   useAppContext,
 } from '../store/AppContext';
-import { type MatchStatus, type AttendanceStatus } from '../types';
+import { type MatchStatus } from '../types';
+import { ATTENDANCE_ANCHOR } from '../utils/attendance';
 import { formatDateFull } from '../utils/date';
 import { googleMapsUrl, appleMapsUrl } from '../utils/maps';
 import { useI18n } from '../i18n';
@@ -41,15 +43,6 @@ const statusTone: Record<
   annule: 'danger',
 };
 
-const attendanceTone: Record<
-  AttendanceStatus,
-  'success' | 'danger' | 'warning'
-> = {
-  present: 'success',
-  absent: 'danger',
-  excuse: 'warning',
-};
-
 export default function MatchDetailPage() {
   const { t, localeTag } = useI18n();
   const { id } = useParams<{ id: string }>();
@@ -61,6 +54,14 @@ export default function MatchDetailPage() {
   const attendances = useAttendances('match', id!);
   const [editOpen, setEditOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
+  const { hash } = useLocation();
+
+  // Arrivée depuis « Clôturer et saisir l'assiduité » : la feuille, pas le
+  // haut de la fiche. `?.()` : jsdom n'implémente pas `scrollIntoView`.
+  useEffect(() => {
+    if (hash === `#${ATTENDANCE_ANCHOR}`)
+      document.getElementById(ATTENDANCE_ANCHOR)?.scrollIntoView?.();
+  }, [hash, match?.id]);
 
   if (!match) {
     return (
@@ -326,31 +327,18 @@ export default function MatchDetailPage() {
         </Card>
       )}
 
-      {/* Attendance */}
-      {attendances.length > 0 && (
-        <Card>
-          <CardHeader title={t('matches.attendance')} />
-          <div className="space-y-2">
-            {attendances.map(att => {
-              const player = players.find(p => p.id === att.playerId);
-              /* istanbul ignore next */
-              if (!player) return null;
-              return (
-                <div
-                  key={att.id}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span className="text-fg">
-                    {player.firstName} {player.lastName}
-                  </span>
-                  <Badge tone={attendanceTone[att.status]}>
-                    {t(`attendance.${att.status}`)}
-                  </Badge>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
+      {/* Attendance (specs §7.5.5). Elle ne s'écrivait qu'aux entraînements :
+          cette section ne faisait qu'AFFICHER des présences de match que rien
+          ne permettait de saisir. Un match annulé n'en a pas. */}
+      {match.status !== 'annule' && (
+        <AttendanceSheet
+          id={ATTENDANCE_ANCHOR}
+          sessionType="match"
+          sessionId={id!}
+          title={t('matches.attendance')}
+          players={players}
+          attendances={attendances}
+        />
       )}
     </div>
   );

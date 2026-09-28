@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import type {
+  Team,
   Player,
   Contact,
   Match,
@@ -48,6 +49,8 @@ export type { AppState };
 
 type Action =
   | { type: 'SET_SELECTED_TEAM'; teamId: string }
+  | { type: 'ADD_TEAM'; team: Team }
+  | { type: 'UPDATE_TEAM'; team: Team }
   | { type: 'ADD_PLAYER'; player: Player }
   | { type: 'UPDATE_PLAYER'; player: Player }
   | { type: 'ADD_CONTACT'; contact: Contact }
@@ -123,6 +126,19 @@ export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_SELECTED_TEAM':
       return { ...state, selectedTeamId: action.teamId };
+
+    // Créer et renommer une équipe : le magasin ne savait ni l'un ni l'autre, et
+    // l'app restait aux deux équipes du jeu de démonstration (25/09/2026).
+    case 'ADD_TEAM':
+      return { ...state, teams: [...state.teams, action.team] };
+
+    case 'UPDATE_TEAM':
+      return {
+        ...state,
+        teams: state.teams.map(t =>
+          t.id === action.team.id ? action.team : t
+        ),
+      };
 
     case 'ADD_PLAYER':
       return { ...state, players: [...state.players, action.player] };
@@ -570,6 +586,18 @@ export function usePlayers(teamId?: string) {
   return state.players.filter(
     p =>
       p.active && (p.primaryTeamId === teamId || p.secondaryTeamId === teamId)
+  );
+}
+
+/**
+ * Les joueurs RETIRÉS d'une équipe (`active: false`) : absents des listes et
+ * des feuilles, leur historique reste, et on peut les réintégrer.
+ */
+export function useInactivePlayers(teamId: string) {
+  const { state } = useAppContext();
+  return state.players.filter(
+    p =>
+      !p.active && (p.primaryTeamId === teamId || p.secondaryTeamId === teamId)
   );
 }
 
