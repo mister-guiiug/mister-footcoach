@@ -1,6 +1,12 @@
 import type { Attendance, AttendanceStatus } from '../types';
 
 /**
+ * L'ancre de la feuille de présence d'un match : « Clôturer et saisir
+ * l'assiduité », au direct, mène à `/matchs/:id#presences`.
+ */
+export const ATTENDANCE_ANCHOR = 'presences';
+
+/**
  * Le statut que donne un toucher sur la feuille de présence. Un joueur NON
  * SAISI devient présent : c'est le premier geste attendu. Il devenait absent
  * tant que l'écran affichait « Présent » pour un joueur qu'aucun
