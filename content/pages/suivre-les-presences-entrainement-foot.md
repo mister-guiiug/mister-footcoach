@@ -1,6 +1,9 @@
 ---
 title: Suivre les présences à l'entraînement de foot : la méthode
 description: Relever les présences à l'entraînement de foot en quelques minutes : trois statuts, un sondage avant la séance, un taux d'assiduité bien calculé.
+date: 2026-09-25
+updated: 2026-09-29
+answer: Pour suivre les présences à l'entraînement, faites l'appel à chaque séance avec trois statuts : présent, absent, excusé. Le taux de présence divise les présences par les séances relevées : 16 présences sur 20 séances donnent 80 %, ou 94 % si l'on retire du calcul les 3 absences excusées.
 ---
 
 # Suivre les présences à l'entraînement de foot
@@ -49,7 +52,7 @@ Décidez une fois pour toutes comment traiter les excusés. Si vous les laissez 
 
 Un taux faible ne dit pas pourquoi. Un problème de transport, un changement d'emploi du temps ou une perte de motivation se ressemblent dans un tableau. Le chiffre sert à ouvrir la discussion, pas à la conclure.
 
-Les joueurs sont souvent mineurs : ne notez que ce qui sert au suivi sportif. Un motif « blessure » suffit ; aucune donnée médicale n'a sa place dans un relevé de présences.
+Les joueurs sont souvent mineurs : ne notez que ce qui sert au suivi sportif. Si vous notez une blessure, tenez-vous-en à ce mot, sans diagnostic : pour la CNIL, une blessure mentionnée sur une feuille de match est déjà une donnée de santé, à ne collecter que si elle est strictement nécessaire. Aucune donnée médicale n'a sa place dans un relevé de présences. Dites aussi aux familles ce que vous notez : pour un adhérent mineur, la CNIL indique que l'information peut être donnée à l'enfant et à son représentant légal.
 
 ## Comment Mister Footcoach vous aide
 
@@ -59,7 +62,7 @@ Les joueurs sont souvent mineurs : ne notez que ce qui sert au suivi sportif. Un
 - **Des entraînements planifiés d'avance**, répétés chaque semaine si vous le souhaitez, avec un contenu de séance en blocs et une bibliothèque d'exercices.
 - **Des sondages de présence** par match ou par entraînement, avec une question, une date limite, les réponses de chaque joueur (présent, absent, incertain) et la liste de ceux qui n'ont pas répondu.
 - **Des statistiques d'assiduité** : taux de présence global et par joueur, et un rapport d'assiduité en PDF sur la période de votre choix.
-- **Les indisponibilités et les compositions** : motif et dates d'une indisponibilité, composition sur un schéma à 8 (2-3-2, 3-2-2, 3-3-1 ou 2-4-1), feuille de match en PDF.
+- **Les indisponibilités et les compositions** : motif et dates d'une indisponibilité, composition sur un schéma à 8 (2-3-2, 3-2-2, 3-3-1 ou 2-4-1), feuille de match en PDF. Le choix d'un système est détaillé dans [Composer une équipe de foot à 8](composer-une-equipe-de-foot-a-8.html).
 - **Vos données restent dans ce navigateur.** Un fichier d'export les sauvegarde et se réimporte, sur le même appareil ou sur un autre.
 
 ## Questions fréquentes
@@ -79,3 +82,8 @@ Non. Ce sont des données de démonstration, inventées pour montrer les écrans
 ### Où sont enregistrées les données ?
 
 Dans le navigateur de l'appareil que vous utilisez. Pensez à exporter régulièrement le fichier de sauvegarde, surtout avant de changer de téléphone.
+
+## Sources
+
+- [Dans quels cas et à quelles conditions des données de santé peuvent-elles être collectées sur les sportifs ?](https://www.cnil.fr/fr/sportifs-quels-cas-et-conditions-collecte-des-donnees-de-sante), CNIL : les blessures notées sur une feuille de match, et le principe de minimisation.
+- [Questions-réponses sur la protection des données dans le secteur du sport amateur](https://www.cnil.fr/fr/sport-amateur-hors-contrat/questions-reponses), CNIL : l'information des adhérents, mineurs compris.
