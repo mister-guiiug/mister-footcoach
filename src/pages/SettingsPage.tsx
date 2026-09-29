@@ -17,6 +17,8 @@ import { Badge } from '@mister-guiiug/dev-pwa-config/react/badge';
 import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { ConfirmDialog } from '@mister-guiiug/dev-pwa-config/react/confirm-dialog';
 import { AppFooter } from '@mister-guiiug/dev-pwa-config/react/app-footer';
+import { ConsentSection } from '@mister-guiiug/dev-pwa-config/react/consent-section';
+import { parsePosthogKey } from '@mister-guiiug/dev-pwa-config/analytics';
 import { repoUrl } from '@mister-guiiug/dev-pwa-config/apps-catalog';
 import { dateSlug, downloadText } from '@mister-guiiug/dev-pwa-config/download';
 import { useTheme } from '../theme/ThemeContext';
@@ -604,6 +606,20 @@ export default function SettingsPage() {
           }}
           onCancel={() => setResetPending(false)}
         />
+      )}
+
+      {/* Revenir sur son choix de mesure d’audience : le retrait se fait ici, en
+          un clic (RGPD, art. 7.3). Mêmes clé et chargeur que le bandeau. Sans
+          identifiant de mesure, la section ne rend rien : sa carte non plus. */}
+      {parsePosthogKey(import.meta.env.VITE_POSTHOG_KEY) && (
+        <Card>
+          <ConsentSection
+            posthogKey={import.meta.env.VITE_POSTHOG_KEY}
+            loader={() => import('posthog-js/dist/module.slim.js')}
+            className="gap-3"
+            titleClassName="text-sm font-semibold text-fg-heading"
+          />
+        </Card>
       )}
 
       {/* Zone dangereuse — mode Supabase seulement : sans compte, il n'y a
