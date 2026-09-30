@@ -11,7 +11,11 @@ import { UpdatePromptBanner } from '@mister-guiiug/dev-pwa-config/react/update-p
  *  - les libellés pris dans l'i18n de l'app, qui parle français ET anglais,
  *    alors que le socle ne retomberait que sur le français faute de
  *    `LabelsProvider` monté ici ;
- *  - le positionnement, seule chose que `components.css` ne fixe pas.
+ *  - le positionnement, seule chose que `components.css` ne fixe pas. Centré
+ *    par ses deux bords (`inset-x-0 mx-auto w-max`), et non par `left-1/2` +
+ *    `-translate-x-1/2` : sans largeur posée, une boîte fixe ne s'étend qu'à
+ *    droite de son `left`, donc sur la moitié de l'écran. Sur 393 px, le
+ *    bandeau plafonnait à 197 px et empilait ses deux boutons.
  *
  * `snoozeHours` reste à 0 : le bouton secondaire masque le bandeau pour la
  * session, il ne le reporte pas dans `localStorage`. Écarter la mise à jour
@@ -29,7 +33,7 @@ export function UpdateBanner() {
       checkEvery="1h"
       snoozeHours={0}
       registerSW={registerSW}
-      className="fixed bottom-4 left-1/2 z-50 max-w-[calc(100vw-2rem)] -translate-x-1/2"
+      className="fixed inset-x-0 bottom-4 z-50 mx-auto w-max max-w-[calc(100vw-2rem)]"
     />
   );
 }
