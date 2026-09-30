@@ -147,6 +147,16 @@ body {
    (`:where(#root) > [data-dwc='error-boundary']`) couvre exactement le bloc
    que ce fichier recopiait. */
 
+/* « Mettre à jour » prend sa couleur au socle (6.21.0), mais pas son survol.
+   L'éclaircissement du socle (`brightness(1.08)`) rapproche le vert du blanc
+   en thème clair : 4,42:1 au survol, sous le 4,5 de WCAG AA. `--primary-hover`
+   tient les deux thèmes : 7,13 sous le blanc, 5,42 sous l'encre sombre. */
+[data-dwc='update-banner-update']:hover:not([aria-busy='true']) {
+  border-color: var(--primary-hover);
+  background: var(--primary-hover);
+  filter: none;
+}
+
 /* Famille — grille « Nos autres applications » (composant partagé FamilyApps).
    Attributs [data-dwc="…"] scopés sous .family-apps ; couleurs via les tokens
    de thème (--surface-muted/--fg/--fg-muted/--border-ui/--primary) → le mode
