@@ -32,5 +32,10 @@ jobs:
       # Variable absente = chaîne vide = aucune mesure. Elle n'active donc
       # rien par elle-même : elle rend la variable capable d'agir.
       build-env: |
+        VITE_BACKEND=${{ vars.VITE_BACKEND }}
         VITE_POSTHOG_KEY=${{ vars.VITE_POSTHOG_KEY }}
+        VITE_PUBLIC_SITE_ORIGIN=${{ vars.VITE_PUBLIC_SITE_ORIGIN }}
         VITE_SENTRY_DSN=${{ vars.VITE_SENTRY_DSN }}
+        VITE_SUPABASE_ANON_KEY=${{ vars.VITE_SUPABASE_ANON_KEY }}
+        VITE_SUPABASE_URL=${{ vars.VITE_SUPABASE_URL }}
+        VITE_VAPID_PUBLIC_KEY=${{ vars.VITE_VAPID_PUBLIC_KEY }}
