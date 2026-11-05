@@ -18,6 +18,7 @@ import { Button } from '@mister-guiiug/dev-pwa-config/react/button';
 import { ConfirmDialog } from '@mister-guiiug/dev-pwa-config/react/confirm-dialog';
 import { AppFooter } from '@mister-guiiug/dev-pwa-config/react/app-footer';
 import { ConsentSection } from '@mister-guiiug/dev-pwa-config/react/consent-section';
+import { PrivacyNotice } from '@mister-guiiug/dev-pwa-config/react/privacy-notice';
 import { parsePosthogKey } from '@mister-guiiug/dev-pwa-config/analytics';
 import { repoUrl } from '@mister-guiiug/dev-pwa-config/apps-catalog';
 import { dateSlug, downloadText } from '@mister-guiiug/dev-pwa-config/download';
@@ -613,6 +614,11 @@ export default function SettingsPage() {
           identifiant de mesure, la section ne rend rien : sa carte non plus. */}
       {parsePosthogKey(import.meta.env.VITE_POSTHOG_KEY) && (
         <Card>
+          <PrivacyNotice
+            env={import.meta.env}
+            className="gap-3"
+            titleClassName="text-sm font-semibold text-fg-heading"
+          />
           <ConsentSection
             posthogKey={import.meta.env.VITE_POSTHOG_KEY}
             loader={() => import('posthog-js/dist/module.slim.js')}
