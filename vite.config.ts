@@ -6,7 +6,13 @@ import { pwaSeoPlugin } from '@mister-guiiug/dev-pwa-config/vite-pwa-base';
 import { cspPlugin } from '@mister-guiiug/dev-pwa-config/vite-csp';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { versionPlugin } from '@mister-guiiug/dev-pwa-config/vite-version';
-import { NAVIGATE_FALLBACK_DENY_FILES } from '@mister-guiiug/dev-pwa-config/vite-pwa';
+import {
+  googleFontsCaching,
+  NAVIGATE_FALLBACK_DENY_FILES,
+  SENTRY_CHUNK,
+  sentryChunkFileNames,
+  sentryGlobIgnores,
+} from '@mister-guiiug/dev-pwa-config/vite-pwa';
 
 const analyze = process.env.ANALYZE === '1';
 
@@ -34,29 +40,8 @@ export default defineConfig(({ command, mode }) => {
       chunkSizeWarningLimit: 900,
       rollupOptions: {
         output: {
-          /*
-           * LE MORCEAU SENTRY GARDE SON NOM, SANS EMPREINTE — parce
-           * qu'il est exclu du précache (`globIgnores` plus bas) et qu'une URL
-           * empreintée y meurt à chaque déploiement.
-           *
-           * Le service worker sert la coquille précachée jusqu'à ce que
-           * l'utilisateur accepte la mise à jour ; cette coquille demande
-           * l'ANCIENNE empreinte, que le déploiement suivant a supprimée de
-           * `assets/`. Mesuré en production sur mister-qowa le 22/09/2026 :
-           * HTTP 404, « Échec du chargement pour le module » dans la console.
-           * Pour Sentry, `initSentry` avale l'échec (son `try/catch`) : l'app ne
-           * casse pas, elle rapporte ses erreurs à personne, sans le dire.
-           *
-           * Rien n'est perdu au cache : GitHub Pages répond
-           * `Cache-Control: max-age=600` sur TOUS les fichiers, empreinte ou pas.
-           *
-           * `pwa-doctor` tient l'invariant depuis le socle 6.8.0
-           * (règle `chunk-hors-precache`).
-           */
-          chunkFileNames: chunk =>
-            chunk.name === 'sentry'
-              ? 'assets/sentry.js'
-              : 'assets/[name]-[hash].js',
+          // Le morceau Sentry, nom sans empreinte : socle (`vite-pwa`, 6.32.0).
+          chunkFileNames: sentryChunkFileNames,
           manualChunks(id) {
             if (!id.includes('node_modules')) return;
             const norm = id.replace(/\\/g, '/');
@@ -66,7 +51,7 @@ export default defineConfig(({ command, mode }) => {
             // préchargés au lieu de 227,2 — pour un total gzip identique
             // à 0,1 kB près. Le total ne voit pas la différence,
             // `bundleBudget.preloadGzipKb` si.
-            if (norm.includes('/@sentry/')) return 'sentry';
+            if (norm.includes('/@sentry/')) return SENTRY_CHUNK;
             // ET POSTHOG POUR LA MÊME RAISON, EN PLUS GRAVE. Sentry préchargé
             // coûtait du poids ; PostHog préchargé casse une PROMESSE : l'ADR
             // 0012 dit que rien n'est chargé avant l'accord, et le socle ne
@@ -133,7 +118,7 @@ export default defineConfig(({ command, mode }) => {
         // l'accord serait refusée par la politique — et l'échec ne se verrait
         // qu'en console, sur le site déployé, une fois le consentement donné.
         analytics: true,
-        connectSrc: ["'self'", 'https://*.supabase.co', 'wss://*.supabase.co'],
+        connectSrc: ["'self'"],
         extraDirectives: {
           'frame-ancestors': "'none'",
         },
@@ -157,28 +142,14 @@ export default defineConfig(({ command, mode }) => {
            * demande le réseau.
            */
           globIgnores: [
-            '**/sentry.js',
-            '**/sentry-*.js',
+            ...sentryGlobIgnores(),
             ...(pushHandlers ? [] : ['push-sw.js']),
           ],
           // Les gestionnaires Web Push (`public/push-sw.js`), ajoutés au
           // worker engendré sans changer sa stratégie de cache — le montage
           // de mister-doc. Build connecté seulement (voir `pushHandlers`).
           ...(pushHandlers ? { importScripts: ['push-sw.js'] } : {}),
-          runtimeCaching: [
-            {
-              urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'google-fonts',
-                expiration: {
-                  maxEntries: 16,
-                  maxAgeSeconds: 60 * 60 * 24 * 365,
-                },
-                cacheableResponse: { statuses: [0, 200] },
-              },
-            },
-          ],
+          runtimeCaching: googleFontsCaching(),
         },
         // Ce que le worker doit précacher EN PLUS du build. La liste citait
         // 'favicon.ico', 'pwa-192x192.png' et 'pwa-512x512.png' : AUCUN de ces
