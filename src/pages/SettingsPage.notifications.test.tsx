@@ -25,6 +25,16 @@ describe('SettingsPage — notification preferences', () => {
     expect(screen.queryByText('Matchs')).not.toBeInTheDocument();
   });
 
+  it('une catégorie se coupe puis se rallume, et le bouton dit son état', async () => {
+    renderWithProviders(<SettingsPage />);
+    const matchs = () => screen.getByRole('button', { name: 'Matchs' });
+    expect(matchs()).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(matchs());
+    expect(matchs()).toHaveAttribute('aria-pressed', 'false');
+    await userEvent.click(matchs());
+    expect(matchs()).toHaveAttribute('aria-pressed', 'true');
+  });
+
   it('toggles a reminder delay', async () => {
     renderWithProviders(<SettingsPage />);
     await userEvent.click(screen.getByRole('button', { name: 'H-2' }));
