@@ -38,11 +38,13 @@ describe('SettingsPage — notification preferences', () => {
     renderWithProviders(<SettingsPage />);
     expect(
       screen.getByText(
-        "Notifications push : elles n'existent qu'avec un compte du club (mode connecté)."
+        "Notifications push : indisponibles dans cette version, qui n'a ni compte ni serveur."
       )
     ).toBeInTheDocument();
     expect(screen.getByText('Compte joueur')).toBeInTheDocument();
-    expect(screen.getByText(/la fonction n'y existe pas/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/que cette version de démonstration n'a pas/)
+    ).toBeInTheDocument();
     expect(screen.queryByRole('switch', { name: /appareil/ })).toBeNull();
     expect(
       screen.queryByRole('button', { name: /code d'invitation/ })
@@ -80,9 +82,11 @@ describe('SettingsPage dans un build local', () => {
     render(<SettingsPageLocal />);
     expect(
       screen.getByText(
-        "Notifications push : elles n'existent qu'avec un compte du club (mode connecté)."
+        "Notifications push : indisponibles dans cette version, qui n'a ni compte ni serveur."
       )
     ).toBeInTheDocument();
-    expect(screen.getByText(/la fonction n'y existe pas/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/que cette version de démonstration n'a pas/)
+    ).toBeInTheDocument();
   });
 });

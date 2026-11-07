@@ -9,6 +9,9 @@ import {
   importState,
   completeSnapshot,
   assertAppState,
+  emptyState,
+  isDemoData,
+  seedState,
   type AppState,
 } from './storage';
 
@@ -375,5 +378,56 @@ describe('assertAppState — refuser, et dire quoi', () => {
     const noTeam = valid();
     noTeam.selectedTeamId = 12;
     expect(() => assertAppState(noTeam)).toThrow(/sélectionnée/);
+  });
+});
+
+describe('emptyState — « Repartir de zéro »', () => {
+  it('ouvre la saison qui court : d’août à juin', () => {
+    const state = emptyState(new Date(2026, 10, 7));
+    expect(state.season).toEqual({
+      id: 'season-2026',
+      name: '2026-2027',
+      startDate: '2026-08-01',
+      endDate: '2027-06-30',
+      active: true,
+    });
+    // En mai, la saison est celle commencée l'été précédent.
+    expect(emptyState(new Date(2027, 4, 15)).season.name).toBe('2026-2027');
+    // Juillet ouvre déjà la suivante : on y prépare les effectifs.
+    expect(emptyState(new Date(2027, 6, 1)).season.name).toBe('2027-2028');
+  });
+
+  it('ne garde aucune donnée de la démonstration — sauf l’utilisateur figé, sans nom', () => {
+    const state = emptyState(new Date(2026, 10, 7));
+    expect(state.teams).toEqual([]);
+    expect(state.players).toEqual([]);
+    expect(state.matches).toEqual([]);
+    expect(state.notifications).toEqual([]);
+    expect(state.users).toEqual([
+      {
+        id: 'u1',
+        email: '',
+        firstName: '',
+        lastName: '',
+        roles: ['coach'],
+        teamIds: [],
+      },
+    ]);
+    expect(state.clubSettings).toEqual({ autoSurveyOnMatch: true });
+    expect(state.selectedTeamId).toBe('');
+  });
+
+  it('passe la validation du magasin : elle s’écrit, se relit, s’exporte', () => {
+    const state = emptyState(new Date(2026, 10, 7));
+    expect(assertAppState(state)).toBe(state);
+    expect(saveState(state)).toBe(true);
+    expect(loadState()).toEqual(state);
+  });
+});
+
+describe('isDemoData — la saison dit si les données sont fictives', () => {
+  it('la démonstration l’est ; une saison vide, ou saisie, ne l’est pas', () => {
+    expect(isDemoData(seedState())).toBe(true);
+    expect(isDemoData(emptyState())).toBe(false);
   });
 });

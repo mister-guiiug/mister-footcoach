@@ -41,6 +41,7 @@ import { createStore } from '@mister-guiiug/dev-pwa-config/storage';
 import { createVersionedStore } from '@mister-guiiug/dev-pwa-config/versioned-store';
 import type { AppData } from '../types';
 import { MOCK_DATA } from '../data/mock';
+import { CURRENT_USER_ID } from '../constants/session';
 
 /** L'état applicatif : le modèle métier, plus l'équipe en cours de lecture. */
 export interface AppState extends AppData {
@@ -164,6 +165,58 @@ export function assertAppState(data: unknown): AppState {
 /** L'état de départ : les données de démonstration, comme avant. */
 export function seedState(): AppState {
   return { ...MOCK_DATA, selectedTeamId: MOCK_DATA.teams[0]!.id };
+}
+
+/**
+ * Les données sont-elles celles de la démonstration ? C'est la SAISON qui le
+ * dit : « Repartir de zéro » en ouvre une autre, « Restaurer la démo » remet
+ * la sienne, et un fichier importé apporte celle qu'il avait — un export de
+ * la démo reste donc fictif, celui d'une saison saisie ne l'est pas.
+ */
+export function isDemoData(state: Pick<AppState, 'season'>): boolean {
+  return state.season.id === MOCK_DATA.season.id;
+}
+
+/**
+ * « Repartir de zéro » : une saison VIDE, celle qui court à la date donnée
+ * (du 1er août au 30 juin — la saison du foot amateur, comme celle de la
+ * démonstration). Juillet ouvre déjà la suivante : c'est le mois où l'on
+ * prépare les effectifs.
+ *
+ * UN SEUL UTILISATEUR RESTE, et c'est voulu : en mode local il n'y a pas de
+ * compte, l'utilisateur est figé (`CURRENT_USER_ID`), et sans sa fiche les
+ * préférences de notification n'auraient personne à qui s'appliquer. Ni nom
+ * ni adresse : ceux de la démonstration étaient fictifs.
+ */
+export function emptyState(today: Date = new Date()): AppState {
+  const start =
+    today.getMonth() >= 6 ? today.getFullYear() : today.getFullYear() - 1;
+  const collections = Object.fromEntries(
+    COLLECTIONS.map(key => [key, []])
+  ) as unknown as Pick<AppData, (typeof COLLECTIONS)[number]>;
+  return {
+    ...collections,
+    season: {
+      id: `season-${start}`,
+      name: `${start}-${start + 1}`,
+      startDate: `${start}-08-01`,
+      endDate: `${start + 1}-06-30`,
+      active: true,
+    },
+    users: [
+      {
+        id: CURRENT_USER_ID,
+        email: '',
+        firstName: '',
+        lastName: '',
+        roles: ['coach'],
+        teamIds: [],
+      },
+    ],
+    notificationPreferences: {},
+    clubSettings: { autoSurveyOnMatch: true },
+    selectedTeamId: '',
+  };
 }
 
 const store = createVersionedStore<AppState>({

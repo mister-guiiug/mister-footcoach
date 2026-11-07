@@ -117,7 +117,22 @@ describe('Réglages avec le backend Supabase', () => {
     // parce qu'elle est conditionnée — pas parce que rien n'a été monté.
     renderWithSupabaseBackend();
     expect(screen.getByText('Paramètres')).toBeInTheDocument();
-    expect(screen.getByText('Données de démonstration')).toBeInTheDocument();
+    expect(screen.getByText('Saison active')).toBeInTheDocument();
+  });
+
+  // La démo se restaurait aussi en mode connecté — mais `persistAction` ne
+  // persiste ni `RESET_TO_MOCK` ni `HYDRATE` : seul l'écran changeait, et le
+  // rechargement suivant rendait la base. Ni « Restaurer la démo » ni
+  // « Repartir de zéro » n'ont donc de sens ici.
+  it('ne propose ni de restaurer la démo, ni de repartir de zéro', () => {
+    renderWithSupabaseBackend();
+    expect(screen.queryByText('Données de démonstration')).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: /Restaurer la démo/ })
+    ).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: /Repartir de zéro/ })
+    ).toBeNull();
   });
 
   it('monte le réglage push à la place de la ligne du mode local', async () => {
@@ -131,11 +146,14 @@ describe('Réglages avec le backend Supabase', () => {
       )
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(/elles n'existent qu'avec un compte du club/)
+      screen.queryByText(/indisponibles dans cette version/)
     ).not.toBeInTheDocument();
     // Et pas la carte de repli du compte joueur : sans fiche rattachée à la
     // session, `PlayerAccountsCard` ne rend rien.
-    expect(screen.queryByText(/la fonction n'y existe pas/)).toBeNull();
+    expect(
+      screen.queryByText(/que cette version de démonstration n'a pas/)
+    ).toBeNull();
+    expect(screen.queryByText('Indisponible dans cette version')).toBeNull();
   });
 
   it('offre la zone dangereuse, fermée', () => {

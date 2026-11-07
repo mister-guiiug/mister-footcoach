@@ -4,9 +4,16 @@ import { usePageViews } from '@mister-guiiug/dev-pwa-config/react/use-page-views
 import { TopBar } from './TopBar';
 import { BottomNav } from './BottomNav';
 import { UpdateBanner } from '../UpdateBanner';
+import { BandeauDemo } from '../BandeauDemo';
+import { BACKEND } from '../../backend/config';
+import { useAppContext } from '../../store/AppContext';
+import { isDemoData } from '../../store/storage';
+import { useI18n } from '../../i18n';
 
 export function AppShell() {
   const { pathname } = useLocation();
+  const { t } = useI18n();
+  const { state } = useAppContext();
 
   /*
    * LA MESURE VIT ICI, et pas dans `App` : `useLocation` n'existe que SOUS le
@@ -33,6 +40,22 @@ export function AppShell() {
           `DashboardPage` et `SettingsPage`). Le `pb-20` reste : il réserve la
           place de la barre basse fixe, pied de page ou non. */}
       <main className="flex-1 overflow-y-auto pb-20">
+        {/* LE SITE PUBLIÉ TOURNE EN LOCAL (`VITE_BACKEND` n'y est pas posé) :
+            ni compte, ni serveur, et une saison fictive au départ. Le dire
+            sur CHAQUE écran, et pas seulement dans les Réglages : c'est sur
+            l'accueil et la composition qu'un coach décide d'y saisir sa
+            saison. Dans le flux, en tête du contenu : rien de fixe, donc rien
+            de recouvert — ni le plateau du direct, ni la barre basse. */}
+        {BACKEND === 'local' && (
+          <BandeauDemo
+            etiquette={t('demoBanner.label')}
+            message={t(
+              isDemoData(state) ? 'demoBanner.sampleData' : 'demoBanner.ownData'
+            )}
+            cleStockage="mister-footcoach-bandeau-demo-replie"
+            className="mx-4 mt-3"
+          />
+        )}
         <Outlet />
         {/* Une `region`, pas une boîte modale : elle ne recouvre rien et ne
             piège pas le focus — un bandeau posé par-dessus un plateau de match

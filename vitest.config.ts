@@ -265,11 +265,24 @@ export default defineConfig({
       // Mesures (poste, binaires au lockfile) : statements 2046/2498 →
       // 2453/2877, branches 1580/1987 → 1921/2319, functions 668/879 →
       // 792/996, lines 1852/2254 → 2226/2602.
+      // REMONTÉ le 07/11/2026 avec le bandeau de démonstration et « Repartir
+      // de zéro ». Deux mouvements, dits séparément parce qu'un seul est de
+      // cette branche. Le premier était déjà sur `main` : la CI y mesurait
+      // 85,52 / 83,11 / 80,00 / 85,83 (run 42373965756) quand les seuils
+      // valaient encore 85,26 / 82,83 / 79,51 / 85,54. Le second : tout ce
+      // qui est ajouté est couvert — `BandeauDemo` (repli, clé retenue),
+      // `emptyState` / `isDemoData`, la coquille dans ses trois cas (démo,
+      // saison vide, Supabase), les deux départs des Réglages, le nom
+      // accessible des notifications — et chaque écran est monté une fois sur
+      // la saison vide (`pages/emptySeason.test.tsx`), qui a fait tomber la
+      // composition (`teams[0]!.id`). Mesure locale, binaires au lockfile
+      // (`npx pwa-bindings`) : statements 2526/2951, branches 1998/2396,
+      // functions 827/1032, lines 2297/2674.
       thresholds: {
-        statements: 85.26,
-        branches: 82.83,
-        functions: 79.51,
-        lines: 85.54,
+        statements: 85.59,
+        branches: 83.38,
+        functions: 80.13,
+        lines: 85.9,
       },
     },
   },

@@ -17,6 +17,7 @@ export function TopBar({ title, showBack, actions }: TopBarProps) {
   const unreadCount = useUnreadNotificationCount();
 
   const isRoot = location.pathname === '/';
+  const unreadLabel = unreadCount > 9 ? '9+' : String(unreadCount);
 
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center gap-2 bg-surface border-b border-border-ui px-3">
@@ -48,12 +49,20 @@ export function TopBar({ title, showBack, actions }: TopBarProps) {
         <button
           onClick={() => navigate('/notifications')}
           className="relative flex h-9 w-9 items-center justify-center rounded-xl hover:bg-surface-muted text-fg-muted"
-          aria-label={t('topbar.notifications')}
+          // Le nom accessible CONTIENT le chiffre affiché (WCAG 2.5.3) : un
+          // « Notifications » sec, sur un bouton qui montre « 2 », est ce
+          // qu'axe relève en `label-content-name-mismatch` — et ce qu'un
+          // contrôle vocal ne retrouve pas (« appuie sur 2 »).
+          aria-label={
+            unreadCount > 0
+              ? t('topbar.notificationsUnread', { count: unreadLabel })
+              : t('topbar.notifications')
+          }
         >
           <Bell size={20} />
           {unreadCount > 0 && (
             <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
+              {unreadLabel}
             </span>
           )}
         </button>

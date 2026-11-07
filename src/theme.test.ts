@@ -85,6 +85,28 @@ describe('index.css - le vert primaire', () => {
     );
   });
 
+  // L'état CHOISI des boutons (`bg-primary-subtle text-primary`) : thème,
+  // langue, délai de rappel, poste ouvert de la composition, événement du
+  // direct — dont le libellé reste en `text-fg-muted`. En sombre, green-900
+  // ne tenait que 3,99:1 sous le vert et 3,55 sous le gris : axe l'a relevé
+  // dès que l'e2e a audité ce thème (`e2e/coeur.spec.ts`).
+  it.each([
+    ['clair', CLAIR],
+    ['sombre', SOMBRE],
+  ] as const)(
+    '%s : le vert et le gris se lisent sur le fond pâle',
+    (_t, table) => {
+      const fond = hex(table, '--primary-subtle');
+      expect(fond).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(contraste(hex(table, '--primary'), fond)).toBeGreaterThanOrEqual(
+        4.5
+      );
+      expect(contraste(hex(table, '--fg-muted'), fond)).toBeGreaterThanOrEqual(
+        4.5
+      );
+    }
+  );
+
   it("l'app et le socle lisent la même paire", () => {
     // `bg-primary text-primary-fg` dans les pages, `--dwc-primary*` dans les
     // composants partagés : si les deux divergeaient, la moitié des boutons

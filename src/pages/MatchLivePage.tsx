@@ -329,6 +329,7 @@ export default function MatchLivePage() {
           </span>
           <input
             type="range"
+            aria-label={t('live.minute')}
             min={0}
             max={80}
             value={minute}
@@ -428,6 +429,7 @@ export default function MatchLivePage() {
             <Button
               variant="ghost"
               size="sm"
+              aria-label={t('common.cancel')}
               onClick={() => {
                 setSelectedEvent(null);
                 setSelectedPlayer(null);
