@@ -304,6 +304,10 @@ export default function SettingsPage() {
                 return (
                   <button
                     key={cat.key}
+                    // L'état se lisait à la coche seule : un lecteur d'écran
+                    // annonçait « Matchs, bouton » sans dire si la catégorie
+                    // était active (WCAG 4.1.2).
+                    aria-pressed={active}
                     onClick={() => toggleCategory(cat.key)}
                     className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm hover:bg-surface-muted"
                   >
