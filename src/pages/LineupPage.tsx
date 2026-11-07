@@ -33,7 +33,8 @@ export default function LineupPage() {
   const { state, dispatch } = useAppContext();
 
   const [selectedTeamId, setSelectedTeamId] = useState(
-    searchParams.get('teamId') ?? teams[0]!.id
+    // Sans équipe (« Repartir de zéro »), aucune : l'écran reste montable.
+    searchParams.get('teamId') ?? teams[0]?.id ?? ''
   );
   const [selectedFormation, setSelectedFormation] =
     useState<Formation>(DEFAULT_FORMATION);
@@ -159,7 +160,12 @@ export default function LineupPage() {
         <h1 className="text-xl font-bold text-fg-heading">
           {t('lineups.title')}
         </h1>
-        <Button variant="primary" size="sm" onClick={saveLineup}>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={saveLineup}
+          disabled={!selectedTeamId}
+        >
           <Save size={14} />
           {t('lineups.save')}
         </Button>
@@ -168,6 +174,7 @@ export default function LineupPage() {
       {/* Team & formation selectors */}
       <div className="flex gap-2">
         <select
+          aria-label={t('lineups.team')}
           value={selectedTeamId}
           onChange={e => setSelectedTeamId(e.target.value)}
           className="flex-1 h-9 rounded-xl border border-border-ui bg-surface px-3 text-sm text-fg"
@@ -231,11 +238,11 @@ export default function LineupPage() {
                 className={`h-10 w-10 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
                   player
                     ? isUnavail
-                      ? 'bg-amber-400 border-amber-600 text-white'
+                      ? 'bg-amber-400 border-amber-600 text-amber-950'
                       : 'bg-white border-primary text-primary'
                     : isSelected
-                      ? 'bg-primary-subtle border-primary text-primary animate-pulse'
-                      : 'bg-white/20 border-white/50 text-white'
+                      ? 'bg-primary-subtle border-primary text-primary motion-safe:animate-pulse'
+                      : 'bg-black/25 border-white/60 text-white'
                 }`}
               >
                 {player

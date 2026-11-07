@@ -42,6 +42,17 @@ export const messages = {
     app: {
       name: 'Mister Footcoach',
     },
+    // Le bandeau du mode local (`BandeauDemo`, monté par `AppShell`). Deux
+    // phrases, parce que deux vérités : tant que la saison est celle de la
+    // démonstration, les données sont FICTIVES ; après « Repartir de zéro »
+    // ou l'import d'une saison à soi, elles ne le sont plus — mais restent
+    // sur l'appareil, sans compte ni partage.
+    demoBanner: {
+      label: 'Démonstration',
+      sampleData: 'Données fictives, enregistrées sur cet appareil seulement.',
+      ownData:
+        'Vos données restent sur cet appareil seulement : ni compte, ni partage.',
+    },
     nav: {
       // Nom du repère de navigation, lu par les lecteurs d'écran : sans lui,
       // deux `<nav>` de la page sont indiscernables dans leur liste de repères.
@@ -63,6 +74,7 @@ export const messages = {
     topbar: {
       back: 'Retour',
       notifications: 'Notifications',
+      notificationsUnread: 'Notifications, non lues : {count}',
     },
     connection: {
       // Affiché uniquement avec le backend Supabase : avec le backend local
@@ -283,6 +295,7 @@ export const messages = {
       btnHalf: 'Mi-temps',
       scoreDown: 'Retirer un point à {team}',
       scoreUp: 'Ajouter un point à {team}',
+      minute: 'Minute de l’événement',
     },
     trainings: {
       title: 'Entraînements',
@@ -338,6 +351,7 @@ export const messages = {
     lineups: {
       title: 'Compositions',
       save: 'Sauvegarder',
+      team: 'Équipe',
       assignToPosition: 'Affecter au poste : ',
       substitutes: 'Remplaçants / non assignés',
       saved: 'Compositions sauvegardées',
@@ -769,7 +783,7 @@ export const messages = {
       autoSurvey: "Sondage auto à la création d'un match",
       federation: 'Intégration fédération',
       federationDesc:
-        'Synchronise le calendrier et les résultats officiels. Les champs locaux (note, assiduité, composition, événements live) ne sont jamais écrasés.',
+        "Démonstration : la synchronisation lit un calendrier fédéral d'exemple, pas celui de votre fédération. Les champs locaux (note, assiduité, composition, événements live) ne sont jamais écrasés.",
       lastSync: 'Dernière synchronisation : {date}',
       syncFederation: 'Synchroniser la fédération',
       syncUpdated: '{count} mis à jour',
@@ -796,17 +810,25 @@ export const messages = {
       importFailed: "Fichier refusé — rien n'a été modifié.",
       demoData: 'Données de démonstration',
       demoDataDesc:
-        "L'application utilise des données de démonstration stockées localement. La réinitialisation restaure les données d'exemple originales.",
-      resetData: 'Réinitialiser les données',
-      resetConfirm: 'Réinitialiser toutes les données de démonstration ?',
+        "L'application s'ouvre sur des données fictives — deux équipes U13 d'exemple —, enregistrées dans ce navigateur seulement. Restaurez-les à tout moment, ou repartez d'une saison vide pour saisir vos propres équipes.",
+      resetData: 'Restaurer la démo',
+      resetConfirm:
+        'Remplacer toutes les données par celles de la démonstration ?',
+      resetConfirmBody:
+        "Ce qui a été saisi sur cet appareil sera remplacé par les données fictives. Exportez d'abord si vous voulez pouvoir revenir en arrière.",
+      startEmpty: 'Repartir de zéro',
+      startEmptyConfirm: 'Tout effacer et repartir de zéro ?',
+      startEmptyConfirmBody:
+        "Équipes, joueurs, matchs, entraînements et sondages seront effacés de cet appareil, et une saison vide les remplacera. Exportez d'abord si vous voulez pouvoir revenir en arrière.",
       // Mode LOCAL seulement : ce qu'il faut dire là où apparaîtraient le
       // compte joueur et le push, qui n'existent qu'en mode connecté. Leurs
       // vrais libellés vivent dans `messages.connected.ts`.
+      unavailable: 'Indisponible dans cette version',
       playerAccount: 'Compte joueur',
       playerAccountLocal:
-        "Avec un compte du club (mode connecté), un parent peut ouvrir à son enfant un accès pour répondre lui-même aux sondages. Cette installation fonctionne sans compte : la fonction n'y existe pas.",
+        "Un parent pourra ouvrir à son enfant un accès pour répondre lui-même aux sondages. Il faut pour cela un compte du club, que cette version de démonstration n'a pas.",
       pushLocal:
-        "Notifications push : elles n'existent qu'avec un compte du club (mode connecté).",
+        "Notifications push : indisponibles dans cette version, qui n'a ni compte ni serveur.",
       danger: {
         title: 'Zone dangereuse',
         body: 'Supprimer votre compte est définitif : rien ne permet de revenir en arrière, et personne ne peut le faire à votre place ensuite.',
@@ -897,6 +919,11 @@ export const messages = {
     app: {
       name: 'Mister Footcoach',
     },
+    demoBanner: {
+      label: 'Demo',
+      sampleData: 'Sample data, saved on this device only.',
+      ownData: 'Your data stays on this device only: no account, no sharing.',
+    },
     nav: {
       label: 'Main navigation',
       home: 'Home',
@@ -916,6 +943,7 @@ export const messages = {
     topbar: {
       back: 'Back',
       notifications: 'Notifications',
+      notificationsUnread: 'Notifications, unread: {count}',
     },
     connection: {
       offline: 'Offline — changes will not be saved to the server.',
@@ -1133,6 +1161,7 @@ export const messages = {
       btnHalf: 'Half-time',
       scoreDown: 'Remove a point from {team}',
       scoreUp: 'Add a point to {team}',
+      minute: 'Event minute',
     },
     trainings: {
       title: 'Training',
@@ -1188,6 +1217,7 @@ export const messages = {
     lineups: {
       title: 'Lineups',
       save: 'Save',
+      team: 'Team',
       assignToPosition: 'Assign to position: ',
       substitutes: 'Substitutes / unassigned',
       saved: 'Saved lineups',
@@ -1609,7 +1639,7 @@ export const messages = {
       autoSurvey: 'Auto poll when a match is created',
       federation: 'Federation integration',
       federationDesc:
-        'Syncs the official schedule and results. Local fields (note, attendance, lineup, live events) are never overwritten.',
+        "Demo: the sync reads a sample federation schedule, not your federation's. Local fields (note, attendance, lineup, live events) are never overwritten.",
       lastSync: 'Last sync: {date}',
       syncFederation: 'Sync the federation',
       syncUpdated: '{count} updated',
@@ -1636,14 +1666,21 @@ export const messages = {
       importFailed: 'File rejected — nothing was changed.',
       demoData: 'Demo data',
       demoDataDesc:
-        'The app uses demo data stored locally. Resetting restores the original sample data.',
-      resetData: 'Reset the data',
-      resetConfirm: 'Reset all demo data?',
+        'The app opens on sample data — two example U13 teams —, saved in this browser only. Restore it at any time, or start from an empty season to enter your own teams.',
+      resetData: 'Restore the demo',
+      resetConfirm: 'Replace all data with the demo data?',
+      resetConfirmBody:
+        'What was entered on this device will be replaced by the sample data. Export first if you want to be able to go back.',
+      startEmpty: 'Start from scratch',
+      startEmptyConfirm: 'Erase everything and start from scratch?',
+      startEmptyConfirmBody:
+        'Teams, players, matches, trainings and polls will be erased from this device, and an empty season will replace them. Export first if you want to be able to go back.',
+      unavailable: 'Not available in this version',
       playerAccount: 'Player account',
       playerAccountLocal:
-        'With a club account (connected mode), a parent can give their child access to answer polls themselves. This installation works without an account: the feature does not exist here.',
+        'A parent will be able to give their child access to answer polls themselves. This needs a club account, which this demo version does not have.',
       pushLocal:
-        'Push notifications: they only exist with a club account (connected mode).',
+        'Push notifications: not available in this version, which has no account and no server.',
       danger: {
         title: 'Danger zone',
         body: 'Deleting your account is permanent: there is no way back, and nobody can do it for you afterwards.',

@@ -1,10 +1,25 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { I18nProvider } from '../../i18n';
 import { ThemeProvider } from '../../theme/ThemeContext';
-import { AppProvider } from '../../store/AppContext';
+import { AppContext, AppProvider } from '../../store/AppContext';
+import { emptyState, seedState, STORAGE_KEY } from '../../store/storage';
 import { AppShell } from './AppShell';
+
+/*
+ * `BACKEND` est lu au rendu : le double est un GETTER (modèle de
+ * `ConnectionBanner.test.tsx`), chaque test choisit son backend.
+ */
+const backend = vi.hoisted(() => ({
+  current: 'local' as 'local' | 'supabase',
+}));
+
+vi.mock('../../backend/config', () => ({
+  get BACKEND() {
+    return backend.current;
+  },
+}));
 
 function renderShell() {
   render(
@@ -51,5 +66,56 @@ describe('AppShell', () => {
     expect(
       screen.queryByRole('link', { name: 'M’offrir un café' })
     ).not.toBeInTheDocument();
+  });
+});
+
+describe('AppShell — le bandeau de démonstration', () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => {
+    backend.current = 'local';
+  });
+
+  it('en mode local, sur les données de la démo, dit qu’elles sont fictives', () => {
+    renderShell();
+    expect(screen.getByRole('note')).toHaveTextContent(
+      'Données fictives, enregistrées sur cet appareil seulement.'
+    );
+  });
+
+  it('après « Repartir de zéro », ne dit plus « fictives » — mais toujours « sur cet appareil »', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ v: 1, data: emptyState() })
+    );
+    renderShell();
+    const note = screen.getByRole('note');
+    expect(note).toHaveTextContent(
+      'Vos données restent sur cet appareil seulement : ni compte, ni partage.'
+    );
+    expect(note).not.toHaveTextContent(/fictives/);
+  });
+
+  it('avec le backend Supabase, ne rend aucun bandeau : il y a un compte et un serveur', () => {
+    backend.current = 'supabase';
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <I18nProvider>
+          <ThemeProvider>
+            <AppContext.Provider
+              value={{ state: seedState(), dispatch: () => {} }}
+            >
+              <Routes>
+                <Route element={<AppShell />}>
+                  <Route index element={<div>Page content</div>} />
+                </Route>
+              </Routes>
+            </AppContext.Provider>
+          </ThemeProvider>
+        </I18nProvider>
+      </MemoryRouter>
+    );
+    // Garde anti-test-creux : la coquille est bien montée.
+    expect(screen.getByText('Page content')).toBeInTheDocument();
+    expect(screen.queryByRole('note')).toBeNull();
   });
 });

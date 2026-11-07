@@ -54,7 +54,11 @@ html.dark {
      7,83 sur `--primary`, 5,42 sur `--primary-hover`. */
   --primary: #22c55e;
   --primary-hover: #16a34a;
-  --primary-subtle: #14532d;
+  /* green-950 et non green-900 : le vert vif en TEXTE sur ce fond (option
+     choisie, poste ouvert de la composition) ne tenait que 3,99:1 sur
+     green-900, et le gris des libellés 3,55. Relevé par axe en thème sombre,
+     que personne n'auditait. green-950 : 6,5 et 5,8. */
+  --primary-subtle: #052e16;
   --primary-fg: #0f172a;
   --on-primary: #dcfce7;
 }

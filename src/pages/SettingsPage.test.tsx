@@ -62,7 +62,17 @@ describe('SettingsPage', () => {
   it('shows data management card', () => {
     renderWithProviders(<SettingsPage />);
     expect(screen.getByText('Données de démonstration')).toBeInTheDocument();
-    expect(screen.getByText('Réinitialiser les données')).toBeInTheDocument();
+    expect(screen.getByText('Restaurer la démo')).toBeInTheDocument();
+    expect(screen.getByText('Repartir de zéro')).toBeInTheDocument();
+    // La carte dit que les données sont FICTIVES, et où elles vivent.
+    expect(screen.getByText(/données fictives/)).toBeInTheDocument();
+  });
+
+  it('marque le compte joueur « indisponible dans cette version »', () => {
+    renderWithProviders(<SettingsPage />);
+    expect(
+      screen.getByText('Indisponible dans cette version')
+    ).toBeInTheDocument();
   });
 
   it('shows app info card, sans mention de version', () => {
@@ -94,7 +104,15 @@ describe('SettingsPage', () => {
   /** Demande la réinitialisation et rend la boîte de confirmation. */
   async function askReset(): Promise<HTMLElement> {
     await userEvent.click(
-      screen.getByRole('button', { name: /Réinitialiser les données/ })
+      screen.getByRole('button', { name: /Restaurer la démo/ })
+    );
+    return screen.getByRole('alertdialog');
+  }
+
+  /** Demande à repartir de zéro et rend la boîte de confirmation. */
+  async function askEmpty(): Promise<HTMLElement> {
+    await userEvent.click(
+      screen.getByRole('button', { name: /Repartir de zéro/ })
     );
     return screen.getByRole('alertdialog');
   }
@@ -105,9 +123,10 @@ describe('SettingsPage', () => {
     const dialog = await askReset();
     expect(
       within(dialog).getByText(
-        'Réinitialiser toutes les données de démonstration ?'
+        'Remplacer toutes les données par celles de la démonstration ?'
       )
     ).toBeInTheDocument();
+    expect(within(dialog).getByText(/Exportez d'abord/)).toBeInTheDocument();
     // Rien n'est réinitialisé tant que rien n'est confirmé.
     expect(screen.getByText('Saison bricolée')).toBeInTheDocument();
   });
@@ -117,10 +136,59 @@ describe('SettingsPage', () => {
     renderWithProviders(<SettingsPage />);
     const dialog = await askReset();
     await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Réinitialiser les données' })
+      within(dialog).getByRole('button', { name: 'Restaurer la démo' })
     );
     expect(screen.getByText('2025-2026')).toBeInTheDocument();
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  // ── Repartir de zéro ─────────────────────────────────────────────────
+  // La démonstration se restaurait, mais rien ne permettait de la QUITTER :
+  // un coach qui voulait saisir sa saison devait d'abord supprimer, une à
+  // une, les fiches de deux équipes fictives.
+
+  it('demande confirmation avant de repartir de zéro, et ne vide rien sans elle', async () => {
+    renderWithProviders(<SettingsPage />);
+    const dialog = await askEmpty();
+    expect(
+      within(dialog).getByText('Tout effacer et repartir de zéro ?')
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText(/Exportez d'abord/)).toBeInTheDocument();
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Annuler' })
+    );
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.getByText('2025-2026')).toBeInTheDocument();
+  });
+
+  it('confirmé, il ouvre une saison vide — et la démo se restaure ensuite', async () => {
+    renderWithProviders(<SettingsPage />);
+    const dialog = await askEmpty();
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Repartir de zéro' })
+    );
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.queryByText('2025-2026')).not.toBeInTheDocument();
+    // Plus d'équipe : le flux fédéral n'aurait personne à qui rattacher ses
+    // matchs, son bouton se grise.
+    expect(
+      screen.getByRole('button', { name: /Synchroniser la fédération/ })
+    ).toBeDisabled();
+    // Et ce qui est écrit est bien vide — relu dans le stockage, pas à l'écran.
+    const stored = JSON.parse(
+      localStorage.getItem('mister-footcoach-data')!
+    ) as { data: { teams: unknown[]; players: unknown[] } };
+    expect(stored.data.teams).toEqual([]);
+    expect(stored.data.players).toEqual([]);
+
+    const back = await askReset();
+    await userEvent.click(
+      within(back).getByRole('button', { name: 'Restaurer la démo' })
+    );
+    expect(screen.getByText('2025-2026')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Synchroniser la fédération/ })
+    ).toBeEnabled();
   });
 
   it('keeps the data when the confirmation is cancelled', async () => {

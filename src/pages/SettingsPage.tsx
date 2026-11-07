@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   Download,
   Upload,
+  Eraser,
 } from 'lucide-react';
 import { FamilyApps } from '@mister-guiiug/dev-pwa-config/react';
 import { Card } from '@mister-guiiug/dev-pwa-config/react/card';
@@ -29,7 +30,7 @@ import {
   useNotificationPreferences,
   useClubSettings,
 } from '../store/AppContext';
-import { exportState, importState } from '../store/storage';
+import { emptyState, exportState, importState } from '../store/storage';
 import { BACKEND } from '../backend/config';
 import { DangerZoneCard } from '../components/features/settings/DangerZoneCard';
 import { ClubNameField } from '../components/features/settings/ClubNameField';
@@ -83,8 +84,12 @@ export default function SettingsPage() {
   const clubSettings = useClubSettings();
   const [syncResult, setSyncResult] = useState<ReconcileResult | null>(null);
   // Réinitialisation en attente de réponse : `window.confirm` rendait un
-  // booléen tout de suite, la boîte du socle attend un clic.
-  const [resetPending, setResetPending] = useState(false);
+  // booléen tout de suite, la boîte du socle attend un clic. DEUX départs
+  // possibles, une seule boîte : restaurer la démonstration, ou repartir d'une
+  // saison vide.
+  const [resetPending, setResetPending] = useState<'demo' | 'empty' | null>(
+    null
+  );
 
   // ── Sauvegarde et restauration (mode local) ────────────────────────
   //
@@ -174,10 +179,6 @@ export default function SettingsPage() {
       settings: { ...clubSettings, federationLastSync: nowIso() },
     });
     setSyncResult(result);
-  }
-
-  function resetData() {
-    setResetPending(true);
   }
 
   function updatePrefs(patch: Partial<NotificationPreferences>) {
@@ -370,9 +371,12 @@ export default function SettingsPage() {
         </Suspense>
       ) : (
         <Card>
-          <p className="mb-1 text-sm font-semibold text-fg-heading">
-            {t('settings.playerAccount')}
-          </p>
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-fg-heading">
+              {t('settings.playerAccount')}
+            </p>
+            <Badge tone="muted">{t('settings.unavailable')}</Badge>
+          </div>
           <p className="text-xs text-fg-muted">
             {t('settings.playerAccountLocal')}
           </p>
@@ -437,7 +441,14 @@ export default function SettingsPage() {
             })}
           </p>
         )}
-        <Button variant="secondary" onClick={syncFederation} className="w-full">
+        {/* Sans équipe — après « Repartir de zéro » —, le flux fédéral n'a
+            personne à qui rattacher ses matchs : il les créerait orphelins. */}
+        <Button
+          variant="secondary"
+          onClick={syncFederation}
+          disabled={state.teams.length === 0}
+          className="w-full"
+        >
           <RefreshCw size={14} /> {t('settings.syncFederation')}
         </Button>
 
@@ -580,32 +591,64 @@ export default function SettingsPage() {
         />
       )}
 
-      {/* Data management */}
-      <Card>
-        <p className="text-sm font-semibold text-fg-heading mb-3">
-          {t('settings.demoData')}
-        </p>
-        <p className="text-xs text-fg-muted mb-3">
-          {t('settings.demoDataDesc')}
-        </p>
-        <Button variant="secondary" onClick={resetData} className="w-full">
-          <RefreshCw size={14} />
-          {t('settings.resetData')}
-        </Button>
-      </Card>
+      {/* Point de départ — mode local seulement. En mode `supabase`, la
+          vérité est en base : remplacer l'état par la démo, ou le vider, ne
+          changeait que l'écran (`persistAction` ne persiste ni l'un ni
+          l'autre), et le rechargement suivant rendait la base. Un bouton qui
+          ment sur ce qu'il fait est pire que son absence. */}
+      {BACKEND === 'local' && (
+        <Card>
+          <p className="text-sm font-semibold text-fg-heading mb-3">
+            {t('settings.demoData')}
+          </p>
+          <p className="text-xs text-fg-muted mb-3">
+            {t('settings.demoDataDesc')}
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={() => setResetPending('demo')}>
+              <RefreshCw size={14} />
+              {t('settings.resetData')}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setResetPending('empty')}
+            >
+              <Eraser size={14} />
+              {t('settings.startEmpty')}
+            </Button>
+          </div>
+        </Card>
+      )}
 
-      {resetPending && (
+      {resetPending !== null && (
         <ConfirmDialog
           open
           destructive
-          title={t('settings.resetConfirm')}
-          confirmLabel={t('settings.resetData')}
+          title={t(
+            resetPending === 'demo'
+              ? 'settings.resetConfirm'
+              : 'settings.startEmptyConfirm'
+          )}
+          message={t(
+            resetPending === 'demo'
+              ? 'settings.resetConfirmBody'
+              : 'settings.startEmptyConfirmBody'
+          )}
+          confirmLabel={t(
+            resetPending === 'demo'
+              ? 'settings.resetData'
+              : 'settings.startEmpty'
+          )}
           cancelLabel={t('common.cancel')}
           onConfirm={() => {
-            dispatch({ type: 'RESET_TO_MOCK' });
-            setResetPending(false);
+            dispatch(
+              resetPending === 'demo'
+                ? { type: 'RESET_TO_MOCK' }
+                : { type: 'HYDRATE', state: emptyState() }
+            );
+            setResetPending(null);
           }}
-          onCancel={() => setResetPending(false)}
+          onCancel={() => setResetPending(null)}
         />
       )}
 

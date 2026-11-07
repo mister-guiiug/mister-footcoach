@@ -5,6 +5,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { TopBar } from './TopBar';
 import { AppProvider } from '../../store/AppContext';
 import { I18nProvider } from '../../i18n';
+import { emptyState, seedState } from '../../store/storage';
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -36,7 +37,42 @@ describe('TopBar', () => {
   it('shows logo and bell icon on root path', () => {
     renderTopBar('/');
     expect(screen.getByText('Mister Footcoach')).toBeInTheDocument();
-    expect(screen.getByLabelText('Notifications')).toBeInTheDocument();
+    // Deux notifications non lues dans les données de démonstration : le nom
+    // accessible porte le chiffre que montre la pastille (WCAG 2.5.3).
+    expect(
+      screen.getByRole('button', { name: 'Notifications, non lues : 2' })
+    ).toHaveTextContent('2');
+  });
+
+  it('sans notification non lue, le bouton se nomme sobrement', () => {
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({ v: 1, data: emptyState() })
+    );
+    renderTopBar('/');
+    expect(
+      screen.getByRole('button', { name: 'Notifications' })
+    ).toHaveTextContent('');
+  });
+
+  it('au-delà de neuf, le nom dit « 9+ » comme la pastille', () => {
+    const state = seedState();
+    const many = Array.from({ length: 12 }, (_, i) => ({
+      id: `n-many-${i}`,
+      userId: 'u1',
+      type: 'match',
+      message: 'm',
+      read: false,
+      createdAt: '2026-05-01T12:00:00.000Z',
+    }));
+    localStorage.setItem(
+      'mister-footcoach-data',
+      JSON.stringify({ v: 1, data: { ...state, notifications: many } })
+    );
+    renderTopBar('/');
+    expect(
+      screen.getByRole('button', { name: 'Notifications, non lues : 9+' })
+    ).toHaveTextContent('9+');
   });
 
   it('does not show back button on root path', () => {
