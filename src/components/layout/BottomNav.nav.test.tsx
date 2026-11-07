@@ -106,14 +106,18 @@ describe('le clic sur une entrée de la barre répond avant que la page soit là
     // HORS des liens : le nom accessible d'« Équipes » ne doit pas changer en
     // cours de route sous le doigt d'un lecteur d'écran.
     expect(
-      screen.getAllByRole('status').some(z => z.textContent === 'Chargement…')
+      screen
+        .getAllByRole('status')
+        .some(z => z.textContent === 'Chargement de la page…')
     ).toBe(true);
     expect(entree(/Équipes/)).toHaveAccessibleName('Équipes');
 
     await livreLaPage();
 
     expect(
-      screen.getAllByRole('status').some(z => z.textContent === 'Chargement…')
+      screen
+        .getAllByRole('status')
+        .some(z => z.textContent === 'Chargement de la page…')
     ).toBe(false);
   });
 
