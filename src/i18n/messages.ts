@@ -58,7 +58,6 @@ export const messages = {
       exercises: 'Exercices',
       contacts: 'Contacts',
       settings: 'Paramètres',
-      loading: 'Chargement…',
     },
     topbar: {
       back: 'Retour',
@@ -911,7 +910,6 @@ export const messages = {
       exercises: 'Drills',
       contacts: 'Contacts',
       settings: 'Settings',
-      loading: 'Loading…',
     },
     topbar: {
       back: 'Back',
